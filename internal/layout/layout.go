@@ -86,6 +86,9 @@ func size(n ir.Node) (w, h float64) {
 	case *ir.While:
 		bw, bh := blockSize(x.Body)
 		return max(diaW(x.Cond), bw) + 2*arcGap, diaH + vGap + bh + vGap
+	case *ir.DoWhile:
+		bw, bh := blockSize(x.Body)
+		return max(diaW(x.Cond), bw) + 2*arcGap, bh + vGap + diaH + vGap
 	}
 	return minBoxW, boxH
 }
@@ -125,6 +128,8 @@ func place(d *diagram.Diagram, n ir.Node, cx, top float64) diagram.Point {
 		return placeFor(d, x, cx, top)
 	case *ir.While:
 		return placeWhile(d, x, cx, top)
+	case *ir.DoWhile:
+		return placeDoWhile(d, x, cx, top)
 	}
 	return diagram.Point{X: cx, Y: top}
 }
@@ -207,6 +212,32 @@ func placeWhile(d *diagram.Diagram, n *ir.While, cx, top float64) diagram.Point 
 	d.Edges = append(d.Edges, diagram.Edge{Label: "Так", Points: []diagram.Point{{X: cx, Y: top + diaH}, {X: cx, Y: bodyTop}}})
 	bodyExit := placeBlock(d, n.Body, cx, bodyTop)
 	return loopArcs(d, cx, dw/2, headCy, bw/2, bodyExit.Y, "Ні")
+}
+
+// placeDoWhile — цикл з післяумовою: тіло згори, ромб-умова знизу, Так→вихід,
+// Ні→дуга повернення справа до лінії входу (повтор тіла).
+func placeDoWhile(d *diagram.Diagram, n *ir.DoWhile, cx, top float64) diagram.Point {
+	bw, _ := blockSize(n.Body)
+	bodyExit := placeBlock(d, n.Body, cx, top)
+
+	diaTop := bodyExit.Y + vGap
+	dw := diaW(n.Cond)
+	d.Shapes = append(d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: diaTop, W: dw, H: diaH, Text: n.Cond})
+	diaCy := diaTop + diaH/2
+	d.Edges = append(d.Edges, edge(bodyExit, diagram.Point{X: cx, Y: diaTop}))
+
+	// Ні — дуга повернення справа, вгору до лінії входу над тілом.
+	backX := cx + bw/2 + arcGap
+	mergeY := top - vGap/2
+	d.Edges = append(d.Edges, diagram.Edge{Label: "Ні", Points: []diagram.Point{
+		{X: cx + dw/2, Y: diaCy}, {X: backX, Y: diaCy}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
+	}})
+	// Так — вихід униз.
+	contY := diaTop + diaH + vGap
+	d.Edges = append(d.Edges, diagram.Edge{Label: "Так", Points: []diagram.Point{
+		{X: cx, Y: diaTop + diaH}, {X: cx, Y: contY},
+	}})
+	return diagram.Point{X: cx, Y: contY}
 }
 
 // loopArcs малює дугу повернення (низ тіла → праворуч → вгору → правий кут

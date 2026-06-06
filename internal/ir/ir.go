@@ -42,6 +42,15 @@ type While struct {
 
 func (*While) node() {}
 
+// DoWhile — цикл з післяумовою (ідіома «while True: … if cond: break»):
+// тіло згори, ромб-умова виходу знизу, дуга повернення. Cond — умова break.
+type DoWhile struct {
+	Cond string
+	Body *Block
+}
+
+func (*DoWhile) node() {}
+
 // Block — послідовність вузлів (виконуються згори вниз).
 type Block struct{ Stmts []Node }
 

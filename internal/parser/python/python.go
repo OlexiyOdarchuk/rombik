@@ -46,10 +46,19 @@ def forspec(s):
         if len(a)==2: return tgt+" = "+expr(a[0])+", "+endof(a[1])+", 1"
         if len(a)>=3: return tgt+" = "+expr(a[0])+", "+endof(a[1])+", "+expr(a[2])
     return tgt+" ∈ "+expr(it)
+def is_true(t):
+    return isinstance(t, ast.Constant) and t.value in (True, 1)
+def break_if(st):
+    # «if COND: break» без else і єдиним break у тілі
+    return (isinstance(st, ast.If) and not st.orelse
+            and len(st.body)==1 and isinstance(st.body[0], ast.Break))
 def stmt(s):
     if isinstance(s, ast.If):
         return {"kind":"if","cond":expr(s.test),"then":block(s.body),"else":block(s.orelse)}
     if isinstance(s, ast.While):
+        # ідіома післяумови: while True: … if COND: break
+        if is_true(s.test) and s.body and break_if(s.body[-1]):
+            return {"kind":"dowhile","cond":expr(s.body[-1].test),"body":block(s.body[:-1])}
         return {"kind":"while","cond":expr(s.test),"body":block(s.body)}
     if isinstance(s, ast.For):
         return {"kind":"for","cond":forspec(s),"body":block(s.body)}
@@ -130,6 +139,8 @@ func toNode(n *pyNode) ir.Node {
 		return &ir.For{Spec: n.Cond, Body: toBlock(n.Body)}
 	case "while":
 		return &ir.While{Cond: n.Cond, Body: toBlock(n.Body)}
+	case "dowhile":
+		return &ir.DoWhile{Cond: n.Cond, Body: toBlock(n.Body)}
 	}
 	return nil
 }
