@@ -18,15 +18,32 @@ import (
 // pyScript читає код зі stdin і друкує спрощене дерево у JSON.
 const pyScript = `
 import sys, ast, json
+defined = set()  # функції, визначені у файлі -> малюємо як підпрограму
+MAXLEN = 64      # обрізаємо задовгий текст у блоці
+def oneline(t):
+    # будь-який текст у блок — в один рядок (захист від складних конструкцій)
+    t = " ".join(t.split())
+    return t if len(t)<=MAXLEN else t[:MAXLEN-1]+"…"
 def expr(e):
-    try: return ast.unparse(e).strip()
+    try: return oneline(ast.unparse(e))
     except Exception: return "?"
+def fstr(j):
+    # f-рядок -> читабельний текст із {виразами}
+    out = ""
+    for p in j.values:
+        if isinstance(p, ast.Constant): out += str(p.value)
+        elif isinstance(p, ast.FormattedValue): out += "{"+expr(p.value)+"}"
+    return out
 def arg(a):
     if isinstance(a, ast.Constant) and isinstance(a.value, str):
         return "«"+a.value+"»"
+    if isinstance(a, ast.JoinedStr):
+        return "«"+fstr(a)+"»"
     return expr(a)
 def call_name(c):
     return c.func.id if isinstance(c, ast.Call) and isinstance(c.func, ast.Name) else None
+def calls_defined(e):
+    return isinstance(e, ast.Call) and call_name(e) in defined
 def has_input(node):
     return any(call_name(n)=="input" for n in ast.walk(node))
 def io(text):
@@ -65,6 +82,8 @@ def stmt(s):
     if isinstance(s, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
         if isinstance(s, ast.Assign) and has_input(s.value):
             return io("Ввід "+", ".join(expr(t) for t in s.targets))
+        if calls_defined(s.value):  # x = моя_функція(...) -> підпрограма
+            return {"kind":"call","text":expr(s)}
         return {"kind":"process","text":expr(s)}
     if isinstance(s, ast.Return):
         return io("Повернути "+expr(s.value)) if s.value else io("Повернути")
@@ -72,8 +91,10 @@ def stmt(s):
         nm = call_name(s.value)
         if nm=="print": return io("Вивід "+" ".join(arg(a) for a in s.value.args))
         if nm=="input": return io("Ввід "+" ".join(arg(a) for a in s.value.args))
-    if isinstance(s, ast.Expr):
-        return {"kind":"process","text":expr(s)}
+        if nm in defined: return {"kind":"call","text":expr(s.value)}
+    if isinstance(s, ast.With):  # контекст-менеджер: заголовок + тіло
+        items = ", ".join((expr(i.context_expr)+(" → "+expr(i.optional_vars) if i.optional_vars else "")) for i in s.items)
+        return {"kind":"block","stmts":[{"kind":"process","text":oneline("відкрити: "+items)}]+[stmt(x) for x in s.body]}
     return {"kind":"process","text":expr(s)}
 def block(stmts):
     return {"kind":"block","stmts":[stmt(s) for s in stmts if not isinstance(s,(ast.Pass,ast.Import,ast.ImportFrom))]}
@@ -87,6 +108,7 @@ def funcblock(fn):
 src = sys.stdin.read()
 mod = ast.parse(src)
 funcs = [s for s in mod.body if isinstance(s, ast.FunctionDef)]
+defined = {fn.name for fn in funcs}  # заповнюємо ДО розбору тіл
 rest  = [s for s in mod.body if not isinstance(s, (ast.FunctionDef, ast.Import, ast.ImportFrom))]
 out = []
 if funcs:
@@ -145,7 +167,12 @@ func toBlock(n *pyNode) *ir.Block {
 		return b
 	}
 	for i := range n.Stmts {
-		if node := toNode(&n.Stmts[i]); node != nil {
+		c := &n.Stmts[i]
+		if c.Kind == "block" { // вкладений блок (напр. from with) — інлайнимо
+			b.Stmts = append(b.Stmts, toBlock(c).Stmts...)
+			continue
+		}
+		if node := toNode(c); node != nil {
 			b.Stmts = append(b.Stmts, node)
 		}
 	}
@@ -158,6 +185,8 @@ func toNode(n *pyNode) ir.Node {
 		return &ir.Process{Text: n.Text}
 	case "io":
 		return &ir.IO{Text: n.Text}
+	case "call":
+		return &ir.Call{Text: n.Text}
 	case "if":
 		return &ir.If{Cond: n.Cond, Then: toBlock(n.Then), Else: toBlock(n.Else)}
 	case "for":

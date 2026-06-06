@@ -72,6 +72,11 @@ func renderShape(b *strings.Builder, s diagram.Shape) {
 		cy := s.Y + s.H/2
 		fmt.Fprintf(b, `<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f" %s/>`,
 			s.X+sk, s.Y, s.X+s.W-sk, s.Y, s.X+s.W, cy, s.X+s.W-sk, s.Y+s.H, s.X+sk, s.Y+s.H, s.X, cy, stroke)
+	case diagram.Predef:
+		fmt.Fprintf(b, `<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" %s/>`, s.X, s.Y, s.W, s.H, stroke)
+		const in = 9 // відступ бокових рисок
+		fmt.Fprintf(b, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#222" stroke-width="1.5"/>`, s.X+in, s.Y, s.X+in, s.Y+s.H)
+		fmt.Fprintf(b, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#222" stroke-width="1.5"/>`, s.X+s.W-in, s.Y, s.X+s.W-in, s.Y+s.H)
 	}
 	// Текст по центру фігури.
 	fmt.Fprintf(b, `<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="middle" fill="#111">%s</text>`,

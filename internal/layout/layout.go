@@ -74,6 +74,8 @@ func size(n ir.Node) (w, h float64) {
 		return textW(x.Text), boxH
 	case *ir.IO:
 		return textW(x.Text), boxH
+	case *ir.Call:
+		return textW(x.Text), boxH
 	case *ir.Block:
 		return blockSize(x)
 	case *ir.If:
@@ -120,6 +122,8 @@ func place(d *diagram.Diagram, n ir.Node, cx, top float64) diagram.Point {
 		return leaf(d, diagram.Process, x.Text, cx, top)
 	case *ir.IO:
 		return leaf(d, diagram.InOut, x.Text, cx, top)
+	case *ir.Call:
+		return leaf(d, diagram.Predef, x.Text, cx, top)
 	case *ir.Block:
 		return placeBlock(d, x, cx, top)
 	case *ir.If:

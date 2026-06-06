@@ -16,6 +16,12 @@ type IO struct{ Text string }
 
 func (*IO) node() {}
 
+// Call — виклик підпрограми (предетермінований процес ДСТУ — прямокутник із
+// боковими рисками). Лише для функцій, визначених у цьому ж файлі.
+type Call struct{ Text string }
+
+func (*Call) node() {}
+
 // If — розгалуження (ромб ДСТУ) з гілками «Так»/«Ні».
 type If struct {
 	Cond string
