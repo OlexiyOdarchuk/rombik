@@ -80,6 +80,19 @@
 		}
 	}
 
+	function download(name, text, type) {
+		const url = URL.createObjectURL(new Blob([text], { type }));
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = name;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function exportTypst(f) {
+		download(`${f.name}.typ`, f.typst, 'text/plain');
+	}
+
 	function exportSvg(f) {
 		const blob = new Blob([f.svg], { type: 'image/svg+xml' });
 		const url = URL.createObjectURL(blob);
@@ -218,6 +231,12 @@
 										class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
 									>
 										PNG
+									</button>
+									<button
+										onclick={() => exportTypst(f)}
+										class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
+									>
+										Typst
 									</button>
 								</div>
 							</div>
