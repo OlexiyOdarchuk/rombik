@@ -25,6 +25,23 @@ type If struct {
 
 func (*If) node() {}
 
+// For — цикл з лічильником (шестикутник ДСТУ «початок циклу»). Spec — підпис
+// у форматі «змінна = початок, кінець, крок» (напр. «i = 0, n-1, 1»).
+type For struct {
+	Spec string
+	Body *Block
+}
+
+func (*For) node() {}
+
+// While — цикл з передумовою: ромб згори, тіло, дуга повернення.
+type While struct {
+	Cond string
+	Body *Block
+}
+
+func (*While) node() {}
+
 // Block — послідовність вузлів (виконуються згори вниз).
 type Block struct{ Stmts []Node }
 

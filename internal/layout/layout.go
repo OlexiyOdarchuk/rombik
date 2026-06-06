@@ -23,6 +23,8 @@ const (
 	hGap      = 56 // горизонтальний відступ між гілками if
 	mergeGap  = 44 // від низу гілок до точки злиття
 	margin    = 44 // зовнішні поля діаграми
+	hexH      = 50 // висота шестикутника «початок циклу»
+	arcGap    = 38 // горизонтальний винос дуг циклу за межі тіла
 )
 
 // textW — приблизна ширина блоку під текст.
@@ -78,9 +80,18 @@ func size(n ir.Node) (w, h float64) {
 		tw, th := blockSize(x.Then)
 		ew, eh := blockSize(x.Else)
 		return max(diaW(x.Cond), tw+hGap+ew), diaH + branchGap + max(th, eh) + mergeGap
+	case *ir.For:
+		bw, bh := blockSize(x.Body)
+		return max(hexW(x.Spec), bw) + 2*arcGap, hexH + vGap + bh + vGap
+	case *ir.While:
+		bw, bh := blockSize(x.Body)
+		return max(diaW(x.Cond), bw) + 2*arcGap, diaH + vGap + bh + vGap
 	}
 	return minBoxW, boxH
 }
+
+// hexW — ширина шестикутника під підпис (із запасом на скоси з боків).
+func hexW(spec string) float64 { return max(minBoxW, textW(spec)+hexH) }
 
 func blockSize(b *ir.Block) (w, h float64) {
 	if b == nil || len(b.Stmts) == 0 {
@@ -110,6 +121,10 @@ func place(d *diagram.Diagram, n ir.Node, cx, top float64) diagram.Point {
 		return placeBlock(d, x, cx, top)
 	case *ir.If:
 		return placeIf(d, x, cx, top)
+	case *ir.For:
+		return placeFor(d, x, cx, top)
+	case *ir.While:
+		return placeWhile(d, x, cx, top)
 	}
 	return diagram.Point{X: cx, Y: top}
 }
@@ -164,6 +179,52 @@ func placeIf(d *diagram.Diagram, n *ir.If, cx, top float64) diagram.Point {
 	d.Edges = append(d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{thenExit, {X: thenExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
 	d.Edges = append(d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{elseExit, {X: elseExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
 	return diagram.Point{X: cx, Y: mergeY}
+}
+
+// placeFor — цикл for: шестикутник згори, тіло під ним, дуга повернення справа,
+// вихід зліва вниз (як у курсових схемах на fletcher).
+func placeFor(d *diagram.Diagram, n *ir.For, cx, top float64) diagram.Point {
+	hw := hexW(n.Spec)
+	d.Shapes = append(d.Shapes, diagram.Shape{Kind: diagram.Hexagon, X: cx - hw/2, Y: top, W: hw, H: hexH, Text: n.Spec})
+	headCy := top + hexH/2
+
+	bw, _ := blockSize(n.Body)
+	bodyTop := top + hexH + vGap
+	d.Edges = append(d.Edges, edge(diagram.Point{X: cx, Y: top + hexH}, diagram.Point{X: cx, Y: bodyTop}))
+	bodyExit := placeBlock(d, n.Body, cx, bodyTop)
+	return loopArcs(d, cx, hw/2, headCy, bw/2, bodyExit.Y, "")
+}
+
+// placeWhile — цикл while: ромб-передумова, Так→тіло, дуга повернення справа,
+// Ні→вихід зліва вниз.
+func placeWhile(d *diagram.Diagram, n *ir.While, cx, top float64) diagram.Point {
+	dw := diaW(n.Cond)
+	d.Shapes = append(d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
+	headCy := top + diaH/2
+
+	bw, _ := blockSize(n.Body)
+	bodyTop := top + diaH + vGap
+	d.Edges = append(d.Edges, diagram.Edge{Label: "Так", Points: []diagram.Point{{X: cx, Y: top + diaH}, {X: cx, Y: bodyTop}}})
+	bodyExit := placeBlock(d, n.Body, cx, bodyTop)
+	return loopArcs(d, cx, dw/2, headCy, bw/2, bodyExit.Y, "Ні")
+}
+
+// loopArcs малює дугу повернення (низ тіла → праворуч → вгору → правий кут
+// заголовка) і дугу виходу (лівий кут заголовка → ліворуч → вниз → центр).
+// headHalf — піввисота заголовка по X (до бічного кута), повертає точку виходу.
+func loopArcs(d *diagram.Diagram, cx, headHalf, headCy, bodyHalf, bodyBottom float64, exitLabel string) diagram.Point {
+	backX := cx + bodyHalf + arcGap
+	leftX := cx - bodyHalf - arcGap
+	contY := bodyBottom + vGap
+	// Дуга повернення — у правий кут заголовка.
+	d.Edges = append(d.Edges, diagram.Edge{Points: []diagram.Point{
+		{X: cx, Y: bodyBottom}, {X: backX, Y: bodyBottom}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
+	}})
+	// Дуга виходу — з лівого кута заголовка вниз до продовження.
+	d.Edges = append(d.Edges, diagram.Edge{Label: exitLabel, Points: []diagram.Point{
+		{X: cx - headHalf, Y: headCy}, {X: leftX, Y: headCy}, {X: leftX, Y: contY}, {X: cx, Y: contY},
+	}})
+	return diagram.Point{X: cx, Y: contY}
 }
 
 // --- дрібні помічники ---

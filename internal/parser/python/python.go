@@ -22,7 +22,6 @@ def expr(e):
     try: return ast.unparse(e).strip()
     except Exception: return "?"
 def arg(a):
-    # рядковий літерал показуємо без лапок у «ялинках»
     if isinstance(a, ast.Constant) and isinstance(a.value, str):
         return "«"+a.value+"»"
     return expr(a)
@@ -32,15 +31,29 @@ def has_input(node):
     return any(call_name(n)=="input" for n in ast.walk(node))
 def io(text):
     return {"kind":"io","text":text}
+def endof(e):
+    # кінець range — це stop-1; для літерала рахуємо, інакше «expr - 1»
+    if isinstance(e, ast.Constant) and isinstance(e.value, int):
+        return str(e.value-1)
+    return expr(e)+" - 1"
+def forspec(s):
+    # «змінна = початок, кінець, крок» для for ... in range(...)
+    tgt = expr(s.target)
+    it = s.iter
+    if call_name(it)=="range":
+        a = it.args
+        if len(a)==1: return tgt+" = 0, "+endof(a[0])+", 1"
+        if len(a)==2: return tgt+" = "+expr(a[0])+", "+endof(a[1])+", 1"
+        if len(a)>=3: return tgt+" = "+expr(a[0])+", "+endof(a[1])+", "+expr(a[2])
+    return tgt+" ∈ "+expr(it)
 def stmt(s):
     if isinstance(s, ast.If):
         return {"kind":"if","cond":expr(s.test),"then":block(s.body),"else":block(s.orelse)}
     if isinstance(s, ast.While):
-        return {"kind":"loop","cond":expr(s.test),"body":block(s.body)}
+        return {"kind":"while","cond":expr(s.test),"body":block(s.body)}
     if isinstance(s, ast.For):
-        return {"kind":"loop","cond":"for "+expr(s.target)+" in "+expr(s.iter),"body":block(s.body)}
+        return {"kind":"for","cond":forspec(s),"body":block(s.body)}
     if isinstance(s, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
-        # будь-яке присвоєння з input(...) у правій частині — це ВВІД
         if isinstance(s, ast.Assign) and has_input(s.value):
             return io("Ввід "+", ".join(expr(t) for t in s.targets))
         return {"kind":"process","text":expr(s)}
@@ -113,9 +126,10 @@ func toNode(n *pyNode) ir.Node {
 		return &ir.IO{Text: n.Text}
 	case "if":
 		return &ir.If{Cond: n.Cond, Then: toBlock(n.Then), Else: toBlock(n.Else)}
-	case "loop":
-		// Цикли — наступний зріз; поки заглушка, щоб не втрачати інформацію.
-		return &ir.Process{Text: "цикл: " + n.Cond}
+	case "for":
+		return &ir.For{Spec: n.Cond, Body: toBlock(n.Body)}
+	case "while":
+		return &ir.While{Cond: n.Cond, Body: toBlock(n.Body)}
 	}
 	return nil
 }

@@ -29,15 +29,19 @@ func Render(d *diagram.Diagram) string {
 		fmt.Fprintf(&b, `<path d="%s" fill="none" stroke="#222" stroke-width="1.5"%s/>`,
 			pathOf(e.Points), marker)
 		if e.Label != "" && len(e.Points) >= 2 {
-			// Мітку (Так/Ні) ставимо впритул до вершини ромба (Points[0]),
-			// симетрично з обох боків — текст «назовні» від напряму гілки.
+			// Мітку (Так/Ні) ставимо біля початку ребра (вершини ромба).
 			p0, p1 := e.Points[0], e.Points[1]
-			anchor, lx := "start", p0.X+6
-			if p1.X < p0.X {
+			anchor, lx, ly := "start", p0.X+6, p0.Y-7
+			switch {
+			case p1.X == p0.X:
+				// вертикальний сегмент (напр. «Так» вниз) — збоку, посередині
+				ly = (p0.Y + p1.Y) / 2
+			case p1.X < p0.X:
+				// горизонтальний вліво — текст назовні зліва
 				anchor, lx = "end", p0.X-6
 			}
 			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" text-anchor="%s" font-size="12" fill="#444">%s</text>`,
-				lx, p0.Y-7, anchor, esc(e.Label))
+				lx, ly, anchor, esc(e.Label))
 		}
 	}
 	for _, s := range d.Shapes {
@@ -63,6 +67,11 @@ func renderShape(b *strings.Builder, s diagram.Shape) {
 		sk := s.H * 0.4 // нахил паралелограма
 		fmt.Fprintf(b, `<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f" %s/>`,
 			s.X+sk, s.Y, s.X+s.W, s.Y, s.X+s.W-sk, s.Y+s.H, s.X, s.Y+s.H, stroke)
+	case diagram.Hexagon:
+		sk := s.H * 0.5 // скоси з боків
+		cy := s.Y + s.H/2
+		fmt.Fprintf(b, `<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f" %s/>`,
+			s.X+sk, s.Y, s.X+s.W-sk, s.Y, s.X+s.W, cy, s.X+s.W-sk, s.Y+s.H, s.X+sk, s.Y+s.H, s.X, cy, stroke)
 	}
 	// Текст по центру фігури.
 	fmt.Fprintf(b, `<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="middle" fill="#111">%s</text>`,
