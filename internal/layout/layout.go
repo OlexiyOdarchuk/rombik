@@ -136,27 +136,40 @@ func (b *build) routeEnds(cx, kY float64) {
 		}
 		return
 	}
-	// Кілька виходів: центровані ведемо прямо вниз, інші — у бічне поле (рейку),
-	// щоб не різати блоки; усі сходяться на шині над Кінцем.
+	// Кілька виходів: ведемо прямо вниз до шини, якщо стовпець чистий; на бічну
+	// рейку — лише ті, під ким реально є фігура (щоб не різати її).
 	cy := kY - mergeGap
 	leftRail := margin * 0.5
 	rightRail := 2*cx - margin*0.5
 	for _, p := range b.ends {
-		if p.X > cx-1 && p.X < cx+1 { // центр — прямо вниз
-			b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(cx, cy)}})
+		if !b.blockedDown(p.X, p.Y, cy) { // стовпець чистий — прямо вниз, тоді до центру
+			if p.X > cx-1 && p.X < cx+1 {
+				b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(cx, cy)}})
+			} else {
+				b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(p.X, cy), P(cx, cy)}})
+			}
 			continue
 		}
-		rail := leftRail
+		rail := leftRail // блокує — обходимо рейкою (вниз від центру, тоді вбік)
 		if p.X > cx {
 			rail = rightRail
 		}
-		// Спершу трохи вниз від центру низу, тоді вбік на рейку — щоб лінія
-		// не йшла по краю блока (не «з кута»).
 		drop := p.Y + mergeGap/2
 		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
 			p, P(p.X, drop), P(rail, drop), P(rail, cy), P(cx, cy)}})
 	}
 	b.d.Edges = append(b.d.Edges, edge(P(cx, cy), P(cx, kY))) // шина → Кінець
+}
+
+// blockedDown — чи є фігура в стовпці x між fromY і toY (тобто прямий шлях
+// униз перетнув би її).
+func (b *build) blockedDown(x, fromY, toY float64) bool {
+	for _, s := range b.d.Shapes {
+		if s.Y > fromY+1 && s.Y < toY && s.X-1 < x && x < s.X+s.W+1 {
+			return true
+		}
+	}
+	return false
 }
 
 // mapCalls рекурсивно замінює виклики підпрограм на звичайні процеси (опція).
@@ -198,7 +211,11 @@ func size(n ir.Node) (w, h float64) {
 	case *ir.If:
 		tw, th := branchSize(x.Then)
 		ew, eh := branchSize(x.Else)
-		return max(diaW(x.Cond), tw+hGap+ew), diaH + branchGap + max(th, eh) + mergeGap
+		h := diaH + branchGap + max(th, eh) + mergeGap
+		if (len(x.Then.Stmts) == 0) != (len(x.Else.Stmts) == 0) { // guard: одна гілка порожня
+			return max(diaW(x.Cond), max(tw, ew)+2*hGap), h
+		}
+		return max(diaW(x.Cond), tw+hGap+ew), h
 	case *ir.For:
 		bw, bh := blockSize(x.Body)
 		return max(hexW(x.Spec), bw) + 2*arcGap, hexH + vGap + bh + vGap
@@ -315,18 +332,51 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 	dw := diaW(n.Cond)
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	midY := top + diaH/2
+	branchTop := top + diaH + branchGap
 
+	thenEmpty := len(n.Then.Stmts) == 0
+	elseEmpty := len(n.Else.Stmts) == 0
+
+	// Guard (одна гілка порожня): дія прямо вниз, порожня гілка обходить збоку.
+	if elseEmpty && !thenEmpty {
+		return b.guard(n.Then, "Так", "Ні", +1, cx, dw, midY, branchTop)
+	}
+	if thenEmpty && !elseEmpty {
+		return b.guard(n.Else, "Ні", "Так", -1, cx, dw, midY, branchTop)
+	}
+
+	// Обидві гілки — симетрично.
 	tw, th := branchSize(n.Then)
 	ew, eh := branchSize(n.Else)
 	total := tw + hGap + ew
 	thenCx := cx - total/2 + tw/2
 	elseCx := cx + total/2 - ew/2
-	branchTop := top + diaH + branchGap
 	mergeY := branchTop + max(th, eh) + mergeGap
 
 	thenEnded := b.branch(n.Then, "Так", cx, cx-dw/2, midY, thenCx, branchTop, mergeY)
 	elseEnded := b.branch(n.Else, "Ні", cx, cx+dw/2, midY, elseCx, branchTop, mergeY)
 	return P(cx, mergeY), thenEnded && elseEnded
+}
+
+// guard малює «if cond: BODY» без else: дія прямо вниз (downLabel), порожня
+// гілка — вбік (sideLabel) і вниз до злиття. side=+1 праворуч, -1 ліворуч.
+func (b *build) guard(body *ir.Block, downLabel, sideLabel string, side, cx, dw, midY, branchTop float64) (diagram.Point, bool) {
+	bw, bh := blockSize(body)
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: downLabel, Points: []diagram.Point{
+		{X: cx, Y: midY + diaH/2}, {X: cx, Y: branchTop},
+	}})
+	exit, ended := b.placeBlock(body, cx, branchTop)
+	mergeY := branchTop + bh + mergeGap
+
+	vx := cx + side*dw/2
+	sideX := cx + side*(bw/2+hGap)
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: sideLabel, Points: []diagram.Point{
+		{X: vx, Y: midY}, {X: sideX, Y: midY}, {X: sideX, Y: mergeY}, {X: cx, Y: mergeY},
+	}})
+	if !ended {
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{exit, {X: cx, Y: mergeY}}})
+	}
+	return P(cx, mergeY), false // порожня гілка завжди дає продовження
 }
 
 // branch малює одну гілку if від кута ромба (vx,midY). Повертає, чи гілка
