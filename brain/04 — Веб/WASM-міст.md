@@ -6,7 +6,7 @@ tags: [web, wasm, component]
 
 **Пакет:** `cmd/wasm` · **Файл:** `main.go` · тег збірки `//go:build js && wasm`
 
-Точка входу Go-двигуна у браузері. Реєструє в JS глобальну функцію `flowgenGenerate` і
+Точка входу Go-двигуна у браузері. Реєструє в JS глобальну функцію `rombikGenerate` і
 лишається «живим». **Не імпортує** `parser/python` — Python розбирає Pyodide, сюди
 приходить готовий AST-JSON. → [[Розділення відповідальностей]].
 
@@ -14,7 +14,7 @@ tags: [web, wasm, component]
 
 ```go
 func main() {
-    js.Global().Set("flowgenGenerate", js.FuncOf(generate))
+    js.Global().Set("rombikGenerate", js.FuncOf(generate))
     select {}   // тримаємо модуль живим (інакше Go-main завершиться і функція зникне)
 }
 ```
@@ -26,7 +26,7 @@ func main() {
 ## Контракт generate
 
 ```
-flowgenGenerate(astJSON: string, optionsJSON?: string) -> string (JSON)
+rombikGenerate(astJSON: string, optionsJSON?: string) -> string (JSON)
 ```
 
 ```go
@@ -61,7 +61,7 @@ func generate(_ js.Value, args []js.Value) any {
 ## Те саме ядро, що в CLI
 
 `generate` робить рівно те, що й CLI після парсингу: `astjson.FromJSON` →
-`layout.Build` → `svg.Render`. Порівняй із `cmd/flowgen/main.go`. Різниця лише в
+`layout.Build` → `svg.Render`. Порівняй із `cmd/rombik/main.go`. Різниця лише в
 адаптерах входу/виходу — ядро байт-у-байт спільне. → [[Конвеєр обробки]].
 
 ## Опції з JS

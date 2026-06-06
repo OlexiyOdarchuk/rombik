@@ -13,7 +13,7 @@ tags: [web, frontend]
   будь-де (GitHub Pages, CDN).
 - **Tailwind v4** — стилі.
 - **Vite** — збірка/дев-сервер.
-- Рантайм-двигун — **Pyodide + flowgen.wasm** ([[Браузерний двигун]]).
+- Рантайм-двигун — **Pyodide + rombik.wasm** ([[Браузерний двигун]]).
 
 ## Структура
 
@@ -32,13 +32,13 @@ web/
 │       ├── guide/+page.svelte   «як це працює» + довідник фігур
 │       └── app/+page.svelte     редактор
 └── static/
-    ├── flowgen.wasm      Go-двигун (артефакт)
+    ├── rombik.wasm      Go-двигун (артефакт)
     ├── wasm_exec.js      міст Go↔JS (артефакт)
     ├── parser.py         парсер для Pyodide (артефакт)
     └── favicon.svg
 ```
 
-> `flowgen.wasm`, `wasm_exec.js`, `parser.py` — **генеровані** артефакти
+> `rombik.wasm`, `wasm_exec.js`, `parser.py` — **генеровані** артефакти
 > (`build-wasm.sh`); у `.gitignore` `*.wasm` ігнорується. Перед `npm run dev` їх треба
 > згенерувати. → [[Збірка і запуск]].
 
@@ -53,7 +53,7 @@ web/
 ## Потік у редакторі
 
 1. На вхід — Python-код і обрані опції.
-2. `engine.generate` → Pyodide парсить, flowgen.wasm розкладає
+2. `engine.generate` → Pyodide парсить, rombik.wasm розкладає
    ([[Браузерний двигун]]).
 3. Результат `{functions:[{name, svg, diagram}]}` — вставляємо `svg` у DOM.
 4. Експорт: SVG напряму; PNG — через canvas у браузері; JSON — поле `diagram`.

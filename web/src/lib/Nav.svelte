@@ -17,7 +17,7 @@
 					<rect x="7" y="11" width="10" height="6" rx="1" /><path d="M12 17v3" />
 				</svg>
 			</span>
-			<span>flowgen<span class="text-blue-600">.</span></span>
+			<span>rombik<span class="text-blue-600">.</span></span>
 		</a>
 
 		<div class="flex items-center gap-1">

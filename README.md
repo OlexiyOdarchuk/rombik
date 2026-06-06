@@ -1,8 +1,8 @@
-# flowgen
+# rombik
 
 **Код → блок-схема за ДСТУ 19.701-90, у SVG.**
 
-flowgen перетворює Python-код на акуратну блок-схему алгоритму (ГОСТ/ДСТУ 19.701-90 —
+rombik перетворює Python-код на акуратну блок-схему алгоритму (ГОСТ/ДСТУ 19.701-90 —
 той самий стандарт, що вимагають у курсових і лабораторних). Працює як CLI-утиліта
 й як браузерний застосунок (усе локально, без сервера: парсинг — у WASM).
 
@@ -21,7 +21,7 @@ def grade(score):
     print("Готово")
 ```
 
-↓ `go run ./cmd/flowgen -py examples/grade.py -o grade.svg` ↓
+↓ `go run ./cmd/rombik -py examples/grade.py -o grade.svg` ↓
 
 > Початок → паралелограм «Ввід score» → «Ввід name» → процес «total = score + 5»
 > → ромб «total >= 90» (Так/Ні) → вкладені гілки → «Вивід «Готово»» → Кінець.
@@ -50,16 +50,16 @@ def grade(score):
 
 ```bash
 # демо (захардкоджений алгоритм)
-go run ./cmd/flowgen
+go run ./cmd/rombik
 
 # зі свого файлу
-go run ./cmd/flowgen -py examples/grade.py -o grade.svg
+go run ./cmd/rombik -py examples/grade.py -o grade.svg
 
 # одразу PNG (потрібен rsvg-convert із пакета librsvg)
-go run ./cmd/flowgen -py examples/grade.py -o grade.png -scale 3
+go run ./cmd/rombik -py examples/grade.py -o grade.png -scale 3
 
 # лише одна функція з файлу
-go run ./cmd/flowgen -py examples/course.py -fn matrix_gen -o matrix.svg
+go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o matrix.svg
 ```
 
 ### Прапорці CLI
@@ -80,7 +80,7 @@ go run ./cmd/flowgen -py examples/course.py -fn matrix_gen -o matrix.svg
 ## Браузерна версія (web/)
 
 SvelteKit + Tailwind v4, повністю статичний застосунок. Розбір Python робить **Pyodide**
-(CPython у WASM), а розкладку й рендер — **flowgen.wasm** (Go-двигун). Жоден код не
+(CPython у WASM), а розкладку й рендер — **rombik.wasm** (Go-двигун). Жоден код не
 виходить за межі браузера.
 
 ```bash
@@ -123,8 +123,8 @@ SVG / PNG                                   JSON (для фронтенду)
 ## Структура репозиторію
 
 ```
-cmd/flowgen/      CLI-точка входу (файл → SVG/PNG/JSON)
-cmd/wasm/         WASM-точка входу (реєструє flowgenGenerate для JS)
+cmd/rombik/      CLI-точка входу (файл → SVG/PNG/JSON)
+cmd/wasm/         WASM-точка входу (реєструє rombikGenerate для JS)
 internal/
   parser/python/  Python-парсер: parser.py (ast) + python.go (обгортка)
   parser/astjson/ конвертер «AST-JSON → IR» (спільний для всіх мов/середовищ)

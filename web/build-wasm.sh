@@ -4,8 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."   # корінь репозиторію (де go.mod)
 
-echo "→ flowgen.wasm"
-GOOS=js GOARCH=wasm go build -o web/static/flowgen.wasm ./cmd/wasm
+echo "→ rombik.wasm"
+GOOS=js GOARCH=wasm go build -o web/static/rombik.wasm ./cmd/wasm
 
 echo "→ wasm_exec.js"
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
@@ -13,4 +13,4 @@ cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
 echo "→ parser.py"
 cp pkg/parser/python/parser.py web/static/
 
-echo "Готово: web/static/{flowgen.wasm, wasm_exec.js, parser.py}"
+echo "Готово: web/static/{rombik.wasm, wasm_exec.js, parser.py}"

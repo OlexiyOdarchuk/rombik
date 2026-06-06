@@ -1,10 +1,10 @@
-name: flowgen Releaser 📊
+name: rombik Releaser 📊
 
 on:
   workflow_dispatch:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
@@ -46,12 +46,12 @@ jobs:
           [ "${{ matrix.goos }}" = "windows" ] && ext=".exe"
           CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
             go build -trimpath -ldflags "-s -w" \
-            -o "dist/flowgen-${{ matrix.goos }}-${{ matrix.goarch }}${ext}" ./cmd/flowgen
+            -o "dist/rombik-${{ matrix.goos }}-${{ matrix.goarch }}${ext}" ./cmd/rombik
 
       - uses: actions/upload-artifact@v4
         with:
-          name: flowgen-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/flowgen-${{ matrix.goos }}-${{ matrix.goarch }}*
+          name: rombik-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/rombik-${{ matrix.goos }}-${{ matrix.goarch }}*
 
   release:
     name: Create GitHub Release
@@ -66,12 +66,12 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: 'flowgen ${{ github.ref_name }} 📊'
+          name: "rombik ${{ github.ref_name }} 📊"
           draft: false
           prerelease: false
           make_latest: true
           body: |
-            ## flowgen ${{ github.ref_name }} — блок-схеми за ДСТУ з коду
+            ## rombik ${{ github.ref_name }} — блок-схеми за ДСТУ з коду
 
             CLI для відмальовки блок-схем (SVG / PNG / Typst / JSON) з Python-коду.
 
@@ -82,13 +82,13 @@ jobs:
 
             ### Використання
             ```
-            flowgen -py program.py -o схема.svg
-            flowgen -py program.py -o схема.png      # потрібен rsvg-convert
-            flowgen -py program.py -o схема.typ      # нативний Typst
+            rombik -py program.py -o схема.svg
+            rombik -py program.py -o схема.png      # потрібен rsvg-convert
+            rombik -py program.py -o схема.typ      # нативний Typst
             ```
             Потрібен `python3` у системі (парсер). Деталі — у README.
 
             ---
             *Зроблено на Go.*
           files: |
-            all-binaries/flowgen-*
+            all-binaries/rombik-*

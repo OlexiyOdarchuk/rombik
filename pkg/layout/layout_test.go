@@ -3,8 +3,8 @@ package layout
 import (
 	"testing"
 
-	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
+	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
+	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
 )
 
 func countText(d *diagram.Diagram, text string) int {

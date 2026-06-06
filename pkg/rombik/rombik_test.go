@@ -1,4 +1,4 @@
-package flowgen
+package rombik
 
 import (
 	"strings"

@@ -4,7 +4,7 @@ tags: [usage, cli]
 
 # CLI — довідник
 
-**Команда:** `cmd/flowgen` · `go run ./cmd/flowgen [прапорці]`
+**Команда:** `cmd/rombik` · `go run ./cmd/rombik [прапорці]`
 
 Перетворює Python-файл на блок-схему. Формат виводу — за розширенням `-o`.
 
@@ -45,12 +45,12 @@ PNG вимагає `rsvg-convert` у `$PATH`; без нього — зрозум
 ## Приклади
 
 ```bash
-go run ./cmd/flowgen                                   # демо → out.svg
-go run ./cmd/flowgen -py examples/grade.py -o grade.svg
-go run ./cmd/flowgen -py examples/grade.py -o grade.png -scale 3
-go run ./cmd/flowgen -py examples/course.py -fn matrix_gen -o matrix.svg
-go run ./cmd/flowgen -py examples/course.py -o схема.json   # геометрія в JSON
-go run ./cmd/flowgen -py examples/course.py -single-end -calls-plain -o s.svg
+go run ./cmd/rombik                                   # демо → out.svg
+go run ./cmd/rombik -py examples/grade.py -o grade.svg
+go run ./cmd/rombik -py examples/grade.py -o grade.png -scale 3
+go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o matrix.svg
+go run ./cmd/rombik -py examples/course.py -o схема.json   # геометрія в JSON
+go run ./cmd/rombik -py examples/course.py -single-end -calls-plain -o s.svg
 ```
 
 ## Що друкує

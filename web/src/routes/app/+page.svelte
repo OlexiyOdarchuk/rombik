@@ -129,7 +129,7 @@
 </script>
 
 <svelte:head>
-	<title>Редактор — flowgen</title>
+	<title>Редактор — rombik</title>
 </svelte:head>
 
 <div class="mx-auto flex h-[calc(100vh-4rem)] max-w-7xl flex-col px-4 py-4">

@@ -2,15 +2,15 @@
 
 // Точка входу для браузера (WebAssembly). НЕ імпортує пакет python (там os/exec,
 // якого у WASM нема): Python розбирає Pyodide, а ми отримуємо вже готовий
-// AST-JSON. Реєструє в JS глобальну функцію flowgenGenerate.
+// AST-JSON. Реєструє в JS глобальну функцію rombikGenerate.
 //
 // Збірка:
 //
-//	GOOS=js GOARCH=wasm go build -o web/flowgen.wasm ./cmd/wasm
+//	GOOS=js GOARCH=wasm go build -o web/rombik.wasm ./cmd/wasm
 //
 // Виклик з JS:
 //
-//	const res = JSON.parse(flowgenGenerate(astJSON, optionsJSON))
+//	const res = JSON.parse(rombikGenerate(astJSON, optionsJSON))
 //	// res = { functions: [{name, svg, diagram}], error? }
 package main
 
@@ -18,9 +18,9 @@ import (
 	"encoding/json"
 	"syscall/js"
 
-	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/flowgen"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/render/typst"
+	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
+	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
 )
 
 type outFunc struct {
@@ -35,11 +35,11 @@ func generate(_ js.Value, args []js.Value) any {
 	if len(args) == 0 {
 		return result(map[string]any{"error": "немає AST-JSON"})
 	}
-	var opts flowgen.Options
+	var opts rombik.Options
 	if len(args) > 1 && !args[1].IsUndefined() && !args[1].IsNull() {
 		_ = json.Unmarshal([]byte(args[1].String()), &opts)
 	}
-	funcs, err := flowgen.FromAST([]byte(args[0].String()), opts)
+	funcs, err := rombik.FromAST([]byte(args[0].String()), opts)
 	if err != nil {
 		return result(map[string]any{"error": err.Error()})
 	}
@@ -59,6 +59,6 @@ func result(v any) string {
 }
 
 func main() {
-	js.Global().Set("flowgenGenerate", js.FuncOf(generate))
+	js.Global().Set("rombikGenerate", js.FuncOf(generate))
 	select {} // тримаємо модуль живим
 }

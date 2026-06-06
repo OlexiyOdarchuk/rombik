@@ -1,11 +1,11 @@
-// Команда flowgen: код → ДСТУ-блок-схема в SVG.
+// Команда rombik: код → ДСТУ-блок-схема в SVG.
 //
-//	go run ./cmd/flowgen                 → демо (захардкоджений алгоритм)
-//	go run ./cmd/flowgen -py file.py     → схема(и) з Python-файлу
-//	go run ./cmd/flowgen -py file.py -o схема.svg
-//	go run ./cmd/flowgen -py file.py -o схема.png        → одразу PNG (rsvg-convert)
-//	go run ./cmd/flowgen -py file.py -o схема.png -scale 3
-//	go run ./cmd/flowgen -py file.py -fn matrix_gen      → лише одна функція
+//	go run ./cmd/rombik                 → демо (захардкоджений алгоритм)
+//	go run ./cmd/rombik -py file.py     → схема(и) з Python-файлу
+//	go run ./cmd/rombik -py file.py -o схема.svg
+//	go run ./cmd/rombik -py file.py -o схема.png        → одразу PNG (rsvg-convert)
+//	go run ./cmd/rombik -py file.py -o схема.png -scale 3
+//	go run ./cmd/rombik -py file.py -fn matrix_gen      → лише одна функція
 //
 // Формат вихідного файлу — за розширенням -o: .svg, .png (через rsvg-convert),
 // .json (дані для фронтенду).
@@ -20,11 +20,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/flowgen"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/render/svg"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/render/typst"
+	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
+	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
+	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
 )
 
 func main() {
@@ -35,18 +35,18 @@ func main() {
 	singleEnd := flag.Bool("single-end", false, "один спільний Кінець (інакше — на кожен return/raise)")
 	scale := flag.Float64("scale", 2, "масштаб для PNG (роздільність)")
 	flag.Parse()
-	opts := flowgen.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd}
+	opts := rombik.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd}
 
-	var funcs []flowgen.Result
+	var funcs []rombik.Result
 	if *pyFile == "" {
-		funcs = flowgen.FromIR([]ir.Func{{Name: "main", Body: demo()}}, opts)
+		funcs = rombik.FromIR([]ir.Func{{Name: "main", Body: demo()}}, opts)
 	} else {
 		code, err := os.ReadFile(*pyFile)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "читання:", err)
 			os.Exit(1)
 		}
-		funcs, err = flowgen.FromPython(string(code), opts)
+		funcs, err = rombik.FromPython(string(code), opts)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -113,8 +113,8 @@ func svgToPNG(svgText, out string, scale float64) error {
 	return cmd.Run()
 }
 
-func filterByName(fns []flowgen.Result, name string) []flowgen.Result {
-	var res []flowgen.Result
+func filterByName(fns []rombik.Result, name string) []rombik.Result {
+	var res []rombik.Result
 	for _, f := range fns {
 		if f.Name == name {
 			res = append(res, f)

@@ -1,6 +1,6 @@
 // Двигун у браузері, без сервера:
 //   Pyodide (CPython у WASM) виконує parser.py -> AST-JSON
-//   flowgen.wasm (Go) бере AST-JSON + опції -> {functions:[{name, svg, diagram}]}
+//   rombik.wasm (Go) бере AST-JSON + опції -> {functions:[{name, svg, diagram}]}
 import { base } from '$app/paths';
 
 const PYODIDE_VER = '0.27.2';
@@ -30,7 +30,7 @@ async function init(onProgress) {
 	parserSrc = await (await fetch(`${base}/parser.py`)).text();
 	await loadScript(`${base}/wasm_exec.js`);
 	const go = new globalThis.Go();
-	const bytes = await (await fetch(`${base}/flowgen.wasm`)).arrayBuffer();
+	const bytes = await (await fetch(`${base}/rombik.wasm`)).arrayBuffer();
 	const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
 	go.run(instance); // НЕ await: main блокується на select{}, лишаючись живим
 }
@@ -57,7 +57,7 @@ export async function generate(code, options = {}, onProgress) {
 	}
 	const astJSON = pyodide.globals.get('_out');
 	try {
-		return JSON.parse(globalThis.flowgenGenerate(astJSON, JSON.stringify(options)));
+		return JSON.parse(globalThis.rombikGenerate(astJSON, JSON.stringify(options)));
 	} catch (e) {
 		return { error: 'двигун: ' + (e?.message ?? e) };
 	}

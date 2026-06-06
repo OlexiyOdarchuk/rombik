@@ -21,13 +21,13 @@
 </script>
 
 <svelte:head>
-	<title>Як це працює — flowgen</title>
+	<title>Як це працює — rombik</title>
 </svelte:head>
 
 <section class="mx-auto max-w-4xl px-5 py-16">
 	<h1 class="text-4xl font-bold tracking-tight text-slate-900">Як це працює</h1>
 	<p class="mt-4 text-lg text-slate-600">
-		flowgen розбирає твій код справжнім парсером Python, будує логічне дерево алгоритму й
+		rombik розбирає твій код справжнім парсером Python, будує логічне дерево алгоритму й
 		розкладає його у блок-схему за ДСТУ 19.701-90. Усе локально в браузері — код нікуди не
 		надсилається.
 	</p>

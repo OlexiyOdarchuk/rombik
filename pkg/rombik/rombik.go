@@ -1,22 +1,22 @@
-// Пакет flowgen — високорівневий публічний API: код → блок-схеми за ДСТУ.
+// Пакет rombik — високорівневий публічний API: код → блок-схеми за ДСТУ.
 // Об'єднує парсер, розкладку й рендер. Для бібліотечного використання:
 //
-//	res, err := flowgen.FromPython(code, flowgen.Options{})
+//	res, err := rombik.FromPython(code, rombik.Options{})
 //	for _, f := range res {
 //	    os.WriteFile(f.Name+".svg", []byte(f.SVG()), 0o644)
 //	}
 //
 // У браузері (WASM, без python3) парсер дає AST окремо (Pyodide), а тут —
-// flowgen.FromAST(astJSON, opts).
-package flowgen
+// rombik.FromAST(astJSON, opts).
+package rombik
 
 import (
-	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/layout"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/parser/astjson"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/parser/python"
-	"github.com/OlexiyOdarchuk/flowgen/pkg/render/svg"
+	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
+	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
+	"github.com/OlexiyOdarchuk/rombik/pkg/layout"
+	"github.com/OlexiyOdarchuk/rombik/pkg/parser/astjson"
+	"github.com/OlexiyOdarchuk/rombik/pkg/parser/python"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
 )
 
 // Options — перемикачі рендера (див. layout.Options).

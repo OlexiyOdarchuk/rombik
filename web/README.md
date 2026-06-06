@@ -1,4 +1,4 @@
-# flowgen web
+# rombik web
 
 Фронтенд: SvelteKit + Tailwind v4, повністю статичний (`adapter-static`) — без сервера.
 Лендинг + гайд + редактор (`/app`).
@@ -17,12 +17,12 @@ npm run build         # статика у build/
 Редактор працюватиме клієнтсько, без сервера:
 
 - **Pyodide** (CPython у WASM) виконує `parser.py` → AST-JSON;
-- **flowgen.wasm** (Go-двигун) бере AST-JSON + опції → `{functions:[{name, svg, diagram}]}`.
+- **rombik.wasm** (Go-двигун) бере AST-JSON + опції → `{functions:[{name, svg, diagram}]}`.
 
 Артефакти у `static/` готує скрипт (з кореня репозиторію):
 
 ```bash
-GOOS=js GOARCH=wasm go build -o web/static/flowgen.wasm ./cmd/wasm
+GOOS=js GOARCH=wasm go build -o web/static/rombik.wasm ./cmd/wasm
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
 cp internal/parser/python/parser.py web/static/
 ```

@@ -69,7 +69,7 @@ type Func struct { Name string; Body *Block } // іменована програ
   додає [[Layout — рушій розкладки|layout]]. Одне IR теоретично можна розкласти
   по-різному.
 
-Приклад ручної побудови IR — функція `demo()` у `cmd/flowgen/main.go`.
+Приклад ручної побудови IR — функція `demo()` у `cmd/rombik/main.go`.
 
 ## Пов'язане
 

@@ -39,7 +39,7 @@ type Func struct { Name string; Block Node }
 браузерна збірка була б неможлива. Натомість:
 
 - **CLI:** `parser/python` сам кличе `python3` і віддає AST-JSON.
-- **Браузер:** Pyodide виконує `parser.py`, JS передає AST-JSON у `flowgenGenerate`.
+- **Браузер:** Pyodide виконує `parser.py`, JS передає AST-JSON у `rombikGenerate`.
 
 Обидва шляхи сходяться у `FromJSON`. → [[WASM-міст]], [[Браузерний двигун]].
 
