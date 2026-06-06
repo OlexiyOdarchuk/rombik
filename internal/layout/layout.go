@@ -107,7 +107,12 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 	}
 
 	// Єдиний Кінець — нижче всього вмісту; усі виходи зводимо до нього.
+	// Для кількох виходів лишаємо запас під горизонтальну шину, щоб вона не
+	// проходила по краю фігур.
 	kY := contentBottom(b.d) + vGap
+	if len(b.ends) > 1 {
+		kY += mergeGap
+	}
 	b.routeEnds(cx, kY)
 	b.d.Shapes = append(b.d.Shapes, term(cx, kY, "Кінець"))
 
