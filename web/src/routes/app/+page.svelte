@@ -16,11 +16,39 @@
     print("Готово")`;
 
 	let code = $state(SAMPLE);
-	let opts = $state({ callAsProcess: false });
 	let funcs = $state([]); // [{name, svg, diagram}]
 	let status = $state('Готовий. Натисни «Побудувати».');
 	let busy = $state(false);
 	let errored = $state(false);
+
+	// Налаштування (галочки/списки) -> опції двигуна.
+	let s = $state({
+		singleEnd: false, // false = Кінець на кожен вихід
+		callAsProcess: false,
+		stripTypes: false,
+		returnAsIO: false,
+		branch: 'так', // так | yes | pm
+		io: 'short' // short | verbose | imperative
+	});
+	const BRANCH = { так: ['Так', 'Ні'], yes: ['Yes', 'No'], pm: ['+', '−'] };
+	const IO = { short: ['Ввід', 'Вивід'], verbose: ['Введення', 'Виведення'], imperative: ['Ввести', 'Вивести'] };
+
+	function engineOpts() {
+		const [yes, no] = BRANCH[s.branch];
+		const [inWord, outWord] = IO[s.io];
+		return {
+			singleEnd: s.singleEnd,
+			callAsProcess: s.callAsProcess,
+			stripTypes: s.stripTypes,
+			returnAsIO: s.returnAsIO,
+			yes,
+			no,
+			inWord,
+			outWord
+		};
+	}
+	// Перебудувати при зміні налаштування, якщо схеми вже є.
+	const reapply = () => funcs.length && build();
 
 	// Прогріваємо середовище заздалегідь (вантажиться Pyodide ~6 МБ).
 	onMount(() => {
@@ -34,7 +62,7 @@
 		busy = true;
 		errored = false;
 		try {
-			const res = await generate(code, opts, (s) => (status = s));
+			const res = await generate(code, engineOpts(), (st) => (status = st));
 			if (res.error) {
 				errored = true;
 				status = res.error;
@@ -91,7 +119,7 @@
 
 <div class="mx-auto flex h-[calc(100vh-4rem)] max-w-7xl flex-col px-4 py-4">
 	<!-- toolbar -->
-	<div class="mb-3 flex flex-wrap items-center gap-3">
+	<div class="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2">
 		<button
 			onclick={build}
 			disabled={busy}
@@ -101,13 +129,37 @@
 		</button>
 
 		<label class="flex items-center gap-2 text-sm text-slate-600">
-			<input
-				type="checkbox"
-				bind:checked={opts.callAsProcess}
-				onchange={() => funcs.length && build()}
-				class="rounded border-slate-300"
-			/>
-			Виклик звичайним блоком (не ДСТУ-підпрограмою)
+			<input type="checkbox" bind:checked={s.singleEnd} onchange={reapply} class="rounded border-slate-300" />
+			Один Кінець
+		</label>
+		<label class="flex items-center gap-2 text-sm text-slate-600">
+			<input type="checkbox" bind:checked={s.callAsProcess} onchange={reapply} class="rounded border-slate-300" />
+			Виклик звичайним блоком
+		</label>
+		<label class="flex items-center gap-2 text-sm text-slate-600">
+			<input type="checkbox" bind:checked={s.stripTypes} onchange={reapply} class="rounded border-slate-300" />
+			Без тип-анотацій
+		</label>
+		<label class="flex items-center gap-2 text-sm text-slate-600">
+			<input type="checkbox" bind:checked={s.returnAsIO} onchange={reapply} class="rounded border-slate-300" />
+			return паралелограмом
+		</label>
+
+		<label class="flex items-center gap-1.5 text-sm text-slate-600">
+			Гілки:
+			<select bind:value={s.branch} onchange={reapply} class="rounded border-slate-300 py-1 text-sm">
+				<option value="так">Так / Ні</option>
+				<option value="yes">Yes / No</option>
+				<option value="pm">+ / −</option>
+			</select>
+		</label>
+		<label class="flex items-center gap-1.5 text-sm text-slate-600">
+			Ввід/вивід:
+			<select bind:value={s.io} onchange={reapply} class="rounded border-slate-300 py-1 text-sm">
+				<option value="short">Ввід / Вивід</option>
+				<option value="verbose">Введення / Виведення</option>
+				<option value="imperative">Ввести / Вивести</option>
+			</select>
 		</label>
 
 		{#if funcs.length}
