@@ -7,12 +7,12 @@
 package python
 
 import (
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
 
 	"flowgen/internal/ir"
+	"flowgen/internal/parser/astjson"
 )
 
 // pyScript читає код зі stdin і друкує спрощене дерево у JSON.
@@ -121,26 +121,9 @@ else:
 print(json.dumps(out, ensure_ascii=False))
 `
 
-// pyNode — форма вузла у JSON від скрипта.
-type pyNode struct {
-	Kind  string   `json:"kind"`
-	Text  string   `json:"text"`
-	Cond  string   `json:"cond"`
-	Stmts []pyNode `json:"stmts"`
-	Then  *pyNode  `json:"then"`
-	Else  *pyNode  `json:"else"`
-	Body  *pyNode  `json:"body"`
-}
-
-// pyFunc — іменована програма у JSON (функція або тіло модуля).
-type pyFunc struct {
-	Name  string `json:"name"`
-	Block pyNode `json:"block"`
-}
-
-// ParseAll зводить Python-код у список іменованих програм (по одній на функцію;
-// або одну «main», якщо функцій нема).
-func ParseAll(code string) ([]ir.Func, error) {
+// AST повертає сирий AST-JSON від python3 (формат astjson). Саме це в браузері
+// видаватиме Pyodide, виконуючи pyScript, — далі astjson.FromJSON будує ir.
+func AST(code string) ([]byte, error) {
 	cmd := exec.Command("python3", "-c", pyScript)
 	cmd.Stdin = strings.NewReader(code)
 	out, err := cmd.Output()
@@ -150,51 +133,15 @@ func ParseAll(code string) ([]ir.Func, error) {
 		}
 		return nil, fmt.Errorf("python parse: %w (чи встановлено python3?)", err)
 	}
-	var fns []pyFunc
-	if err := json.Unmarshal(out, &fns); err != nil {
-		return nil, fmt.Errorf("розбір JSON від python: %w", err)
-	}
-	res := make([]ir.Func, 0, len(fns))
-	for i := range fns {
-		res = append(res, ir.Func{Name: fns[i].Name, Body: toBlock(&fns[i].Block)})
-	}
-	return res, nil
+	return out, nil
 }
 
-func toBlock(n *pyNode) *ir.Block {
-	b := &ir.Block{}
-	if n == nil {
-		return b
+// ParseAll: код → AST через python3 → ir. У браузері той самий шлях, лише AST
+// дає Pyodide замість підпроцесу.
+func ParseAll(code string) ([]ir.Func, error) {
+	out, err := AST(code)
+	if err != nil {
+		return nil, err
 	}
-	for i := range n.Stmts {
-		c := &n.Stmts[i]
-		if c.Kind == "block" { // вкладений блок (напр. from with) — інлайнимо
-			b.Stmts = append(b.Stmts, toBlock(c).Stmts...)
-			continue
-		}
-		if node := toNode(c); node != nil {
-			b.Stmts = append(b.Stmts, node)
-		}
-	}
-	return b
-}
-
-func toNode(n *pyNode) ir.Node {
-	switch n.Kind {
-	case "process":
-		return &ir.Process{Text: n.Text}
-	case "io":
-		return &ir.IO{Text: n.Text}
-	case "call":
-		return &ir.Call{Text: n.Text}
-	case "if":
-		return &ir.If{Cond: n.Cond, Then: toBlock(n.Then), Else: toBlock(n.Else)}
-	case "for":
-		return &ir.For{Spec: n.Cond, Body: toBlock(n.Body)}
-	case "while":
-		return &ir.While{Cond: n.Cond, Body: toBlock(n.Body)}
-	case "dowhile":
-		return &ir.DoWhile{Cond: n.Cond, Body: toBlock(n.Body)}
-	}
-	return nil
+	return astjson.FromJSON(out)
 }
