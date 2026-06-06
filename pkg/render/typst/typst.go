@@ -32,7 +32,7 @@ func Render(d *diagram.Diagram) string {
 		fmt.Fprintf(&b, "  line(%s%s)\n", strings.Join(pts, ", "), mark)
 		if e.Label != "" && len(e.Points) >= 2 {
 			p := e.Points[0]
-			fmt.Fprintf(&b, "  content((%.1f, %.1f), text(size: 8pt)[#%q])\n", p.X, fy(p.Y)+9, e.Label)
+			fmt.Fprintf(&b, "  content((%.1f, %.1f), text(%ssize: 12pt)[#%q])\n", p.X, fy(p.Y)+9, font, e.Label)
 		}
 	}
 	for _, s := range d.Shapes {
@@ -75,5 +75,8 @@ func shape(b *strings.Builder, s diagram.Shape, fy func(float64) float64) {
 		fmt.Fprintf(b, "  line((%.1f, %.1f), (%.1f, %.1f))\n", x2-9, fy(y1), x2-9, fy(y2))
 	}
 	// Текст по центру (рядкова форма #%q — щоб спецсимволи [ ] * не ламали Typst).
-	fmt.Fprintf(b, "  content((%.1f, %.1f), text(size: 9pt)[#%q])\n", cx, fy(cy), s.Text)
+	fmt.Fprintf(b, "  content((%.1f, %.1f), text(%ssize: 14pt)[#%q])\n", cx, fy(cy), font, s.Text)
 }
+
+// font — sans-шрифт (як у SVG), з фолбеками; перші наявні в системі виграють.
+const font = `font: ("Arial", "Liberation Sans", "DejaVu Sans", "Helvetica"), `
