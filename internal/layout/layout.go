@@ -248,38 +248,41 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 	dw := diaW(n.Cond)
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	midY := top + diaH/2
-	diaBottom := top + diaH
 
 	tw, th := blockSize(n.Then)
 	ew, eh := blockSize(n.Else)
 	total := tw + hGap + ew
 	thenCx := cx - total/2 + tw/2
 	elseCx := cx + total/2 - ew/2
-	branchTop := diaBottom + branchGap
-
-	// Стрілки від ромба до верху гілок (ортогонально), з підписами Так/Ні.
-	b.d.Edges = append(b.d.Edges, diagram.Edge{
-		Points: []diagram.Point{{X: cx - dw/2, Y: midY}, {X: thenCx, Y: midY}, {X: thenCx, Y: branchTop}},
-		Label:  "Так",
-	})
-	b.d.Edges = append(b.d.Edges, diagram.Edge{
-		Points: []diagram.Point{{X: cx + dw/2, Y: midY}, {X: elseCx, Y: midY}, {X: elseCx, Y: branchTop}},
-		Label:  "Ні",
-	})
-
-	thenExit, thenEnded := b.placeBlock(n.Then, thenCx, branchTop)
-	elseExit, elseEnded := b.placeBlock(n.Else, elseCx, branchTop)
-
-	// Точка злиття — по центру, нижче найвищої гілки. Гілки, що завершилися
-	// (return/raise/exit), у злиття НЕ ведемо — вони пішли у Кінець.
+	branchTop := top + diaH + branchGap
 	mergeY := branchTop + max(th, eh) + mergeGap
-	if !thenEnded {
-		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{thenExit, {X: thenExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
-	}
-	if !elseEnded {
-		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{elseExit, {X: elseExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
-	}
+
+	thenEnded := b.branch(n.Then, "Так", cx, cx-dw/2, midY, thenCx, branchTop, mergeY)
+	elseEnded := b.branch(n.Else, "Ні", cx, cx+dw/2, midY, elseCx, branchTop, mergeY)
 	return P(cx, mergeY), thenEnded && elseEnded
+}
+
+// branch малює одну гілку if від кута ромба (vx,midY). Повертає, чи гілка
+// завершилась (return/raise/exit). Порожня гілка — ОДНА суцільна лінія до
+// злиття без стрілки-голови в нікуди.
+func (b *build) branch(blk *ir.Block, label string, cx, vx, midY, bcx, branchTop, mergeY float64) bool {
+	if len(blk.Stmts) == 0 {
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: label, Points: []diagram.Point{
+			{X: vx, Y: midY}, {X: bcx, Y: midY}, {X: bcx, Y: mergeY}, {X: cx, Y: mergeY},
+		}})
+		return false
+	}
+	// Непорожня: стрілка з підписом у верх першого блоку, далі — злиття.
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: label, Points: []diagram.Point{
+		{X: vx, Y: midY}, {X: bcx, Y: midY}, {X: bcx, Y: branchTop},
+	}})
+	exit, ended := b.placeBlock(blk, bcx, branchTop)
+	if !ended {
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
+			exit, {X: exit.X, Y: mergeY}, {X: cx, Y: mergeY},
+		}})
+	}
+	return ended
 }
 
 // placeFor — цикл for: шестикутник згори, тіло під ним, дуга повернення справа,
