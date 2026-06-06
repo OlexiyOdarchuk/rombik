@@ -32,9 +32,10 @@ func main() {
 	outFile := flag.String("o", "out.svg", "вихідний SVG (для кількох функцій — основа імені)")
 	fnName := flag.String("fn", "", "малювати лише функцію з цим іменем")
 	callPlain := flag.Bool("calls-plain", false, "виклики підпрограм — звичайним прямокутником (не ДСТУ-символом)")
+	singleEnd := flag.Bool("single-end", false, "один спільний Кінець (інакше — на кожен return/raise)")
 	scale := flag.Float64("scale", 2, "масштаб для PNG (роздільність)")
 	flag.Parse()
-	opts := layout.Options{CallAsProcess: *callPlain}
+	opts := layout.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd}
 
 	// Демо, коли без -py.
 	if *pyFile == "" {
