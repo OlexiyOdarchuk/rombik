@@ -150,8 +150,11 @@ func (b *build) routeEnds(cx, kY float64) {
 		if p.X > cx {
 			rail = rightRail
 		}
+		// Спершу трохи вниз від центру низу, тоді вбік на рейку — щоб лінія
+		// не йшла по краю блока (не «з кута»).
+		drop := p.Y + mergeGap/2
 		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
-			p, P(rail, p.Y), P(rail, cy), P(cx, cy)}})
+			p, P(p.X, drop), P(rail, drop), P(rail, cy), P(cx, cy)}})
 	}
 	b.d.Edges = append(b.d.Edges, edge(P(cx, cy), P(cx, kY))) // шина → Кінець
 }
