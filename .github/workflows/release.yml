@@ -1,0 +1,94 @@
+name: flowgen Releaser 📊
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build CLI
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          ext=""
+          [ "${{ matrix.goos }}" = "windows" ] && ext=".exe"
+          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+            go build -trimpath -ldflags "-s -w" \
+            -o "dist/flowgen-${{ matrix.goos }}-${{ matrix.goarch }}${ext}" ./cmd/flowgen
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flowgen-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/flowgen-${{ matrix.goos }}-${{ matrix.goarch }}*
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: ./all-binaries
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: 'flowgen ${{ github.ref_name }} 📊'
+          draft: false
+          prerelease: false
+          make_latest: true
+          body: |
+            ## flowgen ${{ github.ref_name }} — блок-схеми за ДСТУ з коду
+
+            CLI для відмальовки блок-схем (SVG / PNG / Typst / JSON) з Python-коду.
+
+            ### Платформи
+            - **Windows**: amd64, arm64
+            - **Linux**: amd64, arm64
+            - **macOS**: Intel і Apple Silicon
+
+            ### Використання
+            ```
+            flowgen -py program.py -o схема.svg
+            flowgen -py program.py -o схема.png      # потрібен rsvg-convert
+            flowgen -py program.py -o схема.typ      # нативний Typst
+            ```
+            Потрібен `python3` у системі (парсер). Деталі — у README.
+
+            ---
+            *Зроблено на Go.*
+          files: |
+            all-binaries/flowgen-*
