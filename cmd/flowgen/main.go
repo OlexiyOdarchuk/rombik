@@ -24,6 +24,7 @@ import (
 	"github.com/OlexiyOdarchuk/flowgen/pkg/flowgen"
 	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
 	"github.com/OlexiyOdarchuk/flowgen/pkg/render/svg"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/render/typst"
 )
 
 func main() {
@@ -86,6 +87,8 @@ func write(d *diagram.Diagram, out string, scale float64) {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case ".typ":
+		writeFile(out, []byte(typst.Render(d)))
 	default:
 		writeFile(out, []byte(svg.Render(d)))
 	}

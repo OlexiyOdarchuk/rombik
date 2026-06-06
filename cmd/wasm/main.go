@@ -20,11 +20,13 @@ import (
 
 	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
 	"github.com/OlexiyOdarchuk/flowgen/pkg/flowgen"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/render/typst"
 )
 
 type outFunc struct {
 	Name    string           `json:"name"`
 	SVG     string           `json:"svg"`
+	Typst   string           `json:"typst"`
 	Diagram *diagram.Diagram `json:"diagram"`
 }
 
@@ -43,7 +45,7 @@ func generate(_ js.Value, args []js.Value) any {
 	}
 	res := make([]outFunc, 0, len(funcs))
 	for _, f := range funcs {
-		res = append(res, outFunc{Name: f.Name, SVG: f.SVG(), Diagram: f.Diagram})
+		res = append(res, outFunc{Name: f.Name, SVG: f.SVG(), Typst: typst.Render(f.Diagram), Diagram: f.Diagram})
 	}
 	return result(map[string]any{"functions": res})
 }
