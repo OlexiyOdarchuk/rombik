@@ -1,22 +1,53 @@
-// Команда flowgen — перший зріз: захардкоджений алгоритм → ДСТУ-блок-схема в SVG.
-// Парсер коду (tree-sitter) додамо наступним кроком; зараз доводимо ядро
-// (IR → layout → SVG).
+// Команда flowgen: код → ДСТУ-блок-схема в SVG.
 //
-//	go run ./cmd/flowgen   → пише out.svg
+//	go run ./cmd/flowgen                 → демо (захардкоджений алгоритм)
+//	go run ./cmd/flowgen -py file.py     → схема з Python-файлу
+//	go run ./cmd/flowgen -py file.py -o схема.svg
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
 	"flowgen/internal/ir"
 	"flowgen/internal/layout"
+	"flowgen/internal/parser/python"
 	"flowgen/internal/render/svg"
 )
 
 func main() {
-	// Приклад: ввести n; s := n*n; якщо s>100 — «велике», інакше «мале».
-	prog := ir.NewBlock(
+	pyFile := flag.String("py", "", "Python-файл для парсингу (інакше — демо)")
+	outFile := flag.String("o", "out.svg", "вихідний SVG")
+	flag.Parse()
+
+	var prog *ir.Block
+	if *pyFile != "" {
+		code, err := os.ReadFile(*pyFile)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "читання:", err)
+			os.Exit(1)
+		}
+		prog, err = python.Parse(string(code))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	} else {
+		prog = demo()
+	}
+
+	d := layout.Build(prog)
+	if err := os.WriteFile(*outFile, []byte(svg.Render(d)), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, "запис:", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Готово: %s (%.0f×%.0f, фігур: %d, ребер: %d)\n", *outFile, d.W, d.H, len(d.Shapes), len(d.Edges))
+}
+
+// demo — захардкоджений приклад (коли без -py).
+func demo() *ir.Block {
+	return ir.NewBlock(
 		&ir.IO{Text: "Ввести n"},
 		&ir.Process{Text: "s := n * n"},
 		&ir.If{
@@ -25,13 +56,4 @@ func main() {
 			Else: ir.NewBlock(&ir.Process{Text: "Вивести «мале»"}),
 		},
 	)
-
-	d := layout.Build(prog)
-	out := svg.Render(d)
-
-	if err := os.WriteFile("out.svg", []byte(out), 0o644); err != nil {
-		fmt.Fprintln(os.Stderr, "запис:", err)
-		os.Exit(1)
-	}
-	fmt.Printf("Готово: out.svg (%.0f×%.0f, фігур: %d, ребер: %d)\n", d.W, d.H, len(d.Shapes), len(d.Edges))
 }

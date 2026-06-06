@@ -29,9 +29,15 @@ func Render(d *diagram.Diagram) string {
 		fmt.Fprintf(&b, `<path d="%s" fill="none" stroke="#222" stroke-width="1.5"%s/>`,
 			pathOf(e.Points), marker)
 		if e.Label != "" && len(e.Points) >= 2 {
-			lx := (e.Points[0].X+e.Points[1].X)/2 + 4
-			ly := (e.Points[0].Y+e.Points[1].Y)/2 - 5
-			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="12" fill="#444">%s</text>`, lx, ly, esc(e.Label))
+			// Мітку (Так/Ні) ставимо впритул до вершини ромба (Points[0]),
+			// симетрично з обох боків — текст «назовні» від напряму гілки.
+			p0, p1 := e.Points[0], e.Points[1]
+			anchor, lx := "start", p0.X+6
+			if p1.X < p0.X {
+				anchor, lx = "end", p0.X-6
+			}
+			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" text-anchor="%s" font-size="12" fill="#444">%s</text>`,
+				lx, p0.Y-7, anchor, esc(e.Label))
 		}
 	}
 	for _, s := range d.Shapes {
