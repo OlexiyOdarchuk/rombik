@@ -3,3 +3,8 @@ node_modules/
 build/
 .DS_Store
 *.local
+
+# Генеровані двигуном (build-скрипт із README)
+static/flowgen.wasm
+static/wasm_exec.js
+static/parser.py

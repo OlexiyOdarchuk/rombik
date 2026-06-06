@@ -65,7 +65,7 @@
 
 		<!-- міні-схема: справжній вивід двигуна -->
 		<div class="rise rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
-			<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[240px]" font-family="Inter, sans-serif" font-size="14">
+			<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[400px]" font-family="Inter, sans-serif" font-size="14">
 				<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>
 				<path d="M236.0 86.0 L236.0 130.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
 				<path d="M236.0 176.0 L236.0 220.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>

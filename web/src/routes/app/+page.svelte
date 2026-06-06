@@ -1,4 +1,7 @@
 <script>
+	import { generate, warmup } from '$lib/engine.js';
+	import { onMount } from 'svelte';
+
 	const SAMPLE = `def grade(score):
     name = input("Ваше ім'я: ")
     print("Привіт,", name)
@@ -14,30 +17,77 @@
 
 	let code = $state(SAMPLE);
 	let opts = $state({ callAsProcess: false });
-	let funcs = $state([]); // [{name, svg}]
+	let funcs = $state([]); // [{name, svg, diagram}]
 	let active = $state(0);
 	let status = $state('Готовий. Натисни «Побудувати».');
 	let busy = $state(false);
+	let errored = $state(false);
 
-	// Тимчасова заглушка прев'ю, поки підключаємо двигун (наступний крок).
-	const PLACEHOLDER = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" font-family="Inter" font-size="13">
-		<rect width="320" height="120" fill="#f8fafc"/>
-		<text x="160" y="60" text-anchor="middle" fill="#94a3b8">Тут зʼявиться схема</text></svg>`;
+	// Прогріваємо середовище заздалегідь (вантажиться Pyodide ~6 МБ).
+	onMount(() => {
+		warmup((s) => (status = s)).then(
+			() => (status = 'Готовий. Натисни «Побудувати».'),
+			(e) => ((errored = true), (status = 'Не вдалося завантажити середовище: ' + e))
+		);
+	});
 
 	async function build() {
 		busy = true;
-		status = 'Будую…';
+		errored = false;
 		try {
-			// TODO: підключити engine.generate(code, opts) — Pyodide + flowgen.wasm
-			await new Promise((r) => setTimeout(r, 150));
-			funcs = [{ name: 'grade', svg: PLACEHOLDER }];
-			active = 0;
-			status = `Готово: ${funcs.length} схем(а). Двигун підключаємо в наступному кроці.`;
+			const res = await generate(code, opts, (s) => (status = s));
+			if (res.error) {
+				errored = true;
+				status = res.error;
+				return;
+			}
+			funcs = res.functions ?? [];
+			if (active >= funcs.length) active = 0;
+			status = funcs.length ? `Готово: ${funcs.length} схем.` : 'Порожньо: нема що малювати.';
 		} catch (e) {
-			status = 'Помилка: ' + e;
+			errored = true;
+			status = 'Помилка: ' + (e?.message ?? e);
 		} finally {
 			busy = false;
 		}
+	}
+
+	function exportSvg() {
+		if (!funcs.length) return;
+		const f = funcs[active];
+		const blob = new Blob([f.svg], { type: 'image/svg+xml' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${f.name}.svg`;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function exportPng() {
+		if (!funcs.length) return;
+		const f = funcs[active];
+		const scale = 2;
+		const img = new Image();
+		const url = URL.createObjectURL(new Blob([f.svg], { type: 'image/svg+xml' }));
+		img.onload = () => {
+			const c = document.createElement('canvas');
+			c.width = f.diagram.w * scale;
+			c.height = f.diagram.h * scale;
+			const ctx = c.getContext('2d');
+			ctx.scale(scale, scale);
+			ctx.drawImage(img, 0, 0);
+			URL.revokeObjectURL(url);
+			c.toBlob((b) => {
+				const u = URL.createObjectURL(b);
+				const a = document.createElement('a');
+				a.href = u;
+				a.download = `${f.name}.png`;
+				a.click();
+				URL.revokeObjectURL(u);
+			});
+		};
+		img.src = url;
 	}
 </script>
 
@@ -57,15 +107,28 @@
 		</button>
 
 		<label class="flex items-center gap-2 text-sm text-slate-600">
-			<input type="checkbox" bind:checked={opts.callAsProcess} class="rounded border-slate-300" />
+			<input
+				type="checkbox"
+				bind:checked={opts.callAsProcess}
+				onchange={() => funcs.length && build()}
+				class="rounded border-slate-300"
+			/>
 			Виклик звичайним блоком (не ДСТУ-підпрограмою)
 		</label>
 
 		<div class="ml-auto flex gap-2">
-			<button class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-400" disabled>
+			<button
+				onclick={exportSvg}
+				disabled={!funcs.length}
+				class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 disabled:text-slate-400 disabled:hover:border-slate-300"
+			>
 				Експорт SVG
 			</button>
-			<button class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-400" disabled>
+			<button
+				onclick={exportPng}
+				disabled={!funcs.length}
+				class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 disabled:text-slate-400 disabled:hover:border-slate-300"
+			>
 				Експорт PNG
 			</button>
 		</div>
@@ -113,5 +176,5 @@
 		</div>
 	</div>
 
-	<p class="mt-3 text-xs text-slate-500">{status}</p>
+	<p class="mt-3 text-xs {errored ? 'text-red-600' : 'text-slate-500'}">{status}</p>
 </div>
