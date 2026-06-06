@@ -15,28 +15,56 @@ const (
 	Predef                 // виклик підпрограми — прямокутник з боковими рисками
 )
 
+// String — машинна назва типу (для JSON/фронтенду).
+func (k Kind) String() string {
+	switch k {
+	case Terminator:
+		return "terminator"
+	case Process:
+		return "process"
+	case Decision:
+		return "decision"
+	case InOut:
+		return "io"
+	case Hexagon:
+		return "loop"
+	case Predef:
+		return "subprogram"
+	}
+	return "unknown"
+}
+
+// MarshalJSON віддає тип фігури як читабельний рядок, а не число.
+func (k Kind) MarshalJSON() ([]byte, error) { return []byte(`"` + k.String() + `"`), nil }
+
 // Point — точка у координатах діаграми (y росте вниз).
-type Point struct{ X, Y float64 }
+type Point struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+}
 
 // Shape — фігура. X,Y — лівий верхній кут; текст центрується.
 type Shape struct {
-	Kind Kind
-	X, Y float64
-	W, H float64
-	Text string
+	Kind Kind    `json:"kind"`
+	X    float64 `json:"x"`
+	Y    float64 `json:"y"`
+	W    float64 `json:"w"`
+	H    float64 `json:"h"`
+	Text string  `json:"text"`
 }
 
 // Edge — стрілка як ортогональна ламана (масив точок) з опційною позначкою.
 // Arrowless — без вістря (для з'єднань у точці злиття гілок).
 type Edge struct {
-	Points    []Point
-	Label     string
-	Arrowless bool
+	Points    []Point `json:"points"`
+	Label     string  `json:"label,omitempty"`
+	Arrowless bool    `json:"arrowless,omitempty"`
 }
 
 // Diagram — повна розкладена схема.
 type Diagram struct {
-	Shapes []Shape
-	Edges  []Edge
-	W, H   float64
+	Shapes []Shape `json:"shapes"`
+	Edges  []Edge  `json:"edges"`
+	W      float64 `json:"w"`
+	H      float64 `json:"h"`
 }

@@ -7,6 +7,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -63,9 +64,20 @@ func main() {
 	}
 }
 
-// write рендерить діаграму в SVG-файл і друкує підсумок.
+// write серіалізує діаграму у файл: .json → дані для фронтенду, інакше → SVG.
 func write(d *diagram.Diagram, out string) {
-	if err := os.WriteFile(out, []byte(svg.Render(d)), 0o644); err != nil {
+	var data []byte
+	if strings.EqualFold(filepath.Ext(out), ".json") {
+		b, err := json.MarshalIndent(d, "", "  ")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "json:", err)
+			os.Exit(1)
+		}
+		data = b
+	} else {
+		data = []byte(svg.Render(d))
+	}
+	if err := os.WriteFile(out, data, 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "запис:", err)
 		os.Exit(1)
 	}
