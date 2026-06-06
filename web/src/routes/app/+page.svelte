@@ -21,6 +21,7 @@
 	let status = $state('Готовий. Натисни «Побудувати».');
 	let busy = $state(false);
 	let errored = $state(false);
+	let showSettings = $state(false);
 
 	// Налаштування (галочки/списки) -> опції двигуна.
 	let s = $state({
@@ -120,7 +121,7 @@
 
 <div class="mx-auto flex h-[calc(100vh-4rem)] max-w-7xl flex-col px-4 py-4">
 	<!-- toolbar -->
-	<div class="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+	<div class="mb-3 flex items-center gap-3">
 		<button
 			onclick={build}
 			disabled={busy}
@@ -129,39 +130,53 @@
 			{busy ? 'Будую…' : 'Побудувати схему'}
 		</button>
 
-		<label class="flex items-center gap-2 text-sm text-slate-600">
-			<input type="checkbox" bind:checked={s.singleEnd} onchange={reapply} class="rounded border-slate-300" />
-			Один Кінець
-		</label>
-		<label class="flex items-center gap-2 text-sm text-slate-600">
-			<input type="checkbox" bind:checked={s.callAsProcess} onchange={reapply} class="rounded border-slate-300" />
-			Виклик звичайним блоком
-		</label>
-		<label class="flex items-center gap-2 text-sm text-slate-600">
-			<input type="checkbox" bind:checked={s.stripTypes} onchange={reapply} class="rounded border-slate-300" />
-			Без тип-анотацій
-		</label>
-		<label class="flex items-center gap-2 text-sm text-slate-600">
-			<input type="checkbox" bind:checked={s.returnAsIO} onchange={reapply} class="rounded border-slate-300" />
-			return паралелограмом
-		</label>
+		<!-- Налаштування (випадайна панель) -->
+		<div class="relative">
+			<button
+				onclick={() => (showSettings = !showSettings)}
+				class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+					<circle cx="12" cy="12" r="3" />
+					<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+				</svg>
+				Налаштування
+			</button>
 
-		<label class="flex items-center gap-1.5 text-sm text-slate-600">
-			Гілки:
-			<select bind:value={s.branch} onchange={reapply} class="rounded border-slate-300 py-1 text-sm">
-				<option value="так">Так / Ні</option>
-				<option value="yes">Yes / No</option>
-				<option value="pm">+ / −</option>
-			</select>
-		</label>
-		<label class="flex items-center gap-1.5 text-sm text-slate-600">
-			Ввід/вивід:
-			<select bind:value={s.io} onchange={reapply} class="rounded border-slate-300 py-1 text-sm">
-				<option value="short">Ввід / Вивід</option>
-				<option value="verbose">Введення / Виведення</option>
-				<option value="imperative">Ввести / Вивести</option>
-			</select>
-		</label>
+			{#if showSettings}
+				<button class="fixed inset-0 z-10 cursor-default" onclick={() => (showSettings = false)} aria-label="Закрити"></button>
+				<div class="absolute left-0 top-full z-20 mt-2 w-72 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xl">
+					<div class="space-y-2.5">
+						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Структура</p>
+						{#each [['singleEnd', 'Один Кінець на всю схему'], ['callAsProcess', 'Виклик — звичайним блоком'], ['stripTypes', 'Без тип-анотацій'], ['returnAsIO', 'return — паралелограмом']] as [key, label] (key)}
+							<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
+								<input type="checkbox" bind:checked={s[key]} onchange={reapply} class="rounded border-slate-300" />
+								{label}
+							</label>
+						{/each}
+					</div>
+					<div class="space-y-2.5 border-t border-slate-100 pt-3">
+						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Підписи</p>
+						<label class="flex items-center justify-between text-sm text-slate-700">
+							Гілки
+							<select bind:value={s.branch} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm">
+								<option value="так">Так / Ні</option>
+								<option value="yes">Yes / No</option>
+								<option value="pm">+ / −</option>
+							</select>
+						</label>
+						<label class="flex items-center justify-between text-sm text-slate-700">
+							Ввід/вивід
+							<select bind:value={s.io} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm">
+								<option value="short">Ввід / Вивід</option>
+								<option value="verbose">Введення / Виведення</option>
+								<option value="imperative">Ввести / Вивести</option>
+							</select>
+						</label>
+					</div>
+				</div>
+			{/if}
+		</div>
 
 		{#if funcs.length}
 			<span class="ml-auto text-sm text-slate-500">{funcs.length} схем</span>
