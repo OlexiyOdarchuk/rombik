@@ -1,0 +1,9 @@
+# Артефакти збірки/демо
+/flowgen
+out.svg
+out.png
+*.exe
+
+# IDE
+.idea/
+.vscode/
