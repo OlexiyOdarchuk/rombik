@@ -331,7 +331,8 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 		{X: cx + dw/2, Y: diaCy}, {X: backX, Y: diaCy}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
 	}})
 	contY := diaTop + diaH + vGap
-	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: "Так", Points: []diagram.Point{
+	// Вихід — без вістря: голову дасть наступне ребро (вхід у фігуру/Кінець).
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: "Так", Arrowless: true, Points: []diagram.Point{
 		{X: cx, Y: diaTop + diaH}, {X: cx, Y: contY},
 	}})
 	return P(cx, contY)
@@ -346,7 +347,8 @@ func (b *build) loopArcs(cx, headHalf, headCy, bodyHalf, bodyBottom float64, exi
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
 		{X: cx, Y: bodyBottom}, {X: backX, Y: bodyBottom}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
 	}})
-	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: exitLabel, Points: []diagram.Point{
+	// Вихід із циклу — без вістря: голову дасть наступне ребро (вхід у фігуру).
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: exitLabel, Arrowless: true, Points: []diagram.Point{
 		{X: cx - headHalf, Y: headCy}, {X: leftX, Y: headCy}, {X: leftX, Y: contY}, {X: cx, Y: contY},
 	}})
 	return P(cx, contY)
