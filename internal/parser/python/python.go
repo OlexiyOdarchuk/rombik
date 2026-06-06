@@ -67,7 +67,7 @@ def stmt(s):
             return io("Ввід "+", ".join(expr(t) for t in s.targets))
         return {"kind":"process","text":expr(s)}
     if isinstance(s, ast.Return):
-        return {"kind":"process","text":("повернути "+expr(s.value)) if s.value else "повернути"}
+        return io("Повернути "+expr(s.value)) if s.value else io("Повернути")
     if isinstance(s, ast.Expr) and isinstance(s.value, ast.Call):
         nm = call_name(s.value)
         if nm=="print": return io("Вивід "+" ".join(arg(a) for a in s.value.args))
@@ -77,12 +77,26 @@ def stmt(s):
     return {"kind":"process","text":expr(s)}
 def block(stmts):
     return {"kind":"block","stmts":[stmt(s) for s in stmts if not isinstance(s,(ast.Pass,ast.Import,ast.ImportFrom))]}
+def funcblock(fn):
+    # параметри функції — як вхідний паралелограм (конвенція курсових схем)
+    b = block(fn.body)
+    params = [a.arg for a in fn.args.args]
+    if params:
+        b["stmts"].insert(0, io("Ввід "+", ".join(params)))
+    return b
 src = sys.stdin.read()
 mod = ast.parse(src)
-body = mod.body
-if len(body)==1 and isinstance(body[0], ast.FunctionDef):
-    body = body[0].body
-print(json.dumps(block(body), ensure_ascii=False))
+funcs = [s for s in mod.body if isinstance(s, ast.FunctionDef)]
+rest  = [s for s in mod.body if not isinstance(s, (ast.FunctionDef, ast.Import, ast.ImportFrom))]
+out = []
+if funcs:
+    for fn in funcs:
+        out.append({"name":fn.name, "block":funcblock(fn)})
+    if rest:
+        out.append({"name":"main", "block":block(rest)})
+else:
+    out.append({"name":"main", "block":block(mod.body)})
+print(json.dumps(out, ensure_ascii=False))
 `
 
 // pyNode — форма вузла у JSON від скрипта.
@@ -96,8 +110,15 @@ type pyNode struct {
 	Body  *pyNode  `json:"body"`
 }
 
-// Parse зводить Python-код у ir.Block.
-func Parse(code string) (*ir.Block, error) {
+// pyFunc — іменована програма у JSON (функція або тіло модуля).
+type pyFunc struct {
+	Name  string `json:"name"`
+	Block pyNode `json:"block"`
+}
+
+// ParseAll зводить Python-код у список іменованих програм (по одній на функцію;
+// або одну «main», якщо функцій нема).
+func ParseAll(code string) ([]ir.Func, error) {
 	cmd := exec.Command("python3", "-c", pyScript)
 	cmd.Stdin = strings.NewReader(code)
 	out, err := cmd.Output()
@@ -107,11 +128,15 @@ func Parse(code string) (*ir.Block, error) {
 		}
 		return nil, fmt.Errorf("python parse: %w (чи встановлено python3?)", err)
 	}
-	var root pyNode
-	if err := json.Unmarshal(out, &root); err != nil {
+	var fns []pyFunc
+	if err := json.Unmarshal(out, &fns); err != nil {
 		return nil, fmt.Errorf("розбір JSON від python: %w", err)
 	}
-	return toBlock(&root), nil
+	res := make([]ir.Func, 0, len(fns))
+	for i := range fns {
+		res = append(res, ir.Func{Name: fns[i].Name, Body: toBlock(&fns[i].Block)})
+	}
+	return res, nil
 }
 
 func toBlock(n *pyNode) *ir.Block {

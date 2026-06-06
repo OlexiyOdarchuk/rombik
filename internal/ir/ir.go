@@ -58,3 +58,10 @@ func (*Block) node() {}
 
 // NewBlock — зручний конструктор послідовності.
 func NewBlock(stmts ...Node) *Block { return &Block{Stmts: stmts} }
+
+// Func — іменована програма (функція або тіло модуля). Один файл із кількома
+// def дає кілька Func → кожна йде в окрему схему.
+type Func struct {
+	Name string
+	Body *Block
+}
