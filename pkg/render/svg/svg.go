@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"flowgen/internal/diagram"
+	"flowgen/pkg/diagram"
 )
 
 // Render повертає SVG-рядок для діаграми.

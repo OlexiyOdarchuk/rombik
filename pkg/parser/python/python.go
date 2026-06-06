@@ -12,8 +12,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"flowgen/internal/ir"
-	"flowgen/internal/parser/astjson"
+	"flowgen/pkg/ir"
+	"flowgen/pkg/parser/astjson"
 )
 
 // pyScript — той самий парсер, що й вантажить браузер у Pyodide (parser.py).

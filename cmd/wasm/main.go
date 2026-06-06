@@ -18,10 +18,8 @@ import (
 	"encoding/json"
 	"syscall/js"
 
-	"flowgen/internal/diagram"
-	"flowgen/internal/layout"
-	"flowgen/internal/parser/astjson"
-	"flowgen/internal/render/svg"
+	"flowgen/pkg/diagram"
+	"flowgen/pkg/flowgen"
 )
 
 type outFunc struct {
@@ -35,18 +33,17 @@ func generate(_ js.Value, args []js.Value) any {
 	if len(args) == 0 {
 		return result(map[string]any{"error": "немає AST-JSON"})
 	}
-	var opts layout.Options
+	var opts flowgen.Options
 	if len(args) > 1 && !args[1].IsUndefined() && !args[1].IsNull() {
 		_ = json.Unmarshal([]byte(args[1].String()), &opts)
 	}
-	funcs, err := astjson.FromJSON([]byte(args[0].String()))
+	funcs, err := flowgen.FromAST([]byte(args[0].String()), opts)
 	if err != nil {
 		return result(map[string]any{"error": err.Error()})
 	}
 	res := make([]outFunc, 0, len(funcs))
 	for _, f := range funcs {
-		d := layout.Build(f.Body, opts)
-		res = append(res, outFunc{Name: f.Name, SVG: svg.Render(d), Diagram: d})
+		res = append(res, outFunc{Name: f.Name, SVG: f.SVG(), Diagram: f.Diagram})
 	}
 	return result(map[string]any{"functions": res})
 }

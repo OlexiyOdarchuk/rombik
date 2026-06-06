@@ -10,9 +10,9 @@ import (
 	"regexp"
 	"strings"
 
-	"flowgen/internal/diagram"
-	"flowgen/internal/ir"
-	"flowgen/internal/route"
+	"flowgen/pkg/diagram"
+	"flowgen/pkg/ir"
+	"flowgen/pkg/route"
 )
 
 // Розміри й відступи (у точках).

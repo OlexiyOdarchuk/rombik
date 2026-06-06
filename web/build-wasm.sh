@@ -11,6 +11,6 @@ echo "→ wasm_exec.js"
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
 
 echo "→ parser.py"
-cp internal/parser/python/parser.py web/static/
+cp pkg/parser/python/parser.py web/static/
 
 echo "Готово: web/static/{flowgen.wasm, wasm_exec.js, parser.py}"

@@ -20,11 +20,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"flowgen/internal/diagram"
-	"flowgen/internal/ir"
-	"flowgen/internal/layout"
-	"flowgen/internal/parser/python"
-	"flowgen/internal/render/svg"
+	"flowgen/pkg/diagram"
+	"flowgen/pkg/flowgen"
+	"flowgen/pkg/ir"
+	"flowgen/pkg/render/svg"
 )
 
 func main() {
@@ -35,23 +34,22 @@ func main() {
 	singleEnd := flag.Bool("single-end", false, "один спільний Кінець (інакше — на кожен return/raise)")
 	scale := flag.Float64("scale", 2, "масштаб для PNG (роздільність)")
 	flag.Parse()
-	opts := layout.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd}
+	opts := flowgen.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd}
 
-	// Демо, коли без -py.
+	var funcs []flowgen.Result
 	if *pyFile == "" {
-		write(layout.Build(demo(), opts), *outFile, *scale)
-		return
-	}
-
-	code, err := os.ReadFile(*pyFile)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "читання:", err)
-		os.Exit(1)
-	}
-	funcs, err := python.ParseAll(string(code))
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		funcs = flowgen.FromIR([]ir.Func{{Name: "main", Body: demo()}}, opts)
+	} else {
+		code, err := os.ReadFile(*pyFile)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "читання:", err)
+			os.Exit(1)
+		}
+		funcs, err = flowgen.FromPython(string(code), opts)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	}
 	if *fnName != "" {
 		funcs = filterByName(funcs, *fnName)
@@ -63,12 +61,12 @@ func main() {
 
 	// Одна схема → точно в -o; кілька → <основа>_<функція>.<ext>.
 	if len(funcs) == 1 {
-		write(layout.Build(funcs[0].Body, opts), *outFile, *scale)
+		write(funcs[0].Diagram, *outFile, *scale)
 		return
 	}
 	base, ext := splitExt(*outFile)
 	for _, f := range funcs {
-		write(layout.Build(f.Body, opts), fmt.Sprintf("%s_%s%s", base, f.Name, ext), *scale)
+		write(f.Diagram, fmt.Sprintf("%s_%s%s", base, f.Name, ext), *scale)
 	}
 }
 
@@ -112,8 +110,8 @@ func svgToPNG(svgText, out string, scale float64) error {
 	return cmd.Run()
 }
 
-func filterByName(fns []ir.Func, name string) []ir.Func {
-	var res []ir.Func
+func filterByName(fns []flowgen.Result, name string) []flowgen.Result {
+	var res []flowgen.Result
 	for _, f := range fns {
 		if f.Name == name {
 			res = append(res, f)
