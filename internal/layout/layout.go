@@ -3,7 +3,7 @@
 // рекурсивна. size() рахує габарити піддерева, build.place() роздає координати.
 //
 // Усі шляхи, що завершують функцію (return/raise/exit і природний вихід),
-// збираються у build.ends і зводяться в ЄДИНИЙ термінатор «Кінець».
+// збираються у build.ends і зводяться в термінатор «Кінець».
 package layout
 
 import (
@@ -12,6 +12,7 @@ import (
 
 	"flowgen/internal/diagram"
 	"flowgen/internal/ir"
+	"flowgen/internal/route"
 )
 
 // Розміри й відступи (у точках).
@@ -189,55 +190,41 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 	return b.d
 }
 
-// routeEnds зводить усі точки-виходи у єдиний Кінець однією шиною знизу.
+// routeEnds зводить усі точки-виходи у Кінець маршрутизатором (обхід фігур).
 func (b *build) routeEnds(cx, kY float64) {
-	switch len(b.ends) {
-	case 0:
-		return
-	case 1:
-		p := b.ends[0]
-		if p.X == cx {
-			b.d.Edges = append(b.d.Edges, edge(p, P(cx, kY)))
-		} else { // одна суцільна ламана зі стрілкою в Кінець
-			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
-				p, P(p.X, kY-mergeGap), P(cx, kY-mergeGap), P(cx, kY)}})
-		}
+	if len(b.ends) == 0 {
 		return
 	}
-	// Кілька виходів: ведемо прямо вниз до шини, якщо стовпець чистий; на бічну
-	// рейку — лише ті, під ким реально є фігура (щоб не різати її).
-	cy := kY - mergeGap
-	leftRail := margin * 0.5
-	rightRail := 2*cx - margin*0.5
-	for _, p := range b.ends {
-		if !b.blockedDown(p.X, p.Y, cy) { // стовпець чистий — прямо вниз, тоді до центру
-			if p.X > cx-1 && p.X < cx+1 {
-				b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(cx, cy)}})
-			} else {
-				b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(p.X, cy), P(cx, cy)}})
-			}
-			continue
-		}
-		rail := leftRail // блокує — обходимо рейкою (вниз від центру, тоді вбік)
-		if p.X > cx {
-			rail = rightRail
-		}
-		drop := p.Y + mergeGap/2
-		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
-			p, P(p.X, drop), P(rail, drop), P(rail, cy), P(cx, cy)}})
+	obs := b.rects()
+	if len(b.ends) == 1 { // одне ребро прямо в Кінець (зі стрілкою)
+		b.d.Edges = append(b.d.Edges, routed(route.Route(toPt(b.ends[0]), route.Pt{X: cx, Y: kY}, obs), false))
+		return
 	}
-	b.d.Edges = append(b.d.Edges, edge(P(cx, cy), P(cx, kY))) // шина → Кінець
+	// Кілька: кожен — у точку збору над Кінцем (без вістря), тоді одна стрілка.
+	jy := kY - vGap
+	for _, e := range b.ends {
+		b.d.Edges = append(b.d.Edges, routed(route.Route(toPt(e), route.Pt{X: cx, Y: jy}, obs), true))
+	}
+	b.d.Edges = append(b.d.Edges, edge(P(cx, jy), P(cx, kY)))
 }
 
-// blockedDown — чи є фігура в стовпці x між fromY і toY (тобто прямий шлях
-// униз перетнув би її).
-func (b *build) blockedDown(x, fromY, toY float64) bool {
-	for _, s := range b.d.Shapes {
-		if s.Y > fromY+1 && s.Y < toY && s.X-1 < x && x < s.X+s.W+1 {
-			return true
-		}
+// rects — фігури як перешкоди для маршрутизатора.
+func (b *build) rects() []route.Rect {
+	rs := make([]route.Rect, len(b.d.Shapes))
+	for i, s := range b.d.Shapes {
+		rs[i] = route.Rect{X: s.X, Y: s.Y, W: s.W, H: s.H}
 	}
-	return false
+	return rs
+}
+
+func toPt(p diagram.Point) route.Pt { return route.Pt{X: p.X, Y: p.Y} }
+
+func routed(path []route.Pt, arrowless bool) diagram.Edge {
+	pts := make([]diagram.Point, len(path))
+	for i, p := range path {
+		pts[i] = diagram.Point{X: p.X, Y: p.Y}
+	}
+	return diagram.Edge{Points: pts, Arrowless: arrowless}
 }
 
 // mapCalls рекурсивно замінює виклики підпрограм на звичайні процеси (опція).
