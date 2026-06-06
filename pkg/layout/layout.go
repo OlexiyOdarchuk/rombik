@@ -185,6 +185,8 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 		b.d.Shapes = append(b.d.Shapes, term(cx, kY, b.endText))
 	}
 
+	b.routeAll() // усі ребра — через роутер (чисті стрілки)
+
 	b.d.W = w
 	b.d.H = contentBottom(b.d) + margin
 	return b.d
@@ -206,6 +208,51 @@ func (b *build) routeEnds(cx, kY float64) {
 		b.d.Edges = append(b.d.Edges, routed(route.Route(toPt(e), route.Pt{X: cx, Y: jy}, obs), true))
 	}
 	b.d.Edges = append(b.d.Edges, edge(P(cx, jy), P(cx, kY)))
+}
+
+// routeAll переводить КОЖНЕ ребро на маршрутизатор: бере його кінці й напрямки
+// виходу/входу (з першого/останнього сегмента), а шлях прокладає роутер з
+// обходом фігур. Так чистими стають усі стрілки, не лише виходи в Кінець.
+func (b *build) routeAll() {
+	obs := b.rects()
+	for i := range b.d.Edges {
+		e := &b.d.Edges[i]
+		n := len(e.Points)
+		if n < 2 {
+			continue
+		}
+		from, to := e.Points[0], e.Points[n-1]
+		fromDir := dirOf(e.Points[0], e.Points[1])
+		toDir := dirOf(e.Points[n-1], e.Points[n-2])
+		path := route.Connect(toPt(from), toPt(to), fromDir, toDir, obs)
+		pts := make([]diagram.Point, len(path))
+		for j, p := range path {
+			pts[j] = diagram.Point{X: p.X, Y: p.Y}
+		}
+		e.Points = pts
+	}
+}
+
+// dirOf — напрямок руху від a до b (домінантна вісь).
+func dirOf(a, b diagram.Point) route.Dir {
+	dx, dy := b.X-a.X, b.Y-a.Y
+	adx, ady := dx, dy
+	if adx < 0 {
+		adx = -adx
+	}
+	if ady < 0 {
+		ady = -ady
+	}
+	if adx >= ady {
+		if dx > 0 {
+			return route.Right
+		}
+		return route.Left
+	}
+	if dy > 0 {
+		return route.Down
+	}
+	return route.Up
 }
 
 // rects — фігури як перешкоди для маршрутизатора.

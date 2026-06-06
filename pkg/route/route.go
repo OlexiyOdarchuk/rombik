@@ -20,6 +20,62 @@ const (
 	turn = 24.0 // штраф за поворот (рівні лінії)
 )
 
+// Dir — напрямок виходу/входу ребра (зовнішня нормаль у точці приєднання).
+type Dir int
+
+const (
+	None Dir = iota
+	Up
+	Down
+	Left
+	Right
+)
+
+// Connect прокладає шлях from→to так, щоб ребро ВИХОДило з джерела в напрямку
+// fromDir і ВХОДило в ціль із напрямку toDir (короткі стаби назовні від фігур),
+// а середину огинає перешкоди. Так стрілки заходять у фігури рівно з потрібного
+// боку, а не «крізь себе».
+func Connect(from, to Pt, fromDir, toDir Dir, obstacles []Rect) []Pt {
+	const off = pad + 6
+	a := step(from, fromDir, off)
+	z := step(to, toDir, off)
+	mid := Route(a, z, obstacles)
+	path := append([]Pt{from}, mid...)
+	path = append(path, to)
+	return simplify(dedup(path))
+}
+
+func step(p Pt, d Dir, off float64) Pt {
+	switch d {
+	case Up:
+		return Pt{p.X, p.Y - off}
+	case Down:
+		return Pt{p.X, p.Y + off}
+	case Left:
+		return Pt{p.X - off, p.Y}
+	case Right:
+		return Pt{p.X + off, p.Y}
+	}
+	return p
+}
+
+func dedup(p []Pt) []Pt {
+	out := p[:0:0]
+	for _, q := range p {
+		if len(out) == 0 || absf(q.X-out[len(out)-1].X) > 0.5 || absf(q.Y-out[len(out)-1].Y) > 0.5 {
+			out = append(out, q)
+		}
+	}
+	return out
+}
+
+func absf(x float64) float64 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 // Route прокладає ортогональний шлях a→b, огинаючи obstacles. Фігури, що
 // містять a або b (джерело/ціль), у перешкоди не йдуть.
 func Route(a, b Pt, obstacles []Rect) []Pt {
