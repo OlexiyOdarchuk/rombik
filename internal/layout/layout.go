@@ -38,8 +38,18 @@ func diaW(cond string) float64 {
 	return max(minDiaW, float64(len([]rune(cond)))*charW+60)
 }
 
+// Options — перемикачі рендера (майбутні «галочки» в інтерфейсі).
+type Options struct {
+	// CallAsProcess: виклик підпрограми малювати звичайним прямокутником
+	// (не ДСТУ-символом «підпрограма») — на вимогу деяких викладачів.
+	CallAsProcess bool
+}
+
 // Build розкладає програму (тіло) у повну діаграму: Початок → тіло → Кінець.
-func Build(prog *ir.Block) *diagram.Diagram {
+func Build(prog *ir.Block, opts Options) *diagram.Diagram {
+	if opts.CallAsProcess {
+		mapCalls(prog)
+	}
 	bw, _ := blockSize(prog)
 	w := bw + 2*margin
 	cx := w / 2
@@ -64,6 +74,28 @@ func Build(prog *ir.Block) *diagram.Diagram {
 	d.W = w
 	d.H = endTop + termH + margin
 	return d
+}
+
+// mapCalls рекурсивно замінює виклики підпрограм на звичайні процеси (опція).
+func mapCalls(b *ir.Block) {
+	if b == nil {
+		return
+	}
+	for i, n := range b.Stmts {
+		switch x := n.(type) {
+		case *ir.Call:
+			b.Stmts[i] = &ir.Process{Text: x.Text}
+		case *ir.If:
+			mapCalls(x.Then)
+			mapCalls(x.Else)
+		case *ir.For:
+			mapCalls(x.Body)
+		case *ir.While:
+			mapCalls(x.Body)
+		case *ir.DoWhile:
+			mapCalls(x.Body)
+		}
+	}
 }
 
 // --- розмір (габарити піддерева) ---

@@ -24,11 +24,13 @@ func main() {
 	pyFile := flag.String("py", "", "Python-файл для парсингу (інакше — демо)")
 	outFile := flag.String("o", "out.svg", "вихідний SVG (для кількох функцій — основа імені)")
 	fnName := flag.String("fn", "", "малювати лише функцію з цим іменем")
+	callPlain := flag.Bool("calls-plain", false, "виклики підпрограм — звичайним прямокутником (не ДСТУ-символом)")
 	flag.Parse()
+	opts := layout.Options{CallAsProcess: *callPlain}
 
 	// Демо, коли без -py.
 	if *pyFile == "" {
-		write(layout.Build(demo()), *outFile)
+		write(layout.Build(demo(), opts), *outFile)
 		return
 	}
 
@@ -52,12 +54,12 @@ func main() {
 
 	// Одна схема → точно в -o; кілька → <основа>_<функція>.svg.
 	if len(funcs) == 1 {
-		write(layout.Build(funcs[0].Body), *outFile)
+		write(layout.Build(funcs[0].Body, opts), *outFile)
 		return
 	}
 	base, ext := splitExt(*outFile)
 	for _, f := range funcs {
-		write(layout.Build(f.Body), fmt.Sprintf("%s_%s%s", base, f.Name, ext))
+		write(layout.Build(f.Body, opts), fmt.Sprintf("%s_%s%s", base, f.Name, ext))
 	}
 }
 
