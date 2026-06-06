@@ -97,13 +97,18 @@ def stmt(s):
         return {"kind":"terminal","text":("Помилка: "+expr(s.exc)) if s.exc else "Помилка"}
     if isinstance(s, ast.Expr) and isinstance(s.value, ast.Call):
         nm = call_name(s.value)
-        if nm=="print": return io("Вивід "+" ".join(arg(a) for a in s.value.args))
+        if nm=="print":
+            a = s.value.args
+            return io("Вивід порожнього рядка" if not a else "Вивід "+" ".join(arg(x) for x in a))
         if nm=="input": return io("Ввід "+" ".join(arg(a) for a in s.value.args))
         if is_exit(s.value): return {"kind":"terminal","text":"Вихід"}
         if nm in defined: return {"kind":"call","text":expr(s.value)}
     if isinstance(s, ast.With):  # контекст-менеджер: заголовок + тіло
         items = ", ".join((expr(i.context_expr)+(" → "+expr(i.optional_vars) if i.optional_vars else "")) for i in s.items)
         return {"kind":"block","stmts":[{"kind":"process","text":oneline("відкрити: "+items)}]+[stmt(x) for x in s.body]}
+    if isinstance(s, ast.Try):  # прозоро: тіло try+else; обробку винятків опускаємо
+        inner = [x for x in (s.body + s.orelse) if not isinstance(x, SKIP) and not is_docstring(x)]
+        return {"kind":"block","stmts":[stmt(x) for x in inner]}
     return {"kind":"process","text":expr(s)}
 SKIP = (ast.Pass, ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 def block(stmts):
