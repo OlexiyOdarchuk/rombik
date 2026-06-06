@@ -25,7 +25,7 @@
 	const steps = [
 		{ n: '1', t: 'Встав код', d: 'Свою функцію або цілу програму на Python.' },
 		{ n: '2', t: 'Отримай схему', d: 'Двигун будує блок-схему за ДСТУ — миттєво.' },
-		{ n: '3', t: 'Підправ і експортуй', d: 'Зміни що треба й завантаж SVG/PNG у курсову.' }
+		{ n: '3', t: 'Підправ і експортуй', d: 'Зміни що треба й завантаж SVG/PNG у свій документ.' }
 	];
 </script>
 
@@ -45,7 +45,7 @@
 			</h1>
 			<p class="mt-5 max-w-md text-lg text-slate-600">
 				Встав код на Python — отримай готову блок-схему за державним стандартом. Підправ
-				у візуальному редакторі й встав у курсову.
+				у візуальному редакторі й додай у будь-який документ.
 			</p>
 			<div class="mt-8 flex flex-wrap gap-3">
 				<a
@@ -63,35 +63,31 @@
 			</div>
 		</div>
 
-		<!-- міні-схема -->
+		<!-- міні-схема: справжній вивід двигуна -->
 		<div class="rise rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
-			<svg viewBox="0 0 320 360" class="mx-auto w-full max-w-xs" font-family="Inter, sans-serif" font-size="13">
-				<defs>
-					<marker id="a" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">
-						<path d="M0,0 L8,3 L0,6 Z" fill="#334155" />
-					</marker>
-				</defs>
-				<g fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#a)">
-					<path d="M160 44 V70" /><path d="M160 110 V136" />
-					<path d="M160 188 H66 V214" /><path d="M160 188 H254 V214" />
-				</g>
-				<path d="M66 274 V300 H160 V300" fill="none" stroke="#334155" stroke-width="1.5" />
-				<path d="M254 274 V300 H160" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#a)" />
-				<!-- shapes -->
-				<rect x="110" y="26" width="100" height="34" rx="17" fill="#fff" stroke="#334155" stroke-width="1.5" />
-				<text x="160" y="47" text-anchor="middle">Початок</text>
-				<polygon points="122,70 210,70 198,110 110,110" fill="#fff" stroke="#334155" stroke-width="1.5" />
-				<text x="160" y="93" text-anchor="middle">Ввід n</text>
-				<polygon points="160,140 232,164 160,188 88,164" fill="#fff" stroke="#334155" stroke-width="1.5" />
-				<text x="160" y="168" text-anchor="middle">n &gt; 0</text>
-				<rect x="22" y="214" width="88" height="38" fill="#fff" stroke="#334155" stroke-width="1.5" />
-				<text x="66" y="237" text-anchor="middle">більше</text>
-				<rect x="210" y="214" width="88" height="38" fill="#fff" stroke="#334155" stroke-width="1.5" />
-				<text x="254" y="237" text-anchor="middle">менше</text>
-				<rect x="110" y="312" width="100" height="34" rx="17" fill="#fff" stroke="#334155" stroke-width="1.5" />
-				<text x="160" y="333" text-anchor="middle">Кінець</text>
-				<text x="92" y="205" text-anchor="end" font-size="11" fill="#475569">Так</text>
-				<text x="228" y="205" font-size="11" fill="#475569">Ні</text>
+			<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[240px]" font-family="Inter, sans-serif" font-size="14">
+				<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>
+				<path d="M236.0 86.0 L236.0 130.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
+				<path d="M236.0 176.0 L236.0 220.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
+				<path d="M161.0 258.0 L121.8 258.0 L121.8 344.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
+				<text x="155.0" y="251.0" text-anchor="end" font-size="12" fill="#444">Так</text>
+				<path d="M311.0 258.0 L341.8 258.0 L341.8 344.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
+				<text x="317.0" y="251.0" text-anchor="start" font-size="12" fill="#444">Ні</text>
+				<path d="M121.8 390.0 L121.8 434.0 L236.0 434.0" fill="none" stroke="#222" stroke-width="1.5"/>
+				<path d="M341.8 390.0 L341.8 434.0 L236.0 434.0" fill="none" stroke="#222" stroke-width="1.5"/>
+				<path d="M236.0 434.0 L236.0 478.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
+				<rect x="171.0" y="44.0" width="130.0" height="42.0" rx="21.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
+				<text x="236.0" y="65.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Початок</text>
+				<polygon points="189.4,130.0 301.0,130.0 282.6,176.0 171.0,176.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
+				<text x="236.0" y="153.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Ввід n</text>
+				<polygon points="236.0,220.0 311.0,258.0 236.0,296.0 161.0,258.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
+				<text x="236.0" y="258.0" text-anchor="middle" dominant-baseline="middle" fill="#111">n &gt; 0</text>
+				<polygon points="62.4,344.0 199.5,344.0 181.1,390.0 44.0,390.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
+				<text x="121.8" y="367.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Вивід «Додатне»</text>
+				<polygon points="273.9,344.0 428.0,344.0 409.6,390.0 255.5,390.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
+				<text x="341.8" y="367.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Вивід «Недодатне»</text>
+				<rect x="171.0" y="478.0" width="130.0" height="42.0" rx="21.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
+				<text x="236.0" y="499.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Кінець</text>
 			</svg>
 		</div>
 	</div>
@@ -101,9 +97,9 @@
 <section class="mx-auto max-w-4xl px-5 py-20 text-center">
 	<h2 class="text-3xl font-bold text-slate-900">Малювати схеми вручну — це години роботи</h2>
 	<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-		У кожній курсовій — кілька алгоритмів, і кожен треба зобразити схемою за ДСТУ. Лінійки,
-		фігури, стрілки, переробки після кожної правки коду. flowgen робить це за секунду й
-		дозволяє підправити результат під вимоги викладача.
+		Звіт, лабораторна, практична, курсова, диплом — будь-де, де є алгоритм, його треба
+		зобразити схемою за ДСТУ. Лінійки, фігури, стрілки, переробки після кожної правки коду.
+		flowgen робить це за секунду й дозволяє підправити результат під будь-які вимоги.
 	</p>
 </section>
 
