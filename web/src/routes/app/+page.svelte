@@ -1,5 +1,6 @@
 <script>
 	import { generate, warmup } from '$lib/engine.js';
+	import CodeEditor from '$lib/CodeEditor.svelte';
 	import { onMount } from 'svelte';
 
 	const SAMPLE = `def grade(score):
@@ -174,11 +175,9 @@
 			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
 				Код Python
 			</div>
-			<textarea
-				bind:value={code}
-				spellcheck="false"
-				class="min-h-0 flex-1 resize-none rounded-b-xl bg-white p-4 font-mono text-sm text-slate-800 outline-none"
-			></textarea>
+			<div class="min-h-0 flex-1 overflow-hidden rounded-b-xl">
+				<CodeEditor bind:value={code} />
+			</div>
 		</div>
 
 		<!-- preview: усі схеми списком -->
