@@ -31,6 +31,12 @@ def call_name(c):
     return c.func.id if isinstance(c, ast.Call) and isinstance(c.func, ast.Name) else None
 def calls_defined(e):
     return isinstance(e, ast.Call) and call_name(e) in defined
+def is_exit(c):
+    # exit()/quit()/sys.exit()
+    if call_name(c) in ("exit", "quit"):
+        return True
+    return (isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
+            and c.func.attr == "exit")
 def has_input(node):
     return any(call_name(n)=="input" for n in ast.walk(node))
 def io(text):
@@ -81,19 +87,24 @@ def stmt(s):
             return {"kind":"call","text":expr(s)}
         return {"kind":"process","text":expr(s)}
     if isinstance(s, ast.Return):
-        return {"kind":"return","text":("Повернути "+expr(s.value)) if s.value else "Повернути"}
+        return {"kind":"terminal","text":("Повернути "+expr(s.value)) if s.value else "Повернути"}
+    if isinstance(s, ast.Raise):
+        return {"kind":"terminal","text":("Помилка: "+expr(s.exc)) if s.exc else "Помилка"}
     if isinstance(s, ast.Expr) and isinstance(s.value, ast.Call):
         nm = call_name(s.value)
         if nm=="print": return io("Вивід "+" ".join(arg(a) for a in s.value.args))
         if nm=="input": return io("Ввід "+" ".join(arg(a) for a in s.value.args))
+        if is_exit(s.value): return {"kind":"terminal","text":"Вихід"}
         if nm in defined: return {"kind":"call","text":expr(s.value)}
     if isinstance(s, ast.With):  # контекст-менеджер: заголовок + тіло
         items = ", ".join((expr(i.context_expr)+(" → "+expr(i.optional_vars) if i.optional_vars else "")) for i in s.items)
         return {"kind":"block","stmts":[{"kind":"process","text":oneline("відкрити: "+items)}]+[stmt(x) for x in s.body]}
     return {"kind":"process","text":expr(s)}
+SKIP = (ast.Pass, ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 def block(stmts):
+    # вкладені def/class не малюємо в тілі — вони йдуть окремими схемами
     return {"kind":"block","stmts":[stmt(s) for s in stmts
-            if not isinstance(s,(ast.Pass,ast.Import,ast.ImportFrom)) and not is_docstring(s)]}
+            if not isinstance(s, SKIP) and not is_docstring(s)]}
 def funcblock(fn):
     # параметри функції — як вхідний паралелограм (конвенція курсових схем)
     b = block(fn.body)
@@ -106,15 +117,21 @@ try:
 except NameError:
     src = sys.stdin.read()
 mod = ast.parse(src)
-funcs = [s for s in mod.body if isinstance(s, ast.FunctionDef)]
+def collect(body, acc):
+    # функції рекурсивно (зокрема вкладені) -> кожна окремою схемою.
+    # У класи не заходимо (методи-дандери — зайвий шум).
+    for s in body:
+        if isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            acc.append(s); collect(s.body, acc)
+funcs = []
+collect(mod.body, funcs)
 defined = {fn.name for fn in funcs}  # заповнюємо ДО розбору тіл
-rest  = [s for s in mod.body if not isinstance(s, (ast.FunctionDef, ast.Import, ast.ImportFrom))]
+rest = [s for s in mod.body if not isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Import, ast.ImportFrom))]
 out = []
 if funcs:
     for fn in funcs:
         out.append({"name":fn.name, "block":funcblock(fn)})
-    if rest:
-        # код модуля -> «main», але без колізії з функцією main
+    if [s for s in rest if not is_docstring(s)]:
         out.append({"name":"main" if "main" not in defined else "програма", "block":block(rest)})
 else:
     out.append({"name":"main", "block":block(mod.body)})
