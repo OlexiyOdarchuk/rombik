@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"flowgen/pkg/ir"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
 )
 
 // Node — вузол спрощеного дерева. Поля використовуються залежно від Kind:

@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"flowgen/pkg/ir"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
 )
 
 func TestParseAll(t *testing.T) {

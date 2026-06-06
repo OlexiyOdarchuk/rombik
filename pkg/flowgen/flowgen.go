@@ -11,12 +11,12 @@
 package flowgen
 
 import (
-	"flowgen/pkg/diagram"
-	"flowgen/pkg/ir"
-	"flowgen/pkg/layout"
-	"flowgen/pkg/parser/astjson"
-	"flowgen/pkg/parser/python"
-	"flowgen/pkg/render/svg"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/layout"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/parser/astjson"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/parser/python"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/render/svg"
 )
 
 // Options — перемикачі рендера (див. layout.Options).

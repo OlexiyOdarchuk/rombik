@@ -1,0 +1,60 @@
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Один деплой за раз.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # Збираємо двигун у WASM + копіюємо parser.py і wasm_exec.js у static/.
+      - name: Build WASM engine
+        run: ./web/build-wasm.sh
+
+      - name: Build static site
+        working-directory: web
+        run: |
+          npm ci
+          npm rebuild esbuild   # npm 11 блокує install-скрипти; esbuild потребує бінарник
+          npm run build
+        # Власний домен -> корінь. Для github.io/<repo> розкоментуй:
+        # env:
+        #   BASE_PATH: /flowgen
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

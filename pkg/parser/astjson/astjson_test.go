@@ -3,7 +3,7 @@ package astjson
 import (
 	"testing"
 
-	"flowgen/pkg/ir"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
 )
 
 func TestFromJSON(t *testing.T) {

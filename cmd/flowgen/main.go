@@ -20,10 +20,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"flowgen/pkg/diagram"
-	"flowgen/pkg/flowgen"
-	"flowgen/pkg/ir"
-	"flowgen/pkg/render/svg"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/flowgen"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/ir"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/render/svg"
 )
 
 func main() {

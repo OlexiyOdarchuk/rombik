@@ -18,8 +18,8 @@ import (
 	"encoding/json"
 	"syscall/js"
 
-	"flowgen/pkg/diagram"
-	"flowgen/pkg/flowgen"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/diagram"
+	"github.com/OlexiyOdarchuk/flowgen/pkg/flowgen"
 )
 
 type outFunc struct {
