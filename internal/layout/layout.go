@@ -196,8 +196,8 @@ func size(n ir.Node) (w, h float64) {
 	case *ir.Block:
 		return blockSize(x)
 	case *ir.If:
-		tw, th := blockSize(x.Then)
-		ew, eh := blockSize(x.Else)
+		tw, th := branchSize(x.Then)
+		ew, eh := branchSize(x.Else)
 		return max(diaW(x.Cond), tw+hGap+ew), diaH + branchGap + max(th, eh) + mergeGap
 	case *ir.For:
 		bw, bh := blockSize(x.Body)
@@ -215,6 +215,15 @@ func size(n ir.Node) (w, h float64) {
 		return 0, 0 // без фігури
 	}
 	return minBoxW, boxH
+}
+
+// branchSize — габарити гілки if; порожня гілка не резервує ширини (щоб не
+// зміщувати протилежну гілку вбік).
+func branchSize(blk *ir.Block) (w, h float64) {
+	if blk == nil || len(blk.Stmts) == 0 {
+		return 0, 0
+	}
+	return blockSize(blk)
 }
 
 func blockSize(b *ir.Block) (w, h float64) {
@@ -307,8 +316,8 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	midY := top + diaH/2
 
-	tw, th := blockSize(n.Then)
-	ew, eh := blockSize(n.Else)
+	tw, th := branchSize(n.Then)
+	ew, eh := branchSize(n.Else)
 	total := tw + hGap + ew
 	thenCx := cx - total/2 + tw/2
 	elseCx := cx + total/2 - ew/2
