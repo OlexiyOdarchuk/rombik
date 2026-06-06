@@ -18,7 +18,6 @@
 	let code = $state(SAMPLE);
 	let opts = $state({ callAsProcess: false });
 	let funcs = $state([]); // [{name, svg, diagram}]
-	let active = $state(0);
 	let status = $state('Готовий. Натисни «Побудувати».');
 	let busy = $state(false);
 	let errored = $state(false);
@@ -42,7 +41,6 @@
 				return;
 			}
 			funcs = res.functions ?? [];
-			if (active >= funcs.length) active = 0;
 			status = funcs.length ? `Готово: ${funcs.length} схем.` : 'Порожньо: нема що малювати.';
 		} catch (e) {
 			errored = true;
@@ -52,9 +50,7 @@
 		}
 	}
 
-	function exportSvg() {
-		if (!funcs.length) return;
-		const f = funcs[active];
+	function exportSvg(f) {
 		const blob = new Blob([f.svg], { type: 'image/svg+xml' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
@@ -64,9 +60,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	function exportPng() {
-		if (!funcs.length) return;
-		const f = funcs[active];
+	function exportPng(f) {
 		const scale = 2;
 		const img = new Image();
 		const url = URL.createObjectURL(new Blob([f.svg], { type: 'image/svg+xml' }));
@@ -116,22 +110,9 @@
 			Виклик звичайним блоком (не ДСТУ-підпрограмою)
 		</label>
 
-		<div class="ml-auto flex gap-2">
-			<button
-				onclick={exportSvg}
-				disabled={!funcs.length}
-				class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 disabled:text-slate-400 disabled:hover:border-slate-300"
-			>
-				Експорт SVG
-			</button>
-			<button
-				onclick={exportPng}
-				disabled={!funcs.length}
-				class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 disabled:text-slate-400 disabled:hover:border-slate-300"
-			>
-				Експорт PNG
-			</button>
-		</div>
+		{#if funcs.length}
+			<span class="ml-auto text-sm text-slate-500">{funcs.length} схем</span>
+		{/if}
 	</div>
 
 	<!-- split -->
@@ -148,29 +129,40 @@
 			></textarea>
 		</div>
 
-		<!-- preview -->
+		<!-- preview: усі схеми списком -->
 		<div class="flex min-h-0 flex-col rounded-xl border border-slate-200 bg-white">
-			<div class="flex items-center gap-1 border-b border-slate-200 px-3 py-2">
+			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+				{funcs.length ? `Схеми (${funcs.length})` : 'Схема'}
+			</div>
+			<div class="min-h-0 flex-1 space-y-4 overflow-auto grid-bg p-4">
 				{#if funcs.length}
-					{#each funcs as f, i (f.name)}
-						<button
-							onclick={() => (active = i)}
-							class="rounded-md px-3 py-1 text-sm font-medium transition
-								{active === i ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-100'}"
-						>
-							{f.name}
-						</button>
+					{#each funcs as f (f.name)}
+						<div class="rounded-lg border border-slate-200 bg-white shadow-sm">
+							<div class="flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2">
+								<span class="truncate font-mono text-sm font-semibold text-slate-700">{f.name}</span>
+								<div class="flex shrink-0 gap-1">
+									<button
+										onclick={() => exportSvg(f)}
+										class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
+									>
+										SVG
+									</button>
+									<button
+										onclick={() => exportPng(f)}
+										class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
+									>
+										PNG
+									</button>
+								</div>
+							</div>
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							<div class="schema grid place-items-center overflow-auto p-3">{@html f.svg}</div>
+						</div>
 					{/each}
 				{:else}
-					<span class="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Схема</span>
-				{/if}
-			</div>
-			<div class="grid min-h-0 flex-1 place-items-center overflow-auto grid-bg p-4">
-				{#if funcs.length}
-					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-					{@html funcs[active].svg}
-				{:else}
-					<p class="text-sm text-slate-400">Встав код і натисни «Побудувати схему»</p>
+					<p class="grid h-full place-items-center text-sm text-slate-400">
+						Встав код і натисни «Побудувати схему»
+					</p>
 				{/if}
 			</div>
 		</div>

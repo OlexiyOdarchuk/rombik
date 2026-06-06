@@ -36,3 +36,9 @@ html {
 .rise {
 	animation: rise 0.5s ease both;
 }
+
+/* Вбудовані у прев'ю схеми масштабуємо під ширину картки. */
+.schema svg {
+	max-width: 100%;
+	height: auto;
+}
