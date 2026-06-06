@@ -38,11 +38,12 @@ func diaW(cond string) float64 {
 	return max(minDiaW, float64(len([]rune(cond)))*charW+60)
 }
 
-// Options — перемикачі рендера (майбутні «галочки» в інтерфейсі).
+// Options — перемикачі рендера (галочки в інтерфейсі). Серіалізується в/з JSON,
+// тож фронтенд передає їх як об'єкт.
 type Options struct {
 	// CallAsProcess: виклик підпрограми малювати звичайним прямокутником
 	// (не ДСТУ-символом «підпрограма») — на вимогу деяких викладачів.
-	CallAsProcess bool
+	CallAsProcess bool `json:"callAsProcess"`
 }
 
 // Build розкладає програму (тіло) у повну діаграму: Початок → тіло → Кінець.
