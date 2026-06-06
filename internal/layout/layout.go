@@ -463,7 +463,8 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 
 	backX := cx + bw/2 + arcGap
 	mergeY := top - vGap/2
-	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: "Ні", Points: []diagram.Point{
+	// Без вістря: вливається в лінію входу (не у фігуру) — щоб не було «двох голів».
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: "Ні", Arrowless: true, Points: []diagram.Point{
 		{X: cx + dw/2, Y: diaCy}, {X: backX, Y: diaCy}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
 	}})
 	contY := diaTop + diaH + vGap
@@ -484,10 +485,12 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 	brks := b.popLoop()
 
 	// Безумовна дуга повернення справа: низ тіла → праворуч → вгору → вхід.
+	// Із центру низу (трохи вниз) і без вістря (вливається в лінію входу).
 	backX := cx + bw/2 + arcGap
 	mergeY := top - vGap/2
-	b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
-		{X: cx, Y: bodyExit.Y}, {X: backX, Y: bodyExit.Y}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
+	drop := bodyExit.Y + mergeGap/2
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
+		{X: cx, Y: bodyExit.Y}, {X: cx, Y: drop}, {X: backX, Y: drop}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
 	}})
 
 	contY := bodyExit.Y + vGap
@@ -501,8 +504,11 @@ func (b *build) loopArcs(cx, headHalf, headCy, bodyHalf, bodyBottom float64, exi
 	backX := cx + bodyHalf + arcGap
 	leftX := cx - bodyHalf - arcGap
 	contY := bodyBottom + vGap
+	// Дуга повернення — у правий кут заголовка; виходить із центру низу тіла
+	// (спершу трохи вниз, тоді вбік — не «з кута»).
+	drop := bodyBottom + mergeGap/2
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
-		{X: cx, Y: bodyBottom}, {X: backX, Y: bodyBottom}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
+		{X: cx, Y: bodyBottom}, {X: cx, Y: drop}, {X: backX, Y: drop}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
 	}})
 	// Вихід із циклу — без вістря: голову дасть наступне ребро (вхід у фігуру).
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: exitLabel, Arrowless: true, Points: []diagram.Point{
