@@ -36,10 +36,18 @@ def has_input(node):
 def io(text):
     return {"kind":"io","text":text}
 def endof(e):
-    # кінець range — це stop-1; для літерала рахуємо, інакше «expr - 1»
+    # кінець range — це stop-1; для літерала рахуємо, для «X + 1» -> «X»,
+    # інакше «expr - 1»
     if isinstance(e, ast.Constant) and isinstance(e.value, int):
         return str(e.value-1)
+    if isinstance(e, ast.BinOp) and isinstance(e.op, ast.Add) \
+       and isinstance(e.right, ast.Constant) and e.right.value == 1:
+        return expr(e.left)
     return expr(e)+" - 1"
+def is_docstring(s):
+    # рядок-літерал сам по собі (докстрінг/коментар) — не малюємо
+    return isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant) \
+        and isinstance(s.value.value, str)
 def forspec(s):
     # «змінна = початок, кінець, крок» для for ... in range(...)
     tgt = expr(s.target)
@@ -73,7 +81,7 @@ def stmt(s):
             return {"kind":"call","text":expr(s)}
         return {"kind":"process","text":expr(s)}
     if isinstance(s, ast.Return):
-        return io("Повернути "+expr(s.value)) if s.value else io("Повернути")
+        return {"kind":"return","text":("Повернути "+expr(s.value)) if s.value else "Повернути"}
     if isinstance(s, ast.Expr) and isinstance(s.value, ast.Call):
         nm = call_name(s.value)
         if nm=="print": return io("Вивід "+" ".join(arg(a) for a in s.value.args))
@@ -84,7 +92,8 @@ def stmt(s):
         return {"kind":"block","stmts":[{"kind":"process","text":oneline("відкрити: "+items)}]+[stmt(x) for x in s.body]}
     return {"kind":"process","text":expr(s)}
 def block(stmts):
-    return {"kind":"block","stmts":[stmt(s) for s in stmts if not isinstance(s,(ast.Pass,ast.Import,ast.ImportFrom))]}
+    return {"kind":"block","stmts":[stmt(s) for s in stmts
+            if not isinstance(s,(ast.Pass,ast.Import,ast.ImportFrom)) and not is_docstring(s)]}
 def funcblock(fn):
     # параметри функції — як вхідний паралелограм (конвенція курсових схем)
     b = block(fn.body)
@@ -105,7 +114,8 @@ if funcs:
     for fn in funcs:
         out.append({"name":fn.name, "block":funcblock(fn)})
     if rest:
-        out.append({"name":"main", "block":block(rest)})
+        # код модуля -> «main», але без колізії з функцією main
+        out.append({"name":"main" if "main" not in defined else "програма", "block":block(rest)})
 else:
     out.append({"name":"main", "block":block(mod.body)})
 _out = json.dumps(out, ensure_ascii=False)

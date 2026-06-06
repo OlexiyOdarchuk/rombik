@@ -65,16 +65,32 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 	// Тіло.
 	bodyTop := exit.Y + vGap
 	d.Edges = append(d.Edges, edge(exit, diagram.Point{X: cx, Y: bodyTop}))
-	exit = placeBlock(d, prog, cx, bodyTop)
+	exit, ended := placeBlock(d, prog, cx, bodyTop)
 
-	// Кінець.
-	endTop := exit.Y + vGap
-	d.Edges = append(d.Edges, edge(exit, diagram.Point{X: cx, Y: endTop}))
-	d.Shapes = append(d.Shapes, term(cx, endTop, "Кінець"))
+	// Кінець додаємо, лише якщо тіло НЕ завершилося return-ом (у того свій Кінець).
+	if !ended {
+		endTop := exit.Y + vGap
+		d.Edges = append(d.Edges, edge(exit, diagram.Point{X: cx, Y: endTop}))
+		d.Shapes = append(d.Shapes, term(cx, endTop, "Кінець"))
+	}
 
 	d.W = w
-	d.H = endTop + termH + margin
+	d.H = contentBottom(d) + margin
 	return d
+}
+
+// contentBottom — найнижча точка серед фігур і ребер (для висоти полотна).
+func contentBottom(d *diagram.Diagram) float64 {
+	var b float64
+	for _, s := range d.Shapes {
+		b = max(b, s.Y+s.H)
+	}
+	for _, e := range d.Edges {
+		for _, p := range e.Points {
+			b = max(b, p.Y)
+		}
+	}
+	return b
 }
 
 // mapCalls рекурсивно замінює виклики підпрограм на звичайні процеси (опція).
@@ -109,6 +125,9 @@ func size(n ir.Node) (w, h float64) {
 		return textW(x.Text), boxH
 	case *ir.Call:
 		return textW(x.Text), boxH
+	case *ir.Return:
+		// паралелограм + Кінець під ним
+		return max(textW(x.Text), termW), boxH + vGap + termH
 	case *ir.Block:
 		return blockSize(x)
 	case *ir.If:
@@ -147,28 +166,41 @@ func blockSize(b *ir.Block) (w, h float64) {
 }
 
 // --- розкладка (координати) ---
-// place малює вузол з верхом-центром у (cx, top); повертає точку виходу (низ-центр).
+// place малює вузол з верхом-центром у (cx, top); повертає точку виходу (низ-центр)
+// і прапорець «гілка завершена» (return — потік далі не йде).
 
-func place(d *diagram.Diagram, n ir.Node, cx, top float64) diagram.Point {
+func place(d *diagram.Diagram, n ir.Node, cx, top float64) (diagram.Point, bool) {
 	switch x := n.(type) {
 	case *ir.Process:
-		return leaf(d, diagram.Process, x.Text, cx, top)
+		return leaf(d, diagram.Process, x.Text, cx, top), false
 	case *ir.IO:
-		return leaf(d, diagram.InOut, x.Text, cx, top)
+		return leaf(d, diagram.InOut, x.Text, cx, top), false
 	case *ir.Call:
-		return leaf(d, diagram.Predef, x.Text, cx, top)
+		return leaf(d, diagram.Predef, x.Text, cx, top), false
+	case *ir.Return:
+		return placeReturn(d, x, cx, top), true
 	case *ir.Block:
 		return placeBlock(d, x, cx, top)
 	case *ir.If:
 		return placeIf(d, x, cx, top)
 	case *ir.For:
-		return placeFor(d, x, cx, top)
+		return placeFor(d, x, cx, top), false
 	case *ir.While:
-		return placeWhile(d, x, cx, top)
+		return placeWhile(d, x, cx, top), false
 	case *ir.DoWhile:
-		return placeDoWhile(d, x, cx, top)
+		return placeDoWhile(d, x, cx, top), false
 	}
-	return diagram.Point{X: cx, Y: top}
+	return diagram.Point{X: cx, Y: top}, false
+}
+
+// placeReturn — «Повернути …» (паралелограм) + термінатор Кінець. Завершує гілку.
+func placeReturn(d *diagram.Diagram, n *ir.Return, cx, top float64) diagram.Point {
+	w := textW(n.Text)
+	d.Shapes = append(d.Shapes, diagram.Shape{Kind: diagram.InOut, X: cx - w/2, Y: top, W: w, H: boxH, Text: n.Text})
+	endTop := top + boxH + vGap
+	d.Edges = append(d.Edges, edge(diagram.Point{X: cx, Y: top + boxH}, diagram.Point{X: cx, Y: endTop}))
+	d.Shapes = append(d.Shapes, term(cx, endTop, "Кінець"))
+	return diagram.Point{X: cx, Y: endTop + termH}
 }
 
 func leaf(d *diagram.Diagram, kind diagram.Kind, text string, cx, top float64) diagram.Point {
@@ -177,20 +209,24 @@ func leaf(d *diagram.Diagram, kind diagram.Kind, text string, cx, top float64) d
 	return diagram.Point{X: cx, Y: top + boxH}
 }
 
-func placeBlock(d *diagram.Diagram, b *ir.Block, cx, top float64) diagram.Point {
+func placeBlock(d *diagram.Diagram, b *ir.Block, cx, top float64) (diagram.Point, bool) {
 	cur := top
 	exit := diagram.Point{X: cx, Y: top}
 	for i, s := range b.Stmts {
 		if i > 0 {
 			d.Edges = append(d.Edges, edge(exit, diagram.Point{X: cx, Y: cur}))
 		}
-		exit = place(d, s, cx, cur)
+		var ended bool
+		exit, ended = place(d, s, cx, cur)
+		if ended {
+			return exit, true // решта інструкцій недосяжні
+		}
 		cur = exit.Y + vGap
 	}
-	return exit
+	return exit, false
 }
 
-func placeIf(d *diagram.Diagram, n *ir.If, cx, top float64) diagram.Point {
+func placeIf(d *diagram.Diagram, n *ir.If, cx, top float64) (diagram.Point, bool) {
 	dw := diaW(n.Cond)
 	d.Shapes = append(d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	midY := top + diaH/2
@@ -213,14 +249,19 @@ func placeIf(d *diagram.Diagram, n *ir.If, cx, top float64) diagram.Point {
 		Label:  "Ні",
 	})
 
-	thenExit := placeBlock(d, n.Then, thenCx, branchTop)
-	elseExit := placeBlock(d, n.Else, elseCx, branchTop)
+	thenExit, thenEnded := placeBlock(d, n.Then, thenCx, branchTop)
+	elseExit, elseEnded := placeBlock(d, n.Else, elseCx, branchTop)
 
-	// Точка злиття гілок — по центру, нижче найвищої гілки.
+	// Точка злиття — по центру, нижче найвищої гілки. Гілки, що завершилися
+	// return-ом, у злиття НЕ ведемо (вони пішли у свій Кінець).
 	mergeY := branchTop + max(th, eh) + mergeGap
-	d.Edges = append(d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{thenExit, {X: thenExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
-	d.Edges = append(d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{elseExit, {X: elseExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
-	return diagram.Point{X: cx, Y: mergeY}
+	if !thenEnded {
+		d.Edges = append(d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{thenExit, {X: thenExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
+	}
+	if !elseEnded {
+		d.Edges = append(d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{elseExit, {X: elseExit.X, Y: mergeY}, {X: cx, Y: mergeY}}})
+	}
+	return diagram.Point{X: cx, Y: mergeY}, thenEnded && elseEnded
 }
 
 // placeFor — цикл for: шестикутник згори, тіло під ним, дуга повернення справа,
@@ -233,7 +274,7 @@ func placeFor(d *diagram.Diagram, n *ir.For, cx, top float64) diagram.Point {
 	bw, _ := blockSize(n.Body)
 	bodyTop := top + hexH + vGap
 	d.Edges = append(d.Edges, edge(diagram.Point{X: cx, Y: top + hexH}, diagram.Point{X: cx, Y: bodyTop}))
-	bodyExit := placeBlock(d, n.Body, cx, bodyTop)
+	bodyExit, _ := placeBlock(d, n.Body, cx, bodyTop)
 	return loopArcs(d, cx, hw/2, headCy, bw/2, bodyExit.Y, "")
 }
 
@@ -247,7 +288,7 @@ func placeWhile(d *diagram.Diagram, n *ir.While, cx, top float64) diagram.Point 
 	bw, _ := blockSize(n.Body)
 	bodyTop := top + diaH + vGap
 	d.Edges = append(d.Edges, diagram.Edge{Label: "Так", Points: []diagram.Point{{X: cx, Y: top + diaH}, {X: cx, Y: bodyTop}}})
-	bodyExit := placeBlock(d, n.Body, cx, bodyTop)
+	bodyExit, _ := placeBlock(d, n.Body, cx, bodyTop)
 	return loopArcs(d, cx, dw/2, headCy, bw/2, bodyExit.Y, "Ні")
 }
 
@@ -255,7 +296,7 @@ func placeWhile(d *diagram.Diagram, n *ir.While, cx, top float64) diagram.Point 
 // Ні→дуга повернення справа до лінії входу (повтор тіла).
 func placeDoWhile(d *diagram.Diagram, n *ir.DoWhile, cx, top float64) diagram.Point {
 	bw, _ := blockSize(n.Body)
-	bodyExit := placeBlock(d, n.Body, cx, top)
+	bodyExit, _ := placeBlock(d, n.Body, cx, top)
 
 	diaTop := bodyExit.Y + vGap
 	dw := diaW(n.Cond)

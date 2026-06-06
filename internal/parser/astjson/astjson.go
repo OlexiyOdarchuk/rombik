@@ -74,6 +74,8 @@ func ToNode(n *Node) ir.Node {
 		return &ir.Process{Text: n.Text}
 	case "io":
 		return &ir.IO{Text: n.Text}
+	case "return":
+		return &ir.Return{Text: n.Text}
 	case "call":
 		return &ir.Call{Text: n.Text}
 	case "if":
