@@ -7,6 +7,9 @@
 package layout
 
 import (
+	"regexp"
+	"strings"
+
 	"flowgen/internal/diagram"
 	"flowgen/internal/ir"
 )
@@ -55,6 +58,17 @@ type Options struct {
 	// Yes/No: підписи гілок розв'язку (типово «Так»/«Ні»).
 	Yes string `json:"yes"`
 	No  string `json:"no"`
+	// InWord/OutWord: слова вводу/виводу (типово «Ввід»/«Вивід»; інші варіанти —
+	// «Введення»/«Виведення», «Ввести»/«Вивести»).
+	InWord  string `json:"inWord"`
+	OutWord string `json:"outWord"`
+	// StartText/EndText: текст термінаторів (типово «Початок»/«Кінець»).
+	StartText string `json:"startText"`
+	EndText   string `json:"endText"`
+	// StripTypes: прибирати тип-анотації (a: float = 3.1 -> a = 3.1).
+	StripTypes bool `json:"stripTypes"`
+	// ReturnAsIO: return малювати паралелограмом (інакше — прямокутником).
+	ReturnAsIO bool `json:"returnAsIO"`
 }
 
 // build несе стан розкладки: полотно, точки до єдиного Кінця, стек збирачів
@@ -65,6 +79,33 @@ type build struct {
 	loopBreaks [][]diagram.Point
 	singleEnd  bool
 	yes, no    string
+	inWord     string
+	outWord    string
+	endText    string
+	stripTypes bool
+	retAsIO    bool
+}
+
+// typeAnnRe — «name: type =» -> «name =» (для зняття тип-анотацій).
+var typeAnnRe = regexp.MustCompile(`^([\w.]+)\s*:\s*[^=]+=`)
+
+// ioText застосовує обрані слова вводу/виводу до тексту ir.IO.
+func (b *build) ioText(t string) string {
+	if r, ok := strings.CutPrefix(t, "Ввід"); ok {
+		return b.inWord + r
+	}
+	if r, ok := strings.CutPrefix(t, "Вивід"); ok {
+		return b.outWord + r
+	}
+	return t
+}
+
+// procText прибирає тип-анотацію, якщо ввімкнено опцію.
+func (b *build) procText(t string) string {
+	if b.stripTypes {
+		return typeAnnRe.ReplaceAllString(t, "$1 =")
+	}
+	return t
 }
 
 func (b *build) pushLoop() { b.loopBreaks = append(b.loopBreaks, nil) }
@@ -99,19 +140,31 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 	if opts.CallAsProcess {
 		mapCalls(prog)
 	}
-	b := &build{d: &diagram.Diagram{}, singleEnd: opts.SingleEnd, yes: opts.Yes, no: opts.No}
-	if b.yes == "" {
-		b.yes = "Так"
+	b := &build{
+		d: &diagram.Diagram{}, singleEnd: opts.SingleEnd,
+		yes: opts.Yes, no: opts.No, inWord: opts.InWord, outWord: opts.OutWord,
+		endText: opts.EndText, stripTypes: opts.StripTypes, retAsIO: opts.ReturnAsIO,
 	}
-	if b.no == "" {
-		b.no = "Ні"
+	def := func(p *string, d string) {
+		if *p == "" {
+			*p = d
+		}
+	}
+	def(&b.yes, "Так")
+	def(&b.no, "Ні")
+	def(&b.inWord, "Ввід")
+	def(&b.outWord, "Вивід")
+	def(&b.endText, "Кінець")
+	startText := opts.StartText
+	if startText == "" {
+		startText = "Початок"
 	}
 	bw, _ := b.blockSize(prog)
 	w := bw + 2*margin
 	cx := w / 2
 
 	top := float64(margin)
-	b.d.Shapes = append(b.d.Shapes, term(cx, top, "Початок"))
+	b.d.Shapes = append(b.d.Shapes, term(cx, top, startText))
 
 	bodyTop := top + termH + vGap
 	b.d.Edges = append(b.d.Edges, edge(P(cx, top+termH), P(cx, bodyTop)))
@@ -128,7 +181,7 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 			kY += mergeGap // запас під шину, щоб не різала фігури
 		}
 		b.routeEnds(cx, kY)
-		b.d.Shapes = append(b.d.Shapes, term(cx, kY, "Кінець"))
+		b.d.Shapes = append(b.d.Shapes, term(cx, kY, b.endText))
 	}
 
 	b.d.W = w
@@ -214,9 +267,9 @@ func mapCalls(b *ir.Block) {
 func (b *build) size(n ir.Node) (w, h float64) {
 	switch x := n.(type) {
 	case *ir.Process:
-		return textW(x.Text), boxH
+		return textW(b.procText(x.Text)), boxH
 	case *ir.IO:
-		return textW(x.Text), boxH
+		return textW(b.ioText(x.Text)), boxH
 	case *ir.Call:
 		return textW(x.Text), boxH
 	case *ir.Terminal:
@@ -283,9 +336,9 @@ func (b *build) blockSize(blk *ir.Block) (w, h float64) {
 func (b *build) place(n ir.Node, cx, top float64) (diagram.Point, bool) {
 	switch x := n.(type) {
 	case *ir.Process:
-		return b.leaf(diagram.Process, x.Text, cx, top), false
+		return b.leaf(diagram.Process, b.procText(x.Text), cx, top), false
 	case *ir.IO:
-		return b.leaf(diagram.InOut, x.Text, cx, top), false
+		return b.leaf(diagram.InOut, b.ioText(x.Text), cx, top), false
 	case *ir.Call:
 		return b.leaf(diagram.Predef, x.Text, cx, top), false
 	case *ir.Terminal:
@@ -319,14 +372,18 @@ func (b *build) leaf(kind diagram.Kind, text string, cx, top float64) diagram.Po
 // placeTerminal — return/raise/exit: звичайний прямокутник. У режимі singleEnd
 // веде у спільний Кінець (через b.ends), інакше — свій локальний «Кінець».
 func (b *build) placeTerminal(text string, cx, top float64) (diagram.Point, bool) {
-	exit := b.leaf(diagram.Process, text, cx, top)
+	kind := diagram.Process
+	if b.retAsIO {
+		kind = diagram.InOut
+	}
+	exit := b.leaf(kind, text, cx, top)
 	if b.singleEnd {
 		b.ends = append(b.ends, exit)
 		return exit, true
 	}
 	endTop := exit.Y + vGap
 	b.d.Edges = append(b.d.Edges, edge(exit, P(cx, endTop)))
-	b.d.Shapes = append(b.d.Shapes, term(cx, endTop, "Кінець"))
+	b.d.Shapes = append(b.d.Shapes, term(cx, endTop, b.endText))
 	return P(cx, endTop+termH), true
 }
 
