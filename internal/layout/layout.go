@@ -51,10 +51,39 @@ type Options struct {
 	CallAsProcess bool `json:"callAsProcess"`
 }
 
-// build несе стан розкладки: полотно й точки, що ведуть у єдиний Кінець.
+// build несе стан розкладки: полотно, точки до єдиного Кінця і стек збирачів
+// break для поточних циклів.
 type build struct {
-	d    *diagram.Diagram
-	ends []diagram.Point
+	d          *diagram.Diagram
+	ends       []diagram.Point
+	loopBreaks [][]diagram.Point
+}
+
+func (b *build) pushLoop() { b.loopBreaks = append(b.loopBreaks, nil) }
+
+func (b *build) popLoop() []diagram.Point {
+	n := len(b.loopBreaks) - 1
+	pts := b.loopBreaks[n]
+	b.loopBreaks = b.loopBreaks[:n]
+	return pts
+}
+
+func (b *build) recordBreak(p diagram.Point) {
+	if n := len(b.loopBreaks); n > 0 {
+		b.loopBreaks[n-1] = append(b.loopBreaks[n-1], p)
+	}
+}
+
+// routeBreaks зводить точки break до виходу циклу (contY). Без вістря — голову
+// дасть наступне ребро (вхід у фігуру/Кінець).
+func (b *build) routeBreaks(cx, contY float64, pts []diagram.Point) {
+	for _, p := range pts {
+		if p.X > cx-1 && p.X < cx+1 {
+			b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(cx, contY)}})
+		} else {
+			b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(p.X, contY), P(cx, contY)}})
+		}
+	}
 }
 
 // Build розкладає програму (тіло) у повну діаграму: Початок → тіло → Кінець.
@@ -171,6 +200,11 @@ func size(n ir.Node) (w, h float64) {
 	case *ir.DoWhile:
 		bw, bh := blockSize(x.Body)
 		return max(diaW(x.Cond), bw) + 2*arcGap, bh + vGap + diaH + vGap
+	case *ir.InfLoop:
+		bw, bh := blockSize(x.Body)
+		return bw + 2*arcGap, bh + vGap
+	case *ir.Break:
+		return 0, 0 // без фігури
 	}
 	return minBoxW, boxH
 }
@@ -214,6 +248,12 @@ func (b *build) place(n ir.Node, cx, top float64) (diagram.Point, bool) {
 		return b.placeWhile(x, cx, top), false
 	case *ir.DoWhile:
 		return b.placeDoWhile(x, cx, top), false
+	case *ir.InfLoop:
+		return b.placeInfLoop(x, cx, top), false
+	case *ir.Break:
+		// стрибок на вихід циклу — без фігури; з'єднання зробить routeBreaks
+		b.recordBreak(P(cx, top))
+		return P(cx, top), true
 	}
 	return P(cx, top), false
 }
@@ -235,6 +275,12 @@ func (b *build) placeBlock(blk *ir.Block, cx, top float64) (diagram.Point, bool)
 	cur := top
 	exit := P(cx, top)
 	for i, s := range blk.Stmts {
+		// break не має фігури — з'єднання від попереднього виходу зробить
+		// routeBreaks; стрілку-голову в нікуди не малюємо.
+		if _, isBreak := s.(*ir.Break); isBreak {
+			b.recordBreak(exit)
+			return exit, true
+		}
 		if i > 0 {
 			b.d.Edges = append(b.d.Edges, edge(exit, P(cx, cur)))
 		}
@@ -276,6 +322,15 @@ func (b *build) branch(blk *ir.Block, label string, cx, vx, midY, bcx, branchTop
 		}})
 		return false
 	}
+	if len(blk.Stmts) == 1 {
+		if _, ok := blk.Stmts[0].(*ir.Break); ok { // гілка «if …: break» — на вихід циклу
+			b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: label, Points: []diagram.Point{
+				{X: vx, Y: midY}, {X: bcx, Y: midY},
+			}})
+			b.recordBreak(P(bcx, midY))
+			return true
+		}
+	}
 	// Непорожня: стрілка з підписом у верх першого блоку, далі — злиття.
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: label, Points: []diagram.Point{
 		{X: vx, Y: midY}, {X: bcx, Y: midY}, {X: bcx, Y: branchTop},
@@ -299,8 +354,12 @@ func (b *build) placeFor(n *ir.For, cx, top float64) diagram.Point {
 	bw, _ := blockSize(n.Body)
 	bodyTop := top + hexH + vGap
 	b.d.Edges = append(b.d.Edges, edge(P(cx, top+hexH), P(cx, bodyTop)))
+	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, bodyTop)
-	return b.loopArcs(cx, hw/2, headCy, bw/2, bodyExit.Y, "")
+	brks := b.popLoop()
+	cont := b.loopArcs(cx, hw/2, headCy, bw/2, bodyExit.Y, "")
+	b.routeBreaks(cx, cont.Y, brks)
+	return cont
 }
 
 // placeWhile — цикл while: ромб-передумова, Так→тіло, дуга повернення справа,
@@ -313,15 +372,21 @@ func (b *build) placeWhile(n *ir.While, cx, top float64) diagram.Point {
 	bw, _ := blockSize(n.Body)
 	bodyTop := top + diaH + vGap
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: "Так", Points: []diagram.Point{{X: cx, Y: top + diaH}, {X: cx, Y: bodyTop}}})
+	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, bodyTop)
-	return b.loopArcs(cx, dw/2, headCy, bw/2, bodyExit.Y, "Ні")
+	brks := b.popLoop()
+	cont := b.loopArcs(cx, dw/2, headCy, bw/2, bodyExit.Y, "Ні")
+	b.routeBreaks(cx, cont.Y, brks)
+	return cont
 }
 
 // placeDoWhile — цикл з післяумовою: тіло згори, ромб-умова знизу, Так→вихід,
 // Ні→дуга повернення справа до лінії входу (повтор тіла).
 func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 	bw, _ := blockSize(n.Body)
+	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, top)
+	brks := b.popLoop()
 
 	diaTop := bodyExit.Y + vGap
 	dw := diaW(n.Cond)
@@ -339,6 +404,27 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: "Так", Arrowless: true, Points: []diagram.Point{
 		{X: cx, Y: diaTop + diaH}, {X: cx, Y: contY},
 	}})
+	b.routeBreaks(cx, contY, brks)
+	return P(cx, contY)
+}
+
+// placeInfLoop — нескінченний цикл while True: тіло + безумовна дуга повернення
+// справа; вихід — лише через break (routeBreaks).
+func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
+	bw, _ := blockSize(n.Body)
+	b.pushLoop()
+	bodyExit, _ := b.placeBlock(n.Body, cx, top)
+	brks := b.popLoop()
+
+	// Безумовна дуга повернення справа: низ тіла → праворуч → вгору → вхід.
+	backX := cx + bw/2 + arcGap
+	mergeY := top - vGap/2
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
+		{X: cx, Y: bodyExit.Y}, {X: backX, Y: bodyExit.Y}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
+	}})
+
+	contY := bodyExit.Y + vGap
+	b.routeBreaks(cx, contY, brks)
 	return P(cx, contY)
 }
 

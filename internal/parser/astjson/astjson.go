@@ -86,6 +86,10 @@ func ToNode(n *Node) ir.Node {
 		return &ir.While{Cond: n.Cond, Body: ToBlock(n.Body)}
 	case "dowhile":
 		return &ir.DoWhile{Cond: n.Cond, Body: ToBlock(n.Body)}
+	case "infloop":
+		return &ir.InfLoop{Body: ToBlock(n.Body)}
+	case "break":
+		return &ir.Break{}
 	}
 	return nil
 }

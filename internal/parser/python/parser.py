@@ -73,10 +73,15 @@ def break_if(st):
 def stmt(s):
     if isinstance(s, ast.If):
         return {"kind":"if","cond":expr(s.test),"then":block(s.body),"else":block(s.orelse)}
+    if isinstance(s, ast.Break):
+        return {"kind":"break"}
     if isinstance(s, ast.While):
         # ідіома післяумови: while True: … if COND: break
         if is_true(s.test) and s.body and break_if(s.body[-1]):
             return {"kind":"dowhile","cond":expr(s.body[-1].test),"body":block(s.body[:-1])}
+        # while True з break десь усередині — нескінченний цикл (без ромба)
+        if is_true(s.test):
+            return {"kind":"infloop","body":block(s.body)}
         return {"kind":"while","cond":expr(s.test),"body":block(s.body)}
     if isinstance(s, ast.For):
         return {"kind":"for","cond":forspec(s),"body":block(s.body)}

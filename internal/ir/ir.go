@@ -63,6 +63,17 @@ type DoWhile struct {
 
 func (*DoWhile) node() {}
 
+// InfLoop — нескінченний цикл «while True:» з break(ами) десь усередині.
+// Без ромба-умови: тіло + безумовна дуга повернення; вихід — лише через break.
+type InfLoop struct{ Body *Block }
+
+func (*InfLoop) node() {}
+
+// Break — стрибок на вихід із поточного циклу (без фігури).
+type Break struct{}
+
+func (*Break) node() {}
+
 // Block — послідовність вузлів (виконуються згори вниз).
 type Block struct{ Stmts []Node }
 
