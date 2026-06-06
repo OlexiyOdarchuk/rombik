@@ -102,12 +102,16 @@ func (b *build) routeEnds(cx, kY float64) {
 		}
 		return
 	}
-	// Кілька виходів: ведемо кожен у бічне поле (рейку), щоб не різати блоки,
-	// потім донизу й до центру — у єдиний Кінець.
+	// Кілька виходів: центровані ведемо прямо вниз, інші — у бічне поле (рейку),
+	// щоб не різати блоки; усі сходяться на шині над Кінцем.
 	cy := kY - mergeGap
 	leftRail := margin * 0.5
 	rightRail := 2*cx - margin*0.5
 	for _, p := range b.ends {
+		if p.X > cx-1 && p.X < cx+1 { // центр — прямо вниз
+			b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(cx, cy)}})
+			continue
+		}
 		rail := leftRail
 		if p.X > cx {
 			rail = rightRail
