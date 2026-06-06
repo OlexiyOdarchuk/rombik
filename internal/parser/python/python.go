@@ -48,8 +48,8 @@ def stmt(s):
         return {"kind":"process","text":("повернути "+expr(s.value)) if s.value else "повернути"}
     if isinstance(s, ast.Expr) and isinstance(s.value, ast.Call):
         nm = call_name(s.value)
-        if nm=="print": return io("Вивід "+", ".join(arg(a) for a in s.value.args))
-        if nm=="input": return io("Ввід "+", ".join(arg(a) for a in s.value.args))
+        if nm=="print": return io("Вивід "+" ".join(arg(a) for a in s.value.args))
+        if nm=="input": return io("Ввід "+" ".join(arg(a) for a in s.value.args))
     if isinstance(s, ast.Expr):
         return {"kind":"process","text":expr(s)}
     return {"kind":"process","text":expr(s)}
