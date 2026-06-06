@@ -24,6 +24,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: false   # модуль без зовнішніх залежностей — go.sum немає, кеш зайвий
 
       - uses: actions/setup-node@v4
         with:
@@ -41,7 +42,11 @@ jobs:
           npm ci
           npm rebuild esbuild   # npm 11 блокує install-скрипти; esbuild потребує бінарник
           npm run build
-        # Власний домен -> корінь. Для github.io/<repo> розкоментуй:
+        # Сайт на власному домені flowgen.ishawyha.dev обслуговується з КОРЕНЯ (/),
+        # тож BASE_PATH лишається порожнім (дефолт у svelte.config.js) — нічого не задаємо.
+        # BASE_PATH = префікс шляху SvelteKit (paths.base) для всіх лінків і ресурсів.
+        # Знадобився б, ЛИШЕ якби хостив на OlexiyOdarchuk.github.io/flowgen (підпапка) —
+        # тоді розкоментуй, інакше ресурси вели б на «/» і давали 404:
         # env:
         #   BASE_PATH: /flowgen
 
