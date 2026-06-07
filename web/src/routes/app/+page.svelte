@@ -181,7 +181,7 @@
 		<div class="relative">
 			<button
 				onclick={() => (showSettings = !showSettings)}
-				class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400"
+				class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
 			>
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
 					<circle cx="12" cy="12" r="3" />
@@ -192,55 +192,55 @@
 
 			{#if showSettings}
 				<button class="fixed inset-0 z-10 cursor-default" onclick={() => (showSettings = false)} aria-label="Закрити"></button>
-				<div class="absolute left-0 top-full z-20 mt-2 w-72 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xl">
+				<div class="absolute left-0 top-full z-20 mt-2 w-72 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900">
 					<div class="space-y-2.5">
 						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Структура</p>
 						{#each [['singleEnd', 'Один Кінець на всю схему'], ['callAsProcess', 'Виклик — звичайним блоком'], ['stripTypes', 'Без тип-анотацій'], ['returnAsIO', 'return — паралелограмом']] as [key, label] (key)}
-							<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
+							<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
 								<input type="checkbox" bind:checked={s[key]} onchange={reapply} class="rounded border-slate-300" />
 								{label}
 							</label>
 						{/each}
 					</div>
-					<div class="space-y-2.5 border-t border-slate-100 pt-3">
+					<div class="space-y-2.5 border-t border-slate-100 pt-3 dark:border-slate-700">
 						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Підписи</p>
-						<label class="flex items-center justify-between text-sm text-slate-700">
+						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
 							Гілки
-							<select bind:value={s.branch} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm">
+							<select bind:value={s.branch} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
 								<option value="так">Так / Ні</option>
 								<option value="yes">Yes / No</option>
 								<option value="pm">+ / −</option>
 							</select>
 						</label>
-						<label class="flex items-center justify-between text-sm text-slate-700">
+						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
 							Ввід/вивід
-							<select bind:value={s.io} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm">
+							<select bind:value={s.io} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
 								<option value="short">Ввід / Вивід</option>
 								<option value="verbose">Введення / Виведення</option>
 								<option value="imperative">Ввести / Вивести</option>
 							</select>
 						</label>
 					</div>
-					<div class="space-y-2.5 border-t border-slate-100 pt-3">
+					<div class="space-y-2.5 border-t border-slate-100 pt-3 dark:border-slate-700">
 						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Підпис схеми</p>
-						<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
+						<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
 							<input type="checkbox" bind:checked={s.showCaption} onchange={() => funcs.length && reCaptionAll()} class="rounded border-slate-300" />
 							Показувати підпис «Рисунок N»
 						</label>
-						<label class="flex items-center justify-between gap-2 text-sm text-slate-700">
+						<label class="flex items-center justify-between gap-2 text-sm text-slate-700 dark:text-slate-300">
 							Слово підпису
 							<input
 								type="text"
 								bind:value={s.capWord}
 								oninput={() => funcs.length && reCaptionAll()}
 								placeholder="Рисунок"
-								class="w-28 rounded-md border-slate-300 py-1 text-sm"
+								class="w-28 rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
 							/>
 						</label>
 						<p class="text-xs text-slate-400">Напр. «Рисунок», «Рис.», «Figure». Номер і текст — під кожною схемою.</p>
-						<label class="flex items-center justify-between text-sm text-slate-700">
+						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
 							Якість PNG
-							<select bind:value={s.pngScale} class="rounded-md border-slate-300 py-1 text-sm">
+							<select bind:value={s.pngScale} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
 								<option value={2}>2× (екран)</option>
 								<option value={3}>3× (друк)</option>
 								<option value={4}>4× (макс.)</option>
@@ -252,15 +252,15 @@
 		</div>
 
 		{#if funcs.length}
-			<span class="ml-auto text-sm text-slate-500">{funcs.length} схем</span>
+			<span class="ml-auto text-sm text-slate-500 dark:text-slate-400">{funcs.length} схем</span>
 		{/if}
 	</div>
 
 	<!-- split -->
 	<div class="grid min-h-0 flex-1 gap-3 lg:grid-cols-2">
 		<!-- code -->
-		<div class="flex min-h-0 flex-col rounded-xl border border-slate-200 bg-white">
-			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+		<div class="flex min-h-0 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
 				Код Python
 			</div>
 			<div class="min-h-0 flex-1 overflow-hidden rounded-b-xl">
@@ -269,31 +269,31 @@
 		</div>
 
 		<!-- preview: усі схеми списком -->
-		<div class="flex min-h-0 flex-col rounded-xl border border-slate-200 bg-white">
-			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+		<div class="flex min-h-0 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
 				{funcs.length ? `Схеми (${funcs.length})` : 'Схема'}
 			</div>
 			<div class="min-h-0 flex-1 space-y-4 overflow-auto grid-bg p-4">
 				{#if funcs.length}
 					{#each funcs as f (f.name)}
-						<div class="rounded-lg border border-slate-200 bg-white shadow-sm">
-							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2">
-								<span class="font-mono text-xs text-slate-400">{f.name}</span>
+						<div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-700">
+								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
 								<div class="flex shrink-0 gap-1">
-									<button onclick={() => exportSvg(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">SVG</button>
-									<button onclick={() => exportPng(f)} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50">PNG</button>
-									<button onclick={() => exportTypst(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">Typst</button>
-									<button onclick={() => exportPdf(f)} disabled={busy} class="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50">PDF</button>
+									<button onclick={() => exportSvg(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">SVG</button>
+									<button onclick={() => exportPng(f)} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">PNG</button>
+									<button onclick={() => exportTypst(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">Typst</button>
+									<button onclick={() => exportPdf(f)} disabled={busy} class="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900">PDF</button>
 								</div>
 								{#if s.showCaption}
 									<div class="flex w-full items-center gap-1.5">
-										<span class="shrink-0 text-xs text-slate-500">{s.capWord || 'Рисунок'}</span>
+										<span class="shrink-0 text-xs text-slate-500 dark:text-slate-400">{s.capWord || 'Рисунок'}</span>
 										<input
 											type="number"
 											min="0"
 											bind:value={f.figNum}
 											oninput={() => reCaption(f)}
-											class="w-14 rounded-md border-slate-300 px-1.5 py-1 text-xs"
+											class="w-14 rounded-md border-slate-300 px-1.5 py-1 text-xs dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
 										/>
 										<span class="shrink-0 text-xs text-slate-400">—</span>
 										<input
@@ -301,17 +301,18 @@
 											bind:value={f.caption}
 											oninput={() => reCaption(f)}
 											placeholder="підпис схеми"
-											class="min-w-0 flex-1 rounded-md border-slate-300 px-2 py-1 text-xs"
+											class="min-w-0 flex-1 rounded-md border-slate-300 px-2 py-1 text-xs dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
 										/>
 									</div>
 								{/if}
 							</div>
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-							<div class="schema grid place-items-center overflow-auto p-3">{@html f.svg}</div>
+							<!-- схема — чорне-по-білому, тримаємо світлий «аркуш» навіть у темній темі -->
+							<div class="schema m-3 grid place-items-center overflow-auto rounded-md bg-white p-3 dark:ring-1 dark:ring-slate-700">{@html f.svg}</div>
 						</div>
 					{/each}
 				{:else}
-					<p class="grid h-full place-items-center text-sm text-slate-400">
+					<p class="grid h-full place-items-center text-sm text-slate-400 dark:text-slate-500">
 						Встав код і натисни «Побудувати схему»
 					</p>
 				{/if}
@@ -319,5 +320,5 @@
 		</div>
 	</div>
 
-	<p class="mt-3 text-xs {errored ? 'text-red-600' : 'text-slate-500'}">{status}</p>
+	<p class="mt-3 text-xs {errored ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}">{status}</p>
 </div>

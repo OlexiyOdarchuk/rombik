@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Темна тема перемикається класом .dark на <html> (не media), щоб був ручний тумблер. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Палітра «blueprint»: світлий папір + синій акцент. Решта кольорів — стандартні
    tailwind (slate/blue/amber). */
 @theme {
@@ -8,6 +11,11 @@
 	--font-sans:
 		'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 	--font-mono: ui-monospace, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* Темний «папір» — bg-paper автоматично темніє всюди, де його вжито. */
+.dark {
+	--color-paper: #0b1220;
 }
 
 html {
@@ -20,6 +28,11 @@ html {
 		linear-gradient(to right, rgba(37, 99, 235, 0.06) 1px, transparent 1px),
 		linear-gradient(to bottom, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
 	background-size: 28px 28px;
+}
+.dark .grid-bg {
+	background-image:
+		linear-gradient(to right, rgba(96, 165, 250, 0.08) 1px, transparent 1px),
+		linear-gradient(to bottom, rgba(96, 165, 250, 0.08) 1px, transparent 1px);
 }
 
 /* Плавна поява секцій. */

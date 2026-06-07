@@ -25,17 +25,17 @@
 </svelte:head>
 
 <section class="mx-auto max-w-4xl px-5 py-16">
-	<h1 class="text-4xl font-bold tracking-tight text-slate-900">Як це працює</h1>
-	<p class="mt-4 text-lg text-slate-600">
+	<h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Як це працює</h1>
+	<p class="mt-4 text-lg text-slate-600 dark:text-slate-300">
 		rombik розбирає твій код справжнім парсером Python, будує логічне дерево алгоритму й
 		розкладає його у блок-схему за ДСТУ 19.701-90. Усе локально в браузері — код нікуди не
 		надсилається.
 	</p>
 
-	<h2 class="mt-14 text-2xl font-bold text-slate-900">Фігури за стандартом</h2>
+	<h2 class="mt-14 text-2xl font-bold text-slate-900 dark:text-slate-100">Фігури за стандартом</h2>
 	<div class="mt-6 grid gap-4 sm:grid-cols-2">
 		{#each shapes as s (s.name)}
-			<div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4">
+			<div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-800">
 				<svg viewBox="0 0 120 56" width="96" height="46" class="shrink-0" stroke="#334155" stroke-width="1.5" fill="#fff">
 					{#if s.svg === 'terminator'}
 						<rect x="6" y="14" width="108" height="28" rx="14" />
@@ -53,17 +53,17 @@
 					{/if}
 				</svg>
 				<div>
-					<p class="font-semibold text-slate-900">{s.name}</p>
-					<p class="text-sm text-slate-500">{s.use}</p>
+					<p class="font-semibold text-slate-900 dark:text-slate-100">{s.name}</p>
+					<p class="text-sm text-slate-500 dark:text-slate-400">{s.use}</p>
 				</div>
 			</div>
 		{/each}
 	</div>
 
-	<h2 class="mt-14 text-2xl font-bold text-slate-900">Що вже підтримується</h2>
+	<h2 class="mt-14 text-2xl font-bold text-slate-900 dark:text-slate-100">Що вже підтримується</h2>
 	<ul class="mt-6 grid gap-2 sm:grid-cols-2">
 		{#each supported as item (item)}
-			<li class="flex items-start gap-2 text-slate-700">
+			<li class="flex items-start gap-2 text-slate-700 dark:text-slate-300">
 				<svg class="mt-1 shrink-0 text-blue-600" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M5 13l4 4L19 7" />
 				</svg>
@@ -72,9 +72,9 @@
 		{/each}
 	</ul>
 
-	<div class="mt-14 rounded-2xl border border-blue-200 bg-blue-50 p-6">
-		<h3 class="text-lg font-semibold text-slate-900">Скоро: C++ та редактор</h3>
-		<p class="mt-2 text-slate-600">
+	<div class="mt-14 rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900 dark:bg-blue-950/40">
+		<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Скоро: C++ та редактор</h3>
+		<p class="mt-2 text-slate-600 dark:text-slate-300">
 			Додаємо мову C++, ручне перетягування блоків і розбиття великої схеми на частини через
 			конектори. Опції рендера (наприклад, виклик звичайним блоком замість символу
 			підпрограми) — галочками просто в редакторі.

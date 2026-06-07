@@ -1,12 +1,17 @@
 <script>
 	import { onMount } from 'svelte';
 	import { EditorView, basicSetup } from 'codemirror';
-	import { EditorState } from '@codemirror/state';
+	import { EditorState, Compartment } from '@codemirror/state';
 	import { python } from '@codemirror/lang-python';
+	import { oneDark } from '@codemirror/theme-one-dark';
 
 	let { value = $bindable('') } = $props();
 	let el;
 	let view;
+	const themeC = new Compartment(); // окремий слот під тему — перемикаємо на льоту
+
+	const isDark = () => document.documentElement.classList.contains('dark');
+	const themeExt = () => (isDark() ? oneDark : []);
 
 	onMount(() => {
 		view = new EditorView({
@@ -16,6 +21,7 @@
 				extensions: [
 					basicSetup, // номери рядків, дужки, авто-відступ, підсвітка
 					python(), // мова Python: підсвітка + відступ після «:»
+					themeC.of(themeExt()),
 					EditorView.updateListener.of((u) => {
 						if (u.docChanged) value = u.state.doc.toString();
 					}),
@@ -27,7 +33,15 @@
 				]
 			})
 		});
-		return () => view.destroy();
+		// Реагуємо на перемикання теми (клас .dark на <html>).
+		const obs = new MutationObserver(() => {
+			view.dispatch({ effects: themeC.reconfigure(themeExt()) });
+		});
+		obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+		return () => {
+			obs.disconnect();
+			view.destroy();
+		};
 	});
 
 	// Віддзеркалити зовнішні зміни value (напр. скидання на зразок).

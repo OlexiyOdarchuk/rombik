@@ -34,16 +34,16 @@
 </svelte:head>
 
 <!-- HERO -->
-<section class="relative overflow-hidden border-b border-slate-200 grid-bg">
+<section class="relative overflow-hidden border-b border-slate-200 grid-bg dark:border-slate-800">
 	<div class="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 lg:grid-cols-2 lg:py-28">
 		<div class="rise">
-			<span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+			<span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
 				ДСТУ 19.701-90 · без реєстрації
 			</span>
-			<h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-5xl">
+			<h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">
 				Блок-схеми з коду <span class="text-blue-600">за лічені секунди</span>
 			</h1>
-			<p class="mt-5 max-w-md text-lg text-slate-600">
+			<p class="mt-5 max-w-md text-lg text-slate-600 dark:text-slate-300">
 				Встав код на Python — отримай готову блок-схему за державним стандартом. Підправ
 				у візуальному редакторі й додай у будь-який документ.
 			</p>
@@ -56,7 +56,7 @@
 				</a>
 				<a
 					href="/guide"
-					class="rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-slate-400"
+					class="rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
 				>
 					Як це працює
 				</a>
@@ -64,7 +64,7 @@
 		</div>
 
 		<!-- міні-схема: справжній вивід двигуна -->
-		<div class="rise rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
+		<div class="rise rounded-2xl border border-slate-200 dark:border-slate-800 bg-white p-6 shadow-xl shadow-slate-200/50">
 			<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[400px]" font-family="Inter, sans-serif" font-size="14">
 				<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>
 				<path d="M236.0 86.0 L236.0 130.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
@@ -95,8 +95,8 @@
 
 <!-- ПРОБЛЕМА -->
 <section class="mx-auto max-w-4xl px-5 py-20 text-center">
-	<h2 class="text-3xl font-bold text-slate-900">Малювати схеми вручну — це години роботи</h2>
-	<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+	<h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100">Малювати схеми вручну — це години роботи</h2>
+	<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
 		Звіт, лабораторна, практична, курсова, диплом — будь-де, де є алгоритм, його треба
 		зобразити схемою за ДСТУ. Лінійки, фігури, стрілки, переробки після кожної правки коду.
 		rombik робить це за секунду й дозволяє підправити результат під будь-які вимоги.
@@ -104,18 +104,18 @@
 </section>
 
 <!-- МОЖЛИВОСТІ -->
-<section class="border-y border-slate-200 bg-white">
+<section class="border-y border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 	<div class="mx-auto max-w-6xl px-5 py-20">
 		<div class="grid gap-6 sm:grid-cols-2">
 			{#each features as f (f.title)}
-				<div class="rounded-2xl border border-slate-200 p-6 transition hover:border-blue-300 hover:shadow-md">
-					<div class="grid h-11 w-11 place-items-center rounded-xl bg-blue-50 text-blue-600">
+				<div class="rounded-2xl border border-slate-200 dark:border-slate-800 p-6 transition hover:border-blue-300 hover:shadow-md dark:hover:border-blue-700">
+					<div class="grid h-11 w-11 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
 						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
 							<path d={f.icon} />
 						</svg>
 					</div>
-					<h3 class="mt-4 text-lg font-semibold text-slate-900">{f.title}</h3>
-					<p class="mt-2 text-slate-600">{f.body}</p>
+					<h3 class="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">{f.title}</h3>
+					<p class="mt-2 text-slate-600 dark:text-slate-300">{f.body}</p>
 				</div>
 			{/each}
 		</div>
@@ -124,15 +124,15 @@
 
 <!-- ЯК ПРАЦЮЄ -->
 <section class="mx-auto max-w-6xl px-5 py-20">
-	<h2 class="text-center text-3xl font-bold text-slate-900">Три кроки</h2>
+	<h2 class="text-center text-3xl font-bold text-slate-900 dark:text-slate-100">Три кроки</h2>
 	<div class="mt-12 grid gap-8 md:grid-cols-3">
 		{#each steps as s (s.n)}
-			<div class="relative rounded-2xl border border-slate-200 bg-white p-6">
+			<div class="relative rounded-2xl border border-slate-200 dark:border-slate-800 bg-white p-6 dark:bg-slate-800">
 				<div class="grid h-10 w-10 place-items-center rounded-full bg-blue-600 font-bold text-white">
 					{s.n}
 				</div>
-				<h3 class="mt-4 text-lg font-semibold text-slate-900">{s.t}</h3>
-				<p class="mt-2 text-slate-600">{s.d}</p>
+				<h3 class="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">{s.t}</h3>
+				<p class="mt-2 text-slate-600 dark:text-slate-300">{s.d}</p>
 			</div>
 		{/each}
 	</div>
