@@ -508,7 +508,7 @@
 
 	<!-- безмежне полотно -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<svg class="min-h-0 flex-1 touch-none bg-white dark:bg-slate-950" onpointerdown={bgDown} onwheel={onWheel} role="presentation">
+	<svg class="min-h-0 flex-1 touch-none bg-white dark:bg-slate-950" style="font-family: 'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif" onpointerdown={bgDown} onwheel={onWheel} role="presentation">
 		<defs>
 			<marker id="ed-arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#222" /></marker>
 			<pattern id="ed-grid" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="translate({view.x},{view.y}) scale({view.scale})">

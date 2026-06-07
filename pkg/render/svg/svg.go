@@ -27,14 +27,17 @@ const arrowDefs = `<defs><marker id="arr" markerWidth="9" markerHeight="9" refX=
 func Render(d *diagram.Diagram) string {
 	var b strings.Builder
 	totalH := diagHeight(d)
-	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family="Arial, sans-serif" font-size="14">`,
-		d.W, totalH, d.W, totalH)
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family=%s font-size="14">`,
+		d.W, totalH, d.W, totalH, fontAttr)
 	b.WriteString(arrowDefs)
 	b.WriteString(`<rect width="100%" height="100%" fill="#ffffff"/>`)
 	writeBody(&b, d)
 	b.WriteString(`</svg>`)
 	return b.String()
 }
+
+// fontAttr — шрифт схеми: Times New Roman (вимога курсових), із serif-фолбеками.
+const fontAttr = `"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif"`
 
 // RenderAll складає всі схеми в ОДИН SVG (вертикально, по центру, із проміжком).
 func RenderAll(ds []*diagram.Diagram) string {
@@ -56,8 +59,8 @@ func RenderAll(ds []*diagram.Diagram) string {
 		}
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family="Arial, sans-serif" font-size="14">`,
-		maxW, totalH, maxW, totalH)
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family=%s font-size="14">`,
+		maxW, totalH, maxW, totalH, fontAttr)
 	b.WriteString(arrowDefs)
 	b.WriteString(`<rect width="100%" height="100%" fill="#ffffff"/>`)
 	y := 0.0

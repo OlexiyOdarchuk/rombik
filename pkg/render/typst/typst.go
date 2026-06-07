@@ -142,5 +142,5 @@ func shape(b *strings.Builder, s diagram.Shape, fy func(float64) float64) {
 	fmt.Fprintf(b, "  content((%.1f, %.1f), text(%ssize: 14pt)[#%q])\n", cx, fy(cy), font, s.Text)
 }
 
-// font — sans-шрифт (як у SVG), з фолбеками; перші наявні в системі виграють.
-const font = `font: ("Arial", "Liberation Sans", "DejaVu Sans", "Helvetica"), `
+// font — Times New Roman (вимога курсових), із serif-фолбеками; перший наявний виграє.
+const font = `font: ("Times New Roman", "Liberation Serif", "DejaVu Serif"), `
