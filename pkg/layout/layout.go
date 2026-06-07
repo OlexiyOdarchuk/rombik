@@ -7,6 +7,7 @@
 package layout
 
 import (
+	"math"
 	"regexp"
 	"strings"
 
@@ -185,7 +186,15 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 		b.d.Shapes = append(b.d.Shapes, term(cx, kY, b.endText))
 	}
 
-	b.d.W = w
+	// Нормалізація: дуги циклів можуть виходити за [margin, w-margin] (бічні
+	// обходи ширші за фігури). Зсуваємо все так, щоб найлівіша точка була на
+	// margin, і беремо ширину за фактичним вмістом.
+	right, left := b.bodyExtent(0, 0)
+	if dx := margin - left; dx != 0 {
+		b.shiftX(dx)
+		right += dx
+	}
+	b.d.W = right + margin
 	b.d.H = contentBottom(b.d) + margin
 	return b.d
 }
@@ -481,7 +490,7 @@ func termGuardLast(blk *ir.Block) *ir.If {
 // Ні→дуга повернення ВГОРУ в заголовок (праворуч). Повертає вихід циклу.
 // headHalf/headCy — піввисота-по-X і центр заголовка; headBottom — його низ;
 // entryLabel — підпис ребра заголовок→ромб (для while це «Так»).
-func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float64, entryLabel, exitLabel string) diagram.Point {
+func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float64, startS, startE int, entryLabel, exitLabel string) diagram.Point {
 	dw := diaW(g.Cond)
 	diaTop := headBottom + vGap
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: entryLabel, Points: []diagram.Point{{X: cx, Y: headBottom}, {X: cx, Y: diaTop}}})
@@ -493,16 +502,17 @@ func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float6
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.yes, Points: []diagram.Point{{X: cx, Y: diaTop + diaH}, {X: cx, Y: actTop}}})
 	b.placeBlock(g.Then, cx, actTop)
 
-	aw, _ := b.blockSize(g.Then)
-	half := max(dw, aw) / 2
+	// Колонки дуг — за реальним краєм УСЬОГО тіла, щоб дуга повернення не різала
+	// бічні обходи внутрішніх guard-ів.
+	right, left := b.bodyExtent(startS, startE)
+	backX := right + arcGap
 	// Ні → правий кут ромба → ВГОРУ в правий кут заголовка (дуга повернення).
-	backX := cx + half + arcGap
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Points: []diagram.Point{
 		{X: cx + dw/2, Y: diaMidY}, {X: backX, Y: diaMidY}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
 	}})
 	// Вихід циклу: лівий кут заголовка → вниз нижче всього → центр.
 	contY := contentBottom(b.d) + vGap
-	leftX := cx - half - arcGap
+	leftX := left - arcGap
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: exitLabel, Points: []diagram.Point{
 		{X: cx - headHalf, Y: headCy}, {X: leftX, Y: headCy}, {X: leftX, Y: contY}, {X: cx, Y: contY},
 	}})
@@ -514,6 +524,7 @@ func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float6
 // повернення вгору в заголовок. Обробляє break усередині попередніх інструкцій.
 func (b *build) placeGuardLoopBody(body *ir.Block, g *ir.If, cx, headHalf, headCy, headBottom float64, entryLabel, exitLabel string) diagram.Point {
 	b.pushLoop()
+	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	fromY, el := headBottom, entryLabel
 	if pre := body.Stmts[:len(body.Stmts)-1]; len(pre) > 0 {
 		bodyTop := headBottom + vGap
@@ -521,7 +532,7 @@ func (b *build) placeGuardLoopBody(body *ir.Block, g *ir.If, cx, headHalf, headC
 		exit, _ := b.placeBlock(&ir.Block{Stmts: pre}, cx, bodyTop)
 		fromY, el = exit.Y, ""
 	}
-	cont := b.placeLoopGuard(g, cx, headHalf, headCy, fromY, el, exitLabel)
+	cont := b.placeLoopGuard(g, cx, headHalf, headCy, fromY, startS, startE, el, exitLabel)
 	brks := b.popLoop()
 	b.routeBreaks(cx, cont.Y, brks)
 	return cont
@@ -571,13 +582,13 @@ func (b *build) placeFor(n *ir.For, cx, top float64) diagram.Point {
 		return b.placeGuardLoopBody(n.Body, g, cx, hw/2, headCy, top+hexH, "", "")
 	}
 
-	bw, _ := b.blockSize(n.Body)
 	bodyTop := top + hexH + vGap
 	b.d.Edges = append(b.d.Edges, edge(P(cx, top+hexH), P(cx, bodyTop)))
+	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, bodyTop)
 	brks := b.popLoop()
-	cont := b.loopArcs(cx, hw/2, headCy, bw/2, bodyExit.Y, "")
+	cont := b.loopArcs(cx, hw/2, headCy, startS, startE, bodyExit.Y, "")
 	b.routeBreaks(cx, cont.Y, brks)
 	return cont
 }
@@ -593,13 +604,13 @@ func (b *build) placeWhile(n *ir.While, cx, top float64) diagram.Point {
 		return b.placeGuardLoopBody(n.Body, g, cx, dw/2, headCy, top+diaH, b.yes, b.no)
 	}
 
-	bw, _ := b.blockSize(n.Body)
 	bodyTop := top + diaH + vGap
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.yes, Points: []diagram.Point{{X: cx, Y: top + diaH}, {X: cx, Y: bodyTop}}})
+	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, bodyTop)
 	brks := b.popLoop()
-	cont := b.loopArcs(cx, dw/2, headCy, bw/2, bodyExit.Y, b.no)
+	cont := b.loopArcs(cx, dw/2, headCy, startS, startE, bodyExit.Y, b.no)
 	b.routeBreaks(cx, cont.Y, brks)
 	return cont
 }
@@ -607,7 +618,7 @@ func (b *build) placeWhile(n *ir.While, cx, top float64) diagram.Point {
 // placeDoWhile — цикл з післяумовою: тіло згори, ромб-умова знизу, Так→вихід,
 // Ні→дуга повернення справа до лінії входу (повтор тіла).
 func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
-	bw, _ := b.blockSize(n.Body)
+	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, top)
 	brks := b.popLoop()
@@ -618,7 +629,8 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 	diaCy := diaTop + diaH/2
 	b.d.Edges = append(b.d.Edges, edge(bodyExit, P(cx, diaTop)))
 
-	backX := cx + bw/2 + arcGap
+	right, _ := b.bodyExtent(startS, startE)
+	backX := right + arcGap
 	mergeY := top - vGap/2
 	// Без вістря: вливається в лінію входу (не у фігуру) — щоб не було «двох голів».
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Arrowless: true, Points: []diagram.Point{
@@ -636,14 +648,15 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 // placeInfLoop — нескінченний цикл while True: тіло + безумовна дуга повернення
 // справа; вихід — лише через break (routeBreaks).
 func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
-	bw, _ := b.blockSize(n.Body)
+	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, top)
 	brks := b.popLoop()
 
 	// Безумовна дуга повернення справа: низ тіла → праворуч → вгору → вхід.
 	// Із центру низу (трохи вниз) і без вістря (вливається в лінію входу).
-	backX := cx + bw/2 + arcGap
+	right, _ := b.bodyExtent(startS, startE)
+	backX := right + arcGap
 	mergeY := top - vGap/2
 	drop := bodyExit.Y + mergeGap/2
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
@@ -657,9 +670,10 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 
 // loopArcs малює дугу повернення (низ тіла → праворуч → вгору → правий кут
 // заголовка) і дугу виходу (лівий кут заголовка → ліворуч → вниз → центр).
-func (b *build) loopArcs(cx, headHalf, headCy, bodyHalf, bodyBottom float64, exitLabel string) diagram.Point {
-	backX := cx + bodyHalf + arcGap
-	leftX := cx - bodyHalf - arcGap
+func (b *build) loopArcs(cx, headHalf, headCy float64, startS, startE int, bodyBottom float64, exitLabel string) diagram.Point {
+	right, left := b.bodyExtent(startS, startE)
+	backX := right + arcGap
+	leftX := left - arcGap
 	contY := bodyBottom + vGap
 	// Дуга повернення — у правий кут заголовка; виходить із центру низу тіла
 	// (спершу трохи вниз, тоді вбік — не «з кута»).
@@ -684,6 +698,34 @@ func term(cx, top float64, text string) diagram.Shape {
 
 func edge(a, b diagram.Point) diagram.Edge {
 	return diagram.Edge{Points: []diagram.Point{a, b}}
+}
+
+// shiftX зсуває всі фігури й точки ребер по X (для нормалізації полотна).
+func (b *build) shiftX(dx float64) {
+	for i := range b.d.Shapes {
+		b.d.Shapes[i].X += dx
+	}
+	for i := range b.d.Edges {
+		for j := range b.d.Edges[i].Points {
+			b.d.Edges[i].Points[j].X += dx
+		}
+	}
+}
+
+// bodyExtent — найправіша/найлівіша X серед фігур і ребер, доданих ПІСЛЯ маркера
+// (startS, startE). Дає реальну ширину тіла з урахуванням бічних обходів (Ні-гілки
+// внутрішніх guard-ів тощо), щоб дуги циклу огинали ВСЕ тіло й не різали внутрішні лінії.
+func (b *build) bodyExtent(startS, startE int) (right, left float64) {
+	right, left = math.Inf(-1), math.Inf(1)
+	for _, s := range b.d.Shapes[startS:] {
+		right, left = max(right, s.X+s.W), min(left, s.X)
+	}
+	for _, e := range b.d.Edges[startE:] {
+		for _, p := range e.Points {
+			right, left = max(right, p.X), min(left, p.X)
+		}
+	}
+	return
 }
 
 // contentBottom — найнижча точка серед фігур і ребер (для розміщення Кінця).
