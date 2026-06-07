@@ -448,6 +448,67 @@ func (b *build) guard(body *ir.Block, downLabel, sideLabel string, side, cx, dw,
 	return P(cx, mergeY), false // порожня гілка завжди дає продовження
 }
 
+// endsBlock — чи блок завершується (останній стейтмент return/raise/exit/break,
+// або if, де обидві гілки завершуються).
+func endsBlock(blk *ir.Block) bool {
+	if blk == nil || len(blk.Stmts) == 0 {
+		return false
+	}
+	switch x := blk.Stmts[len(blk.Stmts)-1].(type) {
+	case *ir.Terminal, *ir.Break:
+		return true
+	case *ir.If:
+		return endsBlock(x.Then) && endsBlock(x.Else)
+	}
+	return false
+}
+
+// termGuardLast — якщо останній стейтмент тіла це guard (if із завершальною дією
+// і порожнім else), повертає його. Тоді «Ні» цього guard природно є дугою
+// повернення циклу (вгору в заголовок), без зайвого «вниз-вгору».
+func termGuardLast(blk *ir.Block) *ir.If {
+	if blk == nil || len(blk.Stmts) == 0 {
+		return nil
+	}
+	g, ok := blk.Stmts[len(blk.Stmts)-1].(*ir.If)
+	if ok && len(g.Else.Stmts) == 0 && endsBlock(g.Then) {
+		return g
+	}
+	return nil
+}
+
+// placeLoopGuard малює тіло-guard циклу: ромб-умова, Так→завершальна дія (вниз),
+// Ні→дуга повернення ВГОРУ в заголовок (праворуч). Повертає вихід циклу.
+// headHalf/headCy — піввисота-по-X і центр заголовка; headBottom — його низ;
+// entryLabel — підпис ребра заголовок→ромб (для while це «Так»).
+func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float64, entryLabel, exitLabel string) diagram.Point {
+	dw := diaW(g.Cond)
+	diaTop := headBottom + vGap
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: entryLabel, Points: []diagram.Point{{X: cx, Y: headBottom}, {X: cx, Y: diaTop}}})
+	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: diaTop, W: dw, H: diaH, Text: g.Cond})
+	diaMidY := diaTop + diaH/2
+
+	// Так → вниз → завершальна дія (вона сама йде у свій Кінець).
+	actTop := diaTop + diaH + branchGap
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.yes, Points: []diagram.Point{{X: cx, Y: diaTop + diaH}, {X: cx, Y: actTop}}})
+	b.placeBlock(g.Then, cx, actTop)
+
+	aw, _ := b.blockSize(g.Then)
+	half := max(dw, aw) / 2
+	// Ні → правий кут ромба → ВГОРУ в правий кут заголовка (дуга повернення).
+	backX := cx + half + arcGap
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Points: []diagram.Point{
+		{X: cx + dw/2, Y: diaMidY}, {X: backX, Y: diaMidY}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
+	}})
+	// Вихід циклу: лівий кут заголовка → вниз нижче всього → центр.
+	contY := contentBottom(b.d) + vGap
+	leftX := cx - half - arcGap
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: exitLabel, Points: []diagram.Point{
+		{X: cx - headHalf, Y: headCy}, {X: leftX, Y: headCy}, {X: leftX, Y: contY}, {X: cx, Y: contY},
+	}})
+	return P(cx, contY)
+}
+
 // branch малює одну гілку if від кута ромба (vx,midY). Повертає, чи гілка
 // завершилась (return/raise/exit). Порожня гілка — ОДНА суцільна лінія до
 // злиття без стрілки-голови в нікуди.
@@ -487,6 +548,11 @@ func (b *build) placeFor(n *ir.For, cx, top float64) diagram.Point {
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Hexagon, X: cx - hw/2, Y: top, W: hw, H: hexH, Text: n.Spec})
 	headCy := top + hexH/2
 
+	// Тіло = один guard (if cond: terminate) → «Ні» одразу дугою вгору в заголовок.
+	if g := termGuardLast(n.Body); g != nil && len(n.Body.Stmts) == 1 {
+		return b.placeLoopGuard(g, cx, hw/2, headCy, top+hexH, "", "")
+	}
+
 	bw, _ := b.blockSize(n.Body)
 	bodyTop := top + hexH + vGap
 	b.d.Edges = append(b.d.Edges, edge(P(cx, top+hexH), P(cx, bodyTop)))
@@ -504,6 +570,10 @@ func (b *build) placeWhile(n *ir.While, cx, top float64) diagram.Point {
 	dw := diaW(n.Cond)
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	headCy := top + diaH/2
+
+	if g := termGuardLast(n.Body); g != nil && len(n.Body.Stmts) == 1 {
+		return b.placeLoopGuard(g, cx, dw/2, headCy, top+diaH, b.yes, b.no)
+	}
 
 	bw, _ := b.blockSize(n.Body)
 	bodyTop := top + diaH + vGap
