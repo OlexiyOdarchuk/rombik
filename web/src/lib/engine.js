@@ -64,10 +64,24 @@ export async function generate(code, options = {}, onProgress) {
 		return { error: clean || cleanPyError(String(e?.message ?? e)) };
 	}
 	const astJSON = pyodide.globals.get('_out');
+	lastAst = astJSON; // тримаємо для розбивки (потрібен AST, не лише diagram)
 	try {
 		return JSON.parse(globalThis.rombikGenerate(astJSON, JSON.stringify(options)));
 	} catch (e) {
 		return { error: 'двигун: ' + (e?.message ?? e) };
+	}
+}
+
+let lastAst = null;
+
+/** Ріже схему функції на зв'язані частини (кнопка «Розбити на частини»).
+ *  Повертає { parts:[{name,caption,figNum,svg,typst,diagram}] } або { error }. */
+export function splitSchema(name, maxH, options = {}) {
+	if (!lastAst) return { error: 'спершу побудуй схему' };
+	try {
+		return JSON.parse(globalThis.rombikSplit(lastAst, JSON.stringify(options), name, maxH));
+	} catch (e) {
+		return { error: 'розбивка: ' + (e?.message ?? e) };
 	}
 }
 

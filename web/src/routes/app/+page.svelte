@@ -2,6 +2,7 @@
 	import {
 		generate,
 		warmup,
+		splitSchema,
 		renderCaption,
 		renderPdf,
 		renderPng,
@@ -233,6 +234,23 @@
 		}
 	}
 
+	// Розбити схему на зв'язані частини конекторами (для завеликих/складних).
+	function splitFn(f) {
+		const res = splitSchema(f.name, 900, engineOpts());
+		if (res.error) {
+			errored = true;
+			status = res.error;
+			return;
+		}
+		if (!res.parts || res.parts.length <= 1) {
+			status = 'Схема компактна — ділити нема сенсу.';
+			return;
+		}
+		const i = funcs.indexOf(f);
+		funcs = [...funcs.slice(0, i), ...res.parts, ...funcs.slice(i + 1)];
+		status = `Розбито на ${res.parts.length} частин (конектори ○).`;
+	}
+
 	function exportSvg(f) {
 		download(`${f.name}.svg`, f.svg, 'image/svg+xml');
 	}
@@ -429,6 +447,7 @@
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
 								<div class="flex shrink-0 gap-1">
 									<button onclick={() => (editingFn = f)} class="rounded border border-blue-300 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950">✎ Редагувати</button>
+									<button onclick={() => splitFn(f)} class="rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розбити</button>
 									{#each [['SVG', () => exportSvg(f)], ['PNG', () => exportPng(f)], ['Typst', () => exportTypst(f)], ['PDF', () => exportPdf(f)], ['Excalidraw', () => exportExcal(f)]] as [label, fn] (label)}
 										<button onclick={fn} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">{label}</button>
 									{/each}

@@ -84,6 +84,12 @@ type Continue struct{}
 
 func (*Continue) node() {}
 
+// Connector — з'єднувач «А-в-кружечку» (коло): розрив схеми на частини. Text —
+// мітка (А, Б, …). Малюється колом у потоці.
+type Connector struct{ Text string }
+
+func (*Connector) node() {}
+
 // Block — послідовність вузлів (виконуються згори вниз).
 type Block struct{ Stmts []Node }
 

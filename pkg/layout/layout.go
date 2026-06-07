@@ -73,6 +73,10 @@ type Options struct {
 	ReturnAsIO bool `json:"returnAsIO"`
 	// CapWord: слово підпису схеми («Рисунок»/«Рис.»/своє; порожнє — «Рисунок»).
 	CapWord string `json:"capWord"`
+	// NoStart/NoEnd: не малювати «Початок»/«Кінець» — для частин схеми між
+	// конекторами (розбивка великої схеми на кілька зв'язаних частин).
+	NoStart bool `json:"noStart"`
+	NoEnd   bool `json:"noEnd"`
 }
 
 // build несе стан розкладки: полотно, точки до єдиного Кінця, стек збирачів
@@ -188,18 +192,20 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 	cx := w / 2
 
 	top := float64(margin)
-	b.d.Shapes = append(b.d.Shapes, term(cx, top, startText))
-
-	bodyTop := top + termH + vGap
-	b.d.Edges = append(b.d.Edges, edge(P(cx, top+termH), P(cx, bodyTop)))
+	bodyTop := top
+	if !opts.NoStart { // частини після розриву починаються конектором, не «Початком»
+		b.d.Shapes = append(b.d.Shapes, term(cx, top, startText))
+		bodyTop = top + termH + vGap
+		b.d.Edges = append(b.d.Edges, edge(P(cx, top+termH), P(cx, bodyTop)))
+	}
 	exit, ended := b.placeBlock(prog, cx, bodyTop)
 	if !ended { // природний вихід веде у Кінець (у per-exit це єдиний спільний)
 		b.ends = append(b.ends, exit)
 	}
 
-	// Спільний Кінець — лише якщо є що в нього зводити (у per-exit режимі
-	// return/raise мають свої локальні Кінці й сюди не потрапляють).
-	if len(b.ends) > 0 {
+	// Спільний Кінець — лише якщо є що в нього зводити. NoEnd: частина
+	// закінчується конектором (розрив), Кінця нема.
+	if !opts.NoEnd && len(b.ends) > 0 {
 		kY := contentBottom(b.d) + vGap
 		if len(b.ends) > 1 {
 			kY += mergeGap // запас під шину, щоб не різала фігури
@@ -321,6 +327,8 @@ func (b *build) size(n ir.Node) (w, h float64) {
 		return bw + 2*arcGap, bh + vGap
 	case *ir.Break, *ir.Continue:
 		return 0, 0 // без фігури
+	case *ir.Connector:
+		return 46, 46
 	}
 	return minBoxW, boxH
 }
@@ -425,6 +433,10 @@ func (b *build) place(n ir.Node, cx, top float64) (diagram.Point, bool) {
 		return b.placeDoWhile(x, cx, top), false
 	case *ir.InfLoop:
 		return b.placeInfLoop(x, cx, top), false
+	case *ir.Connector:
+		const cw = 46.0
+		b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Connector, X: cx - cw/2, Y: top, W: cw, H: cw, Text: x.Text})
+		return P(cx, top+cw), false
 	case *ir.Break:
 		// стрибок на вихід циклу — без фігури; з'єднання зробить routeBreaks
 		b.recordBreak(P(cx, top))

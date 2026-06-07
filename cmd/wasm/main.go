@@ -124,6 +124,30 @@ func typstAll(_ js.Value, args []js.Value) any {
 	return result(map[string]any{"typst": typst.RenderAll(ds)})
 }
 
+// split(astJSON, optionsJSON, funcName, maxH) -> {parts:[outFunc...]} — ріже
+// схему функції на зв'язані частини конекторами (кнопка «Розбити на частини»).
+func split(_ js.Value, args []js.Value) any {
+	if len(args) < 4 {
+		return result(map[string]any{"error": "split: замало аргументів"})
+	}
+	var opts rombik.Options
+	if !args[1].IsUndefined() && !args[1].IsNull() {
+		_ = json.Unmarshal([]byte(args[1].String()), &opts)
+	}
+	parts, err := rombik.SplitFromAST([]byte(args[0].String()), opts, args[2].String(), args[3].Float())
+	if err != nil {
+		return result(map[string]any{"error": err.Error()})
+	}
+	res := make([]outFunc, 0, len(parts))
+	for _, f := range parts {
+		res = append(res, outFunc{
+			Name: f.Name, Caption: f.Diagram.Caption, FigNum: f.Diagram.FigNum,
+			SVG: f.SVG(), Typst: f.Typst(), Diagram: f.Diagram,
+		})
+	}
+	return result(map[string]any{"parts": res})
+}
+
 // excal(diagramJSON) -> {excalidraw} — одна схема у форматі .excalidraw.
 func excal(_ js.Value, args []js.Value) any {
 	if len(args) == 0 {
@@ -171,6 +195,7 @@ func result(v any) string {
 func main() {
 	js.Global().Set("rombikGenerate", js.FuncOf(generate))
 	js.Global().Set("rombikRenderOne", js.FuncOf(renderOne))
+	js.Global().Set("rombikSplit", js.FuncOf(split))
 	js.Global().Set("rombikTypstOne", js.FuncOf(typstOne))
 	js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))
 	js.Global().Set("rombikSvgAll", js.FuncOf(svgAll))
