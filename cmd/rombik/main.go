@@ -16,13 +16,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
-	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
 	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
+	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/raster"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
 )
@@ -88,8 +88,8 @@ func main() {
 	}
 }
 
-// write серіалізує діаграму у файл за розширенням: .json → дані, .png → растр
-// (rsvg-convert), інакше → SVG.
+// write серіалізує діаграму у файл за розширенням: .json → дані, .png/.pdf →
+// нативний растр/вектор (raster, без зовнішніх бінарників), .typ → Typst, інакше → SVG.
 func write(d *diagram.Diagram, out string, scale float64) {
 	switch strings.ToLower(filepath.Ext(out)) {
 	case ".json":
@@ -100,10 +100,19 @@ func write(d *diagram.Diagram, out string, scale float64) {
 		}
 		writeFile(out, b)
 	case ".png":
-		if err := svgToPNG(svg.Render(d), out, scale); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		b, err := raster.PNG(d, scale)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "png:", err)
 			os.Exit(1)
 		}
+		writeFile(out, b)
+	case ".pdf":
+		b, err := raster.PDF(d)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "pdf:", err)
+			os.Exit(1)
+		}
+		writeFile(out, b)
 	case ".typ":
 		writeFile(out, []byte(typst.Render(d)))
 	default:
@@ -117,17 +126,6 @@ func writeFile(out string, data []byte) {
 		fmt.Fprintln(os.Stderr, "запис:", err)
 		os.Exit(1)
 	}
-}
-
-// svgToPNG растеризує SVG у PNG через rsvg-convert (пакет librsvg).
-func svgToPNG(svgText, out string, scale float64) error {
-	if _, err := exec.LookPath("rsvg-convert"); err != nil {
-		return fmt.Errorf("для PNG потрібен rsvg-convert (встанови librsvg) або вкажи -o файл.svg")
-	}
-	cmd := exec.Command("rsvg-convert", "-z", fmt.Sprintf("%g", scale), "-o", out)
-	cmd.Stdin = strings.NewReader(svgText)
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }
 
 func filterByName(fns []rombik.Result, name string) []rombik.Result {

@@ -1,0 +1,96 @@
+//go:build js && wasm
+
+// Окремий «важкий» WASM для нативного PNG/PDF (tdewolff/canvas). Вантажиться у
+// браузері ЛЕНИВО — лише на першу вимогу експорту PNG/PDF, щоб не роздувати
+// початкове завантаження (головний rombik.wasm лишається легким).
+//
+// Реєструє JS-глобальні rombikPng(diagramJSON, capJSON?, scale?) і
+// rombikPdf(diagramJSON, capJSON?) → JSON-рядок {png|pdf: base64} або {error}.
+package main
+
+import (
+	"encoding/base64"
+	"encoding/json"
+	"syscall/js"
+
+	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/raster"
+)
+
+// parseDiagram розбирає diagram-JSON і застосовує перекриття підпису (capJSON).
+func parseDiagram(args []js.Value) (*diagram.Diagram, error) {
+	var d diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &d); err != nil {
+		return nil, err
+	}
+	if len(args) > 1 && !args[1].IsUndefined() && !args[1].IsNull() {
+		var c struct {
+			Caption   *string `json:"caption"`
+			FigNum    *int    `json:"figNum"`
+			CapWord   *string `json:"capWord"`
+			CapFormat *string `json:"capFormat"`
+		}
+		_ = json.Unmarshal([]byte(args[1].String()), &c)
+		if c.Caption != nil {
+			d.Caption = *c.Caption
+		}
+		if c.FigNum != nil {
+			d.FigNum = *c.FigNum
+		}
+		if c.CapWord != nil {
+			d.CapWord = *c.CapWord
+		}
+		if c.CapFormat != nil {
+			d.CapFormat = *c.CapFormat
+		}
+	}
+	return &d, nil
+}
+
+func png(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return out(map[string]any{"error": "немає diagram-JSON"})
+	}
+	d, err := parseDiagram(args)
+	if err != nil {
+		return out(map[string]any{"error": "розбір diagram: " + err.Error()})
+	}
+	scale := 2.0
+	if len(args) > 2 && !args[2].IsUndefined() && !args[2].IsNull() {
+		scale = args[2].Float()
+	}
+	b, err := raster.PNG(d, scale)
+	if err != nil {
+		return out(map[string]any{"error": "png: " + err.Error()})
+	}
+	return out(map[string]any{"png": base64.StdEncoding.EncodeToString(b)})
+}
+
+func pdf(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return out(map[string]any{"error": "немає diagram-JSON"})
+	}
+	d, err := parseDiagram(args)
+	if err != nil {
+		return out(map[string]any{"error": "розбір diagram: " + err.Error()})
+	}
+	b, err := raster.PDF(d)
+	if err != nil {
+		return out(map[string]any{"error": "pdf: " + err.Error()})
+	}
+	return out(map[string]any{"pdf": base64.StdEncoding.EncodeToString(b)})
+}
+
+func out(v any) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return `{"error":"серіалізація"}`
+	}
+	return string(b)
+}
+
+func main() {
+	js.Global().Set("rombikPng", js.FuncOf(png))
+	js.Global().Set("rombikPdf", js.FuncOf(pdf))
+	select {}
+}

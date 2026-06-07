@@ -4,8 +4,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."   # корінь репозиторію (де go.mod)
 
-echo "→ rombik.wasm"
+echo "→ rombik.wasm (легкий: парсер→схеми, SVG/Typst)"
 GOOS=js GOARCH=wasm go build -o web/static/rombik.wasm ./cmd/wasm
+
+echo "→ rombik-raster.wasm (важкий: нативний PNG/PDF, вантажиться лениво)"
+GOOS=js GOARCH=wasm go build -o web/static/rombik-raster.wasm ./cmd/wasmraster
 
 echo "→ wasm_exec.js"
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
@@ -13,4 +16,4 @@ cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
 echo "→ parser.py"
 cp pkg/parser/python/parser.py web/static/
 
-echo "Готово: web/static/{rombik.wasm, wasm_exec.js, parser.py}"
+echo "Готово: web/static/{rombik.wasm, rombik-raster.wasm, wasm_exec.js, parser.py}"

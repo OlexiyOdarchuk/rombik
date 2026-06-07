@@ -18,10 +18,14 @@ func Render(d *diagram.Diagram) string {
 	b.WriteString(`#import "@preview/cetz:0.3.4"` + "\n")
 	b.WriteString("#set page(width: auto, height: auto, margin: 14pt)\n")
 	b.WriteString("#set text(" + font + ")\n")
-	b.WriteString("#set figure.caption(separator: [ — ])\n") // ДСТУ: «Рисунок N — назва»
+	fmt.Fprintf(&b, "#set figure.caption(separator: [%s])\n", d.CapSeparator()) // напр. « — »
 	// Зручний помічник: підпис «Рисунок N» з авто-нумерацією (kind: flowchart).
+	supplement := "[" + d.CapSupplement() + "]"
+	if !d.CapHasWord() { // шаблон без {word} — без слова-supplement
+		supplement = "none"
+	}
 	b.WriteString(`#let flowchart(body, caption: none) = figure(` + "\n" +
-		"  body, caption: caption, supplement: [" + d.CapSupplement() + `], kind: "flowchart", numbering: "1",` + "\n)\n")
+		"  body, caption: caption, supplement: " + supplement + `, kind: "flowchart", numbering: "1",` + "\n)\n")
 
 	canvas := renderCanvas(d)
 	if d.Caption != "" {

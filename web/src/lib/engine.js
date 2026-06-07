@@ -75,33 +75,45 @@ export function renderCaption(diagram, cap) {
 	}
 }
 
-// --- Typst → PDF у браузері (typst.ts) ---
-// Компілятор важкий (~10 МБ wasm), тож вантажимо ЛИШЕ на першу вимогу PDF.
-const TYPST_VER = '0.7.0';
-const TYPST_CDN = (pkg, file) => `https://cdn.jsdelivr.net/npm/@myriaddreamin/${pkg}@${TYPST_VER}/pkg/${file}`;
-let typstPromise = null;
+// --- Нативний PNG/PDF (важкий raster-wasm, вантажиться лениво) ---
+// Окремий Go-WASM (tdewolff/canvas) ~16 МБ — тягнемо ЛИШЕ на першу вимогу
+// експорту PNG/PDF, щоб не роздувати початкове завантаження.
+let rasterPromise = null;
 
-async function getTypst() {
-	if (!typstPromise)
-		typstPromise = (async () => {
-			const { $typst } = await import('@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs');
-			$typst.setCompilerInitOptions({
-				getModule: () => TYPST_CDN('typst-ts-web-compiler', 'typst_ts_web_compiler_bg.wasm')
-			});
-			$typst.setRendererInitOptions({
-				getModule: () => TYPST_CDN('typst-ts-renderer', 'typst_ts_renderer_bg.wasm')
-			});
-			return $typst;
+function loadRaster(onProgress) {
+	if (!rasterPromise)
+		rasterPromise = (async () => {
+			onProgress?.('Завантаження рушія PNG/PDF…');
+			if (!globalThis.Go) await loadScript(`${base}/wasm_exec.js`);
+			const go = new globalThis.Go();
+			const bytes = await (await fetch(`${base}/rombik-raster.wasm`)).arrayBuffer();
+			const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+			go.run(instance); // НЕ await: main блокується на select{}
 		})();
-	return typstPromise;
+	return rasterPromise;
 }
 
-/** Компілює Typst-код у PDF (Uint8Array). Потребує мережі (cetz-пакет + wasm). */
-export async function typstToPdf(code, onProgress) {
-	onProgress?.('Завантаження Typst-компілятора…');
-	const $typst = await getTypst();
-	onProgress?.('Компіляція PDF…');
-	return await $typst.pdf({ mainContent: code });
+function b64ToBytes(b64) {
+	const bin = atob(b64);
+	const bytes = new Uint8Array(bin.length);
+	for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+	return bytes;
+}
+
+/** Нативний PDF схеми (Uint8Array). cap = { caption, figNum, capWord, capFormat }. */
+export async function renderPdf(diagram, cap, onProgress) {
+	await loadRaster(onProgress);
+	const res = JSON.parse(globalThis.rombikPdf(JSON.stringify(diagram), JSON.stringify(cap)));
+	if (res.error) throw new Error(res.error);
+	return b64ToBytes(res.pdf);
+}
+
+/** Нативний PNG схеми (Uint8Array). scale — пікселів на одиницю. */
+export async function renderPng(diagram, cap, scale, onProgress) {
+	await loadRaster(onProgress);
+	const res = JSON.parse(globalThis.rombikPng(JSON.stringify(diagram), JSON.stringify(cap), scale));
+	if (res.error) throw new Error(res.error);
+	return b64ToBytes(res.png);
 }
 
 // Витягуємо людську суть із трейсбеку Python (останній рядок — «SyntaxError: …»).

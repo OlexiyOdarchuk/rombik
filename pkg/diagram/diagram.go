@@ -3,7 +3,10 @@
 // структура даних, без логіки й залежностей.
 package diagram
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 // Kind — тип фігури ДСТУ.
 type Kind int
@@ -70,17 +73,21 @@ type Edge struct {
 // нумерує сам figure. CapWord — слово-supplement («Рисунок»/«Рис.»/своє); порожнє
 // = ДСТУ-замовч. Порожній Caption — без підпису.
 type Diagram struct {
-	Shapes  []Shape `json:"shapes"`
-	Edges   []Edge  `json:"edges"`
-	W       float64 `json:"w"`
-	H       float64 `json:"h"`
-	Caption string  `json:"caption,omitempty"`
-	FigNum  int     `json:"figNum,omitempty"`
-	CapWord string  `json:"capWord,omitempty"`
+	Shapes    []Shape `json:"shapes"`
+	Edges     []Edge  `json:"edges"`
+	W         float64 `json:"w"`
+	H         float64 `json:"h"`
+	Caption   string  `json:"caption,omitempty"`
+	FigNum    int     `json:"figNum,omitempty"`
+	CapWord   string  `json:"capWord,omitempty"`
+	CapFormat string  `json:"capFormat,omitempty"` // шаблон: {word} {num} — {text}
 }
 
 // CaptionWord — слово-supplement підпису за замовчуванням (ДСТУ: «Рисунок»).
 const CaptionWord = "Рисунок"
+
+// CapFormatDefault — шаблон підпису за замовчуванням (ДСТУ: «Рисунок N — текст»).
+const CapFormatDefault = "{word} {num} — {text}"
 
 // CapSupplement — слово підпису (своє або ДСТУ-замовч.).
 func (d *Diagram) CapSupplement() string {
@@ -90,14 +97,42 @@ func (d *Diagram) CapSupplement() string {
 	return CaptionWord
 }
 
-// CaptionLine — повний рядок підпису для растрових форматів: «Рисунок N — текст»
-// (або просто текст, якщо номера нема). Порожньо, якщо підпису нема.
+// CapFmt — шаблон підпису (свій або замовч.).
+func (d *Diagram) CapFmt() string {
+	if d.CapFormat != "" {
+		return d.CapFormat
+	}
+	return CapFormatDefault
+}
+
+// CaptionLine — повний рядок підпису для растрових форматів за шаблоном.
+// Порожньо, якщо підпису нема; без номера ({num}<=0) — лише текст.
 func (d *Diagram) CaptionLine() string {
 	if d.Caption == "" {
 		return ""
 	}
-	if d.FigNum > 0 {
-		return d.CapSupplement() + " " + strconv.Itoa(d.FigNum) + " — " + d.Caption
+	if d.FigNum <= 0 {
+		return d.Caption
 	}
-	return d.Caption
+	r := strings.NewReplacer(
+		"{word}", d.CapSupplement(),
+		"{num}", strconv.Itoa(d.FigNum),
+		"{text}", d.Caption,
+	)
+	return strings.TrimSpace(r.Replace(d.CapFmt()))
 }
+
+// CapSeparator — роздільник між номером і текстом (частина шаблону між {num} і
+// {text}) — для нативного підпису Typst-figure. Замовч. « — ».
+func (d *Diagram) CapSeparator() string {
+	f := d.CapFmt()
+	i := strings.Index(f, "{num}")
+	j := strings.Index(f, "{text}")
+	if i < 0 || j < 0 || j < i {
+		return " — "
+	}
+	return f[i+len("{num}") : j]
+}
+
+// CapHasWord — чи містить шаблон слово-supplement (для Typst-figure).
+func (d *Diagram) CapHasWord() bool { return strings.Contains(d.CapFmt(), "{word}") }

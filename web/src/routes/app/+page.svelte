@@ -1,5 +1,5 @@
 <script>
-	import { generate, warmup, renderCaption, typstToPdf } from '$lib/engine.js';
+	import { generate, warmup, renderCaption, renderPdf, renderPng } from '$lib/engine.js';
 	import CodeEditor from '$lib/CodeEditor.svelte';
 	import { onMount } from 'svelte';
 
@@ -32,7 +32,8 @@
 		branch: 'так', // так | yes | pm
 		io: 'short', // short | verbose | imperative
 		showCaption: true, // підпис «Рисунок N — …» під схемою
-		capWord: 'Рисунок' // слово підпису (Рисунок / Рис. / своє)
+		capWord: 'Рисунок', // слово підпису (Рисунок / Рис. / своє)
+		pngScale: 3 // якість PNG (пікселів на одиницю)
 	});
 	const BRANCH = { так: ['Так', 'Ні'], yes: ['Yes', 'No'], pm: ['+', '−'] };
 	const IO = { short: ['Ввід', 'Вивід'], verbose: ['Введення', 'Виведення'], imperative: ['Ввести', 'Вивести'] };
@@ -72,8 +73,18 @@
 		}
 		f.svg = out.svg;
 		f.typst = out.typst;
+		funcs = [...funcs]; // явний тригер — оновити й ПЕРЕГЛЯД (@html), не лише експорт
 	}
-	const reCaptionAll = () => funcs.forEach(reCaption);
+	const reCaptionAll = () => {
+		funcs.forEach((f) => {
+			const out = renderCaption(f.diagram, capOpts(f));
+			if (!out.error) {
+				f.svg = out.svg;
+				f.typst = out.typst;
+			}
+		});
+		funcs = [...funcs];
+	};
 
 	// Прогріваємо середовище заздалегідь (вантажиться Pyodide ~6 МБ).
 	onMount(() => {
@@ -120,7 +131,7 @@
 		busy = true;
 		errored = false;
 		try {
-			const pdf = await typstToPdf(f.typst, (st) => (status = st));
+			const pdf = await renderPdf(f.diagram, capOpts(f), (st) => (status = st));
 			download(`${f.name}.pdf`, pdf, 'application/pdf');
 			status = 'PDF готовий.';
 		} catch (e) {
@@ -132,37 +143,22 @@
 	}
 
 	function exportSvg(f) {
-		const blob = new Blob([f.svg], { type: 'image/svg+xml' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${f.name}.svg`;
-		a.click();
-		URL.revokeObjectURL(url);
+		download(`${f.name}.svg`, f.svg, 'image/svg+xml');
 	}
 
-	function exportPng(f) {
-		const scale = 2;
-		const img = new Image();
-		const url = URL.createObjectURL(new Blob([f.svg], { type: 'image/svg+xml' }));
-		img.onload = () => {
-			const c = document.createElement('canvas');
-			c.width = f.diagram.w * scale;
-			c.height = f.diagram.h * scale;
-			const ctx = c.getContext('2d');
-			ctx.scale(scale, scale);
-			ctx.drawImage(img, 0, 0);
-			URL.revokeObjectURL(url);
-			c.toBlob((b) => {
-				const u = URL.createObjectURL(b);
-				const a = document.createElement('a');
-				a.href = u;
-				a.download = `${f.name}.png`;
-				a.click();
-				URL.revokeObjectURL(u);
-			});
-		};
-		img.src = url;
+	async function exportPng(f) {
+		busy = true;
+		errored = false;
+		try {
+			const png = await renderPng(f.diagram, capOpts(f), s.pngScale, (st) => (status = st));
+			download(`${f.name}.png`, png, 'image/png');
+			status = 'PNG готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'PNG не вдався: ' + (e?.message ?? e);
+		} finally {
+			busy = false;
+		}
 	}
 </script>
 
@@ -242,6 +238,14 @@
 							/>
 						</label>
 						<p class="text-xs text-slate-400">Напр. «Рисунок», «Рис.», «Figure». Номер і текст — під кожною схемою.</p>
+						<label class="flex items-center justify-between text-sm text-slate-700">
+							Якість PNG
+							<select bind:value={s.pngScale} class="rounded-md border-slate-300 py-1 text-sm">
+								<option value={2}>2× (екран)</option>
+								<option value={3}>3× (друк)</option>
+								<option value={4}>4× (макс.)</option>
+							</select>
+						</label>
 					</div>
 				</div>
 			{/if}
@@ -277,7 +281,7 @@
 								<span class="font-mono text-xs text-slate-400">{f.name}</span>
 								<div class="flex shrink-0 gap-1">
 									<button onclick={() => exportSvg(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">SVG</button>
-									<button onclick={() => exportPng(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">PNG</button>
+									<button onclick={() => exportPng(f)} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50">PNG</button>
 									<button onclick={() => exportTypst(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">Typst</button>
 									<button onclick={() => exportPdf(f)} disabled={busy} class="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50">PDF</button>
 								</div>
