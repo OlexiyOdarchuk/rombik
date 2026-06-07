@@ -130,6 +130,20 @@ export function renderSvgAll(diagrams) {
 	return res.svg;
 }
 
+/** Схема у форматі .excalidraw (для excalidraw.com). */
+export function renderExcalidraw(diagram) {
+	const res = JSON.parse(globalThis.rombikExcalidraw(JSON.stringify(diagram)));
+	if (res.error) throw new Error(res.error);
+	return res.excalidraw;
+}
+
+/** Усі схеми в одному .excalidraw. */
+export function renderExcalidrawAll(diagrams) {
+	const res = JSON.parse(globalThis.rombikExcalidrawAll(JSON.stringify(diagrams)));
+	if (res.error) throw new Error(res.error);
+	return res.excalidraw;
+}
+
 /** Один PNG з УСІХ схем (Uint8Array). */
 export async function renderPngAll(diagrams, scale, onProgress) {
 	await loadRaster(onProgress);

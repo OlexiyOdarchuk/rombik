@@ -19,6 +19,7 @@ import (
 	"syscall/js"
 
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/excalidraw"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
 	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
@@ -100,6 +101,30 @@ func typstAll(_ js.Value, args []js.Value) any {
 	return result(map[string]any{"typst": typst.RenderAll(ds)})
 }
 
+// excal(diagramJSON) -> {excalidraw} — одна схема у форматі .excalidraw.
+func excal(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return result(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var d diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &d); err != nil {
+		return result(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	return result(map[string]any{"excalidraw": excalidraw.Render(&d)})
+}
+
+// excalAll(diagramsJSON) -> {excalidraw} — усі схеми в одному .excalidraw.
+func excalAll(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return result(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var ds []*diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &ds); err != nil {
+		return result(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	return result(map[string]any{"excalidraw": excalidraw.RenderAll(ds)})
+}
+
 // svgAll(diagramsJSON) -> {svg} — усі схеми в одному SVG (вертикально).
 func svgAll(_ js.Value, args []js.Value) any {
 	if len(args) == 0 {
@@ -125,5 +150,7 @@ func main() {
 	js.Global().Set("rombikRenderOne", js.FuncOf(renderOne))
 	js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))
 	js.Global().Set("rombikSvgAll", js.FuncOf(svgAll))
+	js.Global().Set("rombikExcalidraw", js.FuncOf(excal))
+	js.Global().Set("rombikExcalidrawAll", js.FuncOf(excalAll))
 	select {} // тримаємо модуль живим
 }

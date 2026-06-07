@@ -22,6 +22,7 @@ import (
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
 	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
 	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/excalidraw"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/raster"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
@@ -85,8 +86,8 @@ func main() {
 		return
 	}
 	base, ext := splitExt(*outFile)
-	// .typ/.pdf для кількох функцій → ОДИН документ з усіма схемами.
-	if low := strings.ToLower(ext); low == ".typ" || low == ".pdf" {
+	// .typ/.pdf/.excalidraw для кількох функцій → ОДИН документ з усіма схемами.
+	if low := strings.ToLower(ext); low == ".typ" || low == ".pdf" || low == ".excalidraw" {
 		writeCombined(funcs, *outFile, low)
 		return
 	}
@@ -103,6 +104,8 @@ func writeCombined(funcs []rombik.Result, out, ext string) {
 	}
 	if ext == ".typ" {
 		writeFile(out, []byte(typst.RenderAll(ds)))
+	} else if ext == ".excalidraw" {
+		writeFile(out, []byte(excalidraw.RenderAll(ds)))
 	} else {
 		b, err := raster.PDFAll(ds)
 		if err != nil {
@@ -141,6 +144,8 @@ func write(d *diagram.Diagram, out string, scale float64) {
 		writeFile(out, b)
 	case ".typ":
 		writeFile(out, []byte(typst.Render(d)))
+	case ".excalidraw":
+		writeFile(out, []byte(excalidraw.Render(d)))
 	default:
 		writeFile(out, []byte(svg.Render(d)))
 	}

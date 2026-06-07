@@ -8,7 +8,9 @@
 		renderTypstAll,
 		renderPdfAll,
 		renderSvgAll,
-		renderPngAll
+		renderPngAll,
+		renderExcalidraw,
+		renderExcalidrawAll
 	} from '$lib/engine.js';
 	import CodeEditor from '$lib/CodeEditor.svelte';
 	import DiagramEditor from '$lib/DiagramEditor.svelte';
@@ -232,6 +234,26 @@
 		download(`${f.name}.svg`, f.svg, 'image/svg+xml');
 	}
 
+	function exportExcal(f) {
+		try {
+			download(`${f.name}.excalidraw`, renderExcalidraw({ ...f.diagram, ...capOpts(f) }), 'application/json');
+			status = 'Excalidraw готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'Excalidraw: ' + (e?.message ?? e);
+		}
+	}
+
+	function exportAllExcal() {
+		try {
+			download('схеми.excalidraw', renderExcalidrawAll(exportDiagrams()), 'application/json');
+			status = 'Excalidraw (усі) готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'Excalidraw: ' + (e?.message ?? e);
+		}
+	}
+
 	async function exportPng(f) {
 		busy = true;
 		errored = false;
@@ -362,7 +384,7 @@
 			<div class="ml-auto flex items-center gap-2">
 				<span class="text-sm text-slate-500 dark:text-slate-400">{funcs.length} схем</span>
 				<span class="text-xs font-medium text-slate-400">Завантажити всі:</span>
-				{#each [['SVG', exportAllSvg], ['PNG', exportAllPng], ['Typst', exportAllTypst], ['PDF', exportAllPdf]] as [label, fn] (label)}
+				{#each [['SVG', exportAllSvg], ['PNG', exportAllPng], ['Typst', exportAllTypst], ['PDF', exportAllPdf], ['Excalidraw', exportAllExcal]] as [label, fn] (label)}
 					<button
 						onclick={fn}
 						disabled={busy}
@@ -400,7 +422,7 @@
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
 								<div class="flex shrink-0 gap-1">
 									<button onclick={() => (editingFn = f)} class="rounded border border-blue-300 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950">✎ Редагувати</button>
-									{#each [['SVG', () => exportSvg(f)], ['PNG', () => exportPng(f)], ['Typst', () => exportTypst(f)], ['PDF', () => exportPdf(f)]] as [label, fn] (label)}
+									{#each [['SVG', () => exportSvg(f)], ['PNG', () => exportPng(f)], ['Typst', () => exportTypst(f)], ['PDF', () => exportPdf(f)], ['Excalidraw', () => exportExcal(f)]] as [label, fn] (label)}
 										<button onclick={fn} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">{label}</button>
 									{/each}
 								</div>
