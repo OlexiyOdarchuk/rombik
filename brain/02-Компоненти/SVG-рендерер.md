@@ -4,7 +4,7 @@ tags: [component, render]
 
 # SVG-рендерер
 
-**Пакет:** `internal/render/svg` · **Файл:** `svg.go`
+**Пакет:** `pkg/render/svg` · **Файл:** `svg.go`
 
 Малює [[Diagram-модель-геометрії|diagram.Diagram]] у SVG-рядок. Це **адаптер
 виводу**: залежить лише від `diagram`. Фігури — точні ДСТУ-примітиви, повний контроль

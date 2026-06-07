@@ -4,7 +4,7 @@ tags: [component, parser]
 
 # astjson — конвертер
 
-**Пакет:** `internal/parser/astjson` · **Файл:** `astjson.go`
+**Пакет:** `pkg/parser/astjson` · **Файл:** `astjson.go`
 
 Єдина точка перетворення **[[Чому-AST-JSON-як-контракт|AST-JSON]] → [[IR-проміжне-представлення|IR]]**.
 Спільна для всіх мов і середовищ — і для `python3` (CLI), і для Pyodide (браузер).

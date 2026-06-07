@@ -11,6 +11,7 @@
 		renderPngAll
 	} from '$lib/engine.js';
 	import CodeEditor from '$lib/CodeEditor.svelte';
+	import DiagramEditor from '$lib/DiagramEditor.svelte';
 	import { onMount } from 'svelte';
 
 	const SAMPLE = `def grade(score):
@@ -32,6 +33,17 @@
 	let busy = $state(false);
 	let errored = $state(false);
 	let showSettings = $state(false);
+	let editingFn = $state(null); // схема, відкрита у візуальному редакторі
+
+	function onEditorSave(d) {
+		if (!editingFn) return;
+		// Замінюємо геометрію, зберігаючи поля підпису.
+		editingFn.diagram = { ...editingFn.diagram, shapes: d.shapes, edges: d.edges, w: d.w, h: d.h };
+		reCaption(editingFn); // ре-рендер svg/typst з відредагованої схеми
+		funcs = [...funcs];
+		editingFn = null;
+		status = 'Схему відредаговано.';
+	}
 
 	// Налаштування (галочки/списки) -> опції двигуна.
 	let s = $state({
@@ -387,6 +399,7 @@
 							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-700">
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
 								<div class="flex shrink-0 gap-1">
+									<button onclick={() => (editingFn = f)} class="rounded border border-blue-300 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950">✎ Редагувати</button>
 									{#each [['SVG', () => exportSvg(f)], ['PNG', () => exportPng(f)], ['Typst', () => exportTypst(f)], ['PDF', () => exportPdf(f)]] as [label, fn] (label)}
 										<button onclick={fn} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">{label}</button>
 									{/each}
@@ -428,3 +441,7 @@
 
 	<p class="mt-3 text-xs {errored ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}">{status}</p>
 </div>
+
+{#if editingFn}
+	<DiagramEditor diagram={editingFn.diagram} onsave={onEditorSave} oncancel={() => (editingFn = null)} />
+{/if}

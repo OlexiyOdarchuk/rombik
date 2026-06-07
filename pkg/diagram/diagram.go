@@ -19,6 +19,7 @@ const (
 	InOut                  // ввід/вивід — паралелограм
 	Hexagon                // початок циклу (for) — шестикутник
 	Predef                 // виклик підпрограми — прямокутник з боковими рисками
+	Connector              // з'єднувач «А-в-кружечку» — коло (розрив схеми на частини)
 )
 
 // String — машинна назва типу (для JSON/фронтенду).
@@ -36,6 +37,8 @@ func (k Kind) String() string {
 		return "loop"
 	case Predef:
 		return "subprogram"
+	case Connector:
+		return "connector"
 	}
 	return "unknown"
 }
@@ -46,7 +49,7 @@ func (k Kind) MarshalJSON() ([]byte, error) { return []byte(`"` + k.String() + `
 // kindByName — зворотний бік String() (для UnmarshalJSON: фронт шле diagram назад).
 var kindByName = map[string]Kind{
 	"terminator": Terminator, "process": Process, "decision": Decision,
-	"io": InOut, "loop": Hexagon, "subprogram": Predef,
+	"io": InOut, "loop": Hexagon, "subprogram": Predef, "connector": Connector,
 }
 
 // UnmarshalJSON приймає тип фігури як рядок («process») або число — щоб JSON,

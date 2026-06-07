@@ -11,7 +11,7 @@ tags: [architecture, decision]
 
 ## Що це
 
-Файл `internal/parser/astjson/astjson.go` визначає вузол:
+Файл `pkg/parser/astjson/astjson.go` визначає вузол:
 
 ```go
 type Node struct {

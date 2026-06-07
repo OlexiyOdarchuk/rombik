@@ -209,6 +209,8 @@ func (r *rnd) shape(s diagram.Shape) {
 		const in = 9.0 // бокові риски
 		r.line(s.X+in, s.Y, s.X+in, s.Y+s.H)
 		r.line(s.X+s.W-in, s.Y, s.X+s.W-in, s.Y+s.H)
+	case diagram.Connector:
+		r.ctx.DrawPath(r.x(cx), r.y(cy), canvas.Circle(math.Min(s.W, s.H)/2*ptPerUnit))
 	}
 	r.centerText(s.Text, s.X, s.Y, s.W, s.H)
 }

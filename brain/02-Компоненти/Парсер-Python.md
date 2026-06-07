@@ -4,7 +4,7 @@ tags: [component, parser]
 
 # Парсер Python
 
-**Пакет:** `internal/parser/python` · **Файли:** `parser.py` (логіка), `python.go` (обгортка)
+**Пакет:** `pkg/parser/python` · **Файли:** `parser.py` (логіка), `python.go` (обгортка)
 
 Перетворює Python-код на [[Чому-AST-JSON-як-контракт|AST-JSON]]. Використовує
 **рідний Python `ast`** — найточніший парсер Python, без власного лексера й без cgo.

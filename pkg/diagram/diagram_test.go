@@ -8,7 +8,7 @@ import (
 // TestKindRoundTrip — Kind має розбиратися назад із рядка (фронт шле diagram у
 // wasm для PDF/PNG/ре-рендеру підпису). Без UnmarshalJSON тут була помилка.
 func TestKindRoundTrip(t *testing.T) {
-	for _, k := range []Kind{Terminator, Process, Decision, InOut, Hexagon, Predef} {
+	for _, k := range []Kind{Terminator, Process, Decision, InOut, Hexagon, Predef, Connector} {
 		b, err := json.Marshal(k)
 		if err != nil {
 			t.Fatal(err)

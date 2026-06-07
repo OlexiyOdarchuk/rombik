@@ -125,6 +125,12 @@ func shape(b *strings.Builder, s diagram.Shape, fy func(float64) float64) {
 		fmt.Fprintf(b, "  rect((%.1f, %.1f), (%.1f, %.1f)%s)\n", x1, fy(y2), x2, fy(y1), fill)
 		fmt.Fprintf(b, "  line((%.1f, %.1f), (%.1f, %.1f))\n", x1+9, fy(y1), x1+9, fy(y2))
 		fmt.Fprintf(b, "  line((%.1f, %.1f), (%.1f, %.1f))\n", x2-9, fy(y1), x2-9, fy(y2))
+	case diagram.Connector:
+		r := s.W / 2
+		if s.H < s.W {
+			r = s.H / 2
+		}
+		fmt.Fprintf(b, "  circle((%.1f, %.1f), radius: %.1f%s)\n", cx, fy(cy), r, fill)
 	}
 	// Текст по центру (рядкова форма #%q — щоб спецсимволи [ ] * не ламали Typst).
 	fmt.Fprintf(b, "  content((%.1f, %.1f), text(%ssize: 14pt)[#%q])\n", cx, fy(cy), font, s.Text)

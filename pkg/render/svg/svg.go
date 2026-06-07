@@ -135,6 +135,9 @@ func renderShape(b *strings.Builder, s diagram.Shape) {
 		const in = 9 // відступ бокових рисок
 		fmt.Fprintf(b, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#222" stroke-width="1.5"/>`, s.X+in, s.Y, s.X+in, s.Y+s.H)
 		fmt.Fprintf(b, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#222" stroke-width="1.5"/>`, s.X+s.W-in, s.Y, s.X+s.W-in, s.Y+s.H)
+	case diagram.Connector:
+		cx, cy := s.X+s.W/2, s.Y+s.H/2
+		fmt.Fprintf(b, `<circle cx="%.1f" cy="%.1f" r="%.1f" %s/>`, cx, cy, min(s.W, s.H)/2, stroke)
 	}
 	// Текст по центру фігури.
 	fmt.Fprintf(b, `<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="middle" fill="#111">%s</text>`,
