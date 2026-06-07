@@ -14,7 +14,7 @@
 			<span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-600 text-white shadow-sm">
 				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
 					<path d="M12 5 L19 12 L12 19 L5 12 Z" />
-					<path d="M12 2 V5" /><path d="M12 19 V22" />
+					<path d="M12 2 V5" /><path d="M5 12 H2" /><path d="M19 12 H22" />
 				</svg>
 			</span>
 			<span>rombik<span class="text-blue-600">.</span></span>
