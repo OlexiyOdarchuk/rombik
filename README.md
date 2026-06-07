@@ -1,10 +1,11 @@
 # rombik
 
-**Код → блок-схема за ДСТУ 19.701-90, у SVG.**
+**Код → блок-схема за ДСТУ 19.701-90 (SVG / PNG / PDF / Typst).**
 
 rombik перетворює Python-код на акуратну блок-схему алгоритму (ГОСТ/ДСТУ 19.701-90 —
 той самий стандарт, що вимагають у курсових і лабораторних). Працює як CLI-утиліта
-й як браузерний застосунок (усе локально, без сервера: парсинг — у WASM).
+й як браузерний застосунок (усе локально, без сервера: парсинг — у WASM). PNG і PDF
+малюються **нативно в Go** — без зовнішніх інструментів.
 
 ```python
 def grade(score):
@@ -33,20 +34,24 @@ def grade(score):
 - **Точні ДСТУ-примітиви** — термінатор (овал), процес (прямокутник), розв'язок (ромб),
   ввід/вивід (паралелограм), початок циклу (шестикутник), підпрограма (прямокутник
   із боковими рисками).
-- **Розпізнавання керівних конструкцій** — `if/elif/else`, `for ... in range`, `while`,
-  ідіоми `while True: … if cond: break` (цикл із післяумовою) та нескінченний цикл,
-  `return/raise/exit`, виклики локальних функцій → символ підпрограми.
+- **Розпізнавання керівних конструкцій** — `if/elif/else`, `match/case`, `for ... in
+  range`, `while`, `for/else`, `while/else`, ідіоми `while True: … if cond: break`
+  (післяумова) та нескінченний цикл, `break`, `continue`, `return/raise/exit`,
+  виклики локальних функцій → символ підпрограми.
 - **Кожна функція — окрема схема.** Параметри функції малюються вхідним паралелограмом.
+- **Підпис «Рисунок N»** — конфігуроване слово/шаблон/нумерація (за ДСТУ).
 - **Налаштування під вимоги викладача** — слова вводу/виводу, підписи гілок, один
   спільний «Кінець» чи окремий на кожен вихід, зняття тип-анотацій тощо.
-- **Кілька форматів виводу** — SVG, PNG (через `rsvg-convert`), JSON (геометрія для фронтенду).
+- **Чотири формати виводу** — **SVG**, **PNG** і **PDF** (нативно, без rsvg/typst),
+  **Typst** (CeTZ — для вставки в курсову), а ще JSON-геометрія.
 - **Браузерна версія** — SvelteKit + Pyodide + WASM, без бекенду; код нікуди не надсилається.
 
 ---
 
 ## Швидкий старт (CLI)
 
-Потрібен **Go 1.26+** і **python3 3.9+** (для рідного парсера `ast`).
+Потрібен **Go 1.26+** і **python3 3.9+** (для рідного парсера `ast`). Більше нічого:
+PNG/PDF/SVG/Typst — усе всередині бінарника.
 
 ```bash
 # демо (захардкоджений алгоритм)
@@ -55,8 +60,12 @@ go run ./cmd/rombik
 # зі свого файлу
 go run ./cmd/rombik -py examples/grade.py -o grade.svg
 
-# одразу PNG (потрібен rsvg-convert із пакета librsvg)
+# нативний PNG / PDF (без зовнішніх утиліт)
 go run ./cmd/rombik -py examples/grade.py -o grade.png -scale 3
+go run ./cmd/rombik -py examples/course.py -o course.pdf      # усі функції → один PDF
+
+# Typst для вставки в курсову
+go run ./cmd/rombik -py examples/course.py -o course.typ
 
 # лише одна функція з файлу
 go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o matrix.svg
@@ -67,24 +76,33 @@ go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o matrix.svg
 | Прапорець       | Типово     | Призначення                                                        |
 |-----------------|------------|--------------------------------------------------------------------|
 | `-py FILE`      | —          | Python-файл для парсингу (без нього — демо).                        |
-| `-o FILE`       | `out.svg`  | Вихідний файл. Формат — за розширенням: `.svg`, `.png`, `.json`.    |
+| `-o FILE`       | `out.svg`  | Вихід. Формат — за розширенням: `.svg`, `.png`, `.pdf`, `.typ`, `.json`. |
 | `-fn NAME`      | —          | Малювати лише функцію з цим іменем.                                 |
 | `-calls-plain`  | `false`    | Виклики підпрограм — звичайним прямокутником (не ДСТУ-символом).    |
 | `-single-end`   | `false`    | Один спільний «Кінець» (інакше — на кожен `return/raise/exit`).     |
-| `-scale N`      | `2`        | Масштаб для PNG (роздільність).                                     |
+| `-scale N`      | `2`        | Щільність PNG (пікселів на одиницю).                                |
+| `-caption S`    | —          | Підпис схеми (інакше — ім'я функції; `«-»` — без підпису).          |
+| `-fignum N`     | `0`        | Номер «Рисунок N» (`0` — за порядком функцій).                      |
+| `-figword S`    | «Рисунок»  | Слово підпису («Рис.», «Figure»…).                                  |
+| `-capformat S`  | `{word} {num} — {text}` | Шаблон підпису.                                       |
 
-> Якщо у файлі кілька функцій, `-o схема.svg` дає файли `схема_<функція>.svg`.
+> Кілька функцій: `.pdf`/`.typ` → **один спільний документ** (наскрізна нумерація);
+> інші формати → файли `<основа>_<функція>.<ext>`.
+
+Готові бінарники на 6 платформ (Linux/Windows/macOS × amd64/arm64) — у GitHub Releases
+(збираються на тег `v*`).
 
 ---
 
 ## Браузерна версія (web/)
 
-SvelteKit + Tailwind v4, повністю статичний застосунок. Розбір Python робить **Pyodide**
-(CPython у WASM), а розкладку й рендер — **rombik.wasm** (Go-двигун). Жоден код не
-виходить за межі браузера.
+SvelteKit (Svelte 5) + Tailwind v4, повністю статичний застосунок з редактором
+CodeMirror і темною темою. Розбір Python робить **Pyodide** (CPython у WASM), а
+розкладку й рендер — два Go-WASM-модулі (легкий для SVG/Typst, важкий растровий для
+PNG/PDF підвантажується ліниво). Жоден код не виходить за межі браузера.
 
 ```bash
-# 1) зібрати WASM-артефакти (з кореня репозиторію)
+# 1) зібрати WASM-артефакти (з кореня репозиторію): обидва модулі + parser.py
 ./web/build-wasm.sh
 
 # 2) запустити фронтенд
@@ -101,37 +119,43 @@ npm run build         # статика у build/
 
 ```
 Python-код
-   │  internal/parser/python  (python3 -c parser.py  →  AST-JSON)
+   │  pkg/parser/python  (python3 -c parser.py  →  AST-JSON)   ·  у браузері — Pyodide
    ▼
-AST-JSON  (мова-агностик, той самий формат і в браузері від Pyodide)
-   │  internal/parser/astjson  (FromJSON)
+AST-JSON  (мова-агностик контракт; той самий формат у CLI та браузері)
+   │  pkg/parser/astjson  (FromJSON)
    ▼
-IR        (internal/ir — логічне дерево алгоритму, без геометрії)
-   │  internal/layout  (Build: рекурсивна розкладка)
+IR        (pkg/ir — логічне дерево алгоритму, без геометрії)
+   │  pkg/layout  (Build: рекурсивна розкладка; pkg/route — A* для зведення в Кінець)
    ▼
-Diagram   (internal/diagram — фігури з координатами + ребра)
-   │  internal/render/svg  (Render)        │  encoding/json
-   ▼                                        ▼
-SVG / PNG                                   JSON (для фронтенду)
+Diagram   (pkg/diagram — фігури з координатами + ребра + підпис)
+   │
+   ├─ pkg/render/svg    → SVG          ├─ pkg/render/raster → PNG / PDF (tdewolff/canvas)
+   ├─ pkg/render/typst  → Typst (CeTZ) └─ encoding/json     → JSON (геометрія)
 ```
 
-Кожен етап — окремий пакет із однією відповідальністю. Ядро (`ir` → `layout` → `diagram`
-→ `svg`) не залежить ні від Python, ні від ОС, тож однаково працює в CLI та в WASM.
+Кожен етап — окремий пакет із однією відповідальністю. Ядро (`ir` → `layout` →
+`diagram` → рендери) не залежить ні від Python, ні від ОС, ні від конкретного формату,
+тож однаково працює в CLI та в обох WASM-модулях. Для бібліотечного вжитку є фасад
+`pkg/rombik` (`FromPython`/`FromAST` + методи `Result.SVG/Typst/PNG/PDF`).
 
 ---
 
 ## Структура репозиторію
 
 ```
-cmd/rombik/      CLI-точка входу (файл → SVG/PNG/JSON)
-cmd/wasm/         WASM-точка входу (реєструє rombikGenerate для JS)
-internal/
+cmd/rombik/       CLI-точка входу (файл → SVG/PNG/PDF/Typst/JSON)
+cmd/wasm/         WASM-1 (легкий): парсинг → SVG/Typst
+cmd/wasmraster/   WASM-2 (важкий): нативні PNG/PDF, lazy-load
+pkg/
+  rombik/         високорівневий публічний API (фасад)
   parser/python/  Python-парсер: parser.py (ast) + python.go (обгортка)
   parser/astjson/ конвертер «AST-JSON → IR» (спільний для всіх мов/середовищ)
   ir/             проміжне представлення алгоритму (Node, Block, Func, …)
   layout/         рушій розкладки IR → геометрія (уся «магія» тут)
-  diagram/        модель геометрії (контракт layout ↔ render)
-  render/svg/     SVG-рендерер
+  diagram/        модель геометрії + підпис (контракт layout ↔ рендери)
+  render/svg/     SVG-рендерер (stdlib)
+  render/typst/   Typst/CeTZ-рендерер (stdlib, вихідний код)
+  render/raster/  нативні PNG/PDF (tdewolff/canvas, вшитий шрифт)
   route/          ортогональний маршрутизатор ребер (A* по сітці Ганана)
 examples/         приклади Python-коду (grade.py, course.py)
 web/              SvelteKit-фронтенд + WASM-артефакти у static/
@@ -143,13 +167,15 @@ brain/            📚 повна документація проєкту (Obsid
 ## Документація
 
 У теці [`brain/`](brain/) — повний «другий мозок» проєкту: задум, архітектура, розбір
-кожного пакета, алгоритми розкладки, веб-частина, інструкції. Відкривайте як Obsidian-vault
-або читайте з [`brain/Home.md`](brain/Home.md).
+кожного пакета, алгоритми розкладки, веб-частина, інструкції. Відкривайте як
+Obsidian-vault або читайте з [`brain/Home.md`](brain/Home.md).
 
 ---
 
 ## Залежності
 
-- **Go-модуль:** жодних зовнішніх залежностей (тільки стандартна бібліотека).
-- **CLI рантайм:** `python3` 3.9+; `rsvg-convert` (librsvg) — лише для PNG.
-- **Браузер:** Pyodide 0.27.2 (CDN), `wasm_exec.js` з Go SDK.
+- **Go-модуль:** єдина зовнішня залежність — `github.com/tdewolff/canvas` (нативні
+  PNG/PDF); решта ядра — на стандартній бібліотеці.
+- **CLI рантайм:** лише `python3` 3.9+ (для парсера). PNG/PDF/SVG/Typst — без зовнішніх
+  інструментів.
+- **Браузер:** Pyodide (CDN), `wasm_exec.js` з Go SDK.
