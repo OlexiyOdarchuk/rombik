@@ -4,6 +4,7 @@
 package diagram
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -41,6 +42,27 @@ func (k Kind) String() string {
 
 // MarshalJSON віддає тип фігури як читабельний рядок, а не число.
 func (k Kind) MarshalJSON() ([]byte, error) { return []byte(`"` + k.String() + `"`), nil }
+
+// kindByName — зворотний бік String() (для UnmarshalJSON: фронт шле diagram назад).
+var kindByName = map[string]Kind{
+	"terminator": Terminator, "process": Process, "decision": Decision,
+	"io": InOut, "loop": Hexagon, "subprogram": Predef,
+}
+
+// UnmarshalJSON приймає тип фігури як рядок («process») або число — щоб JSON,
+// віддане фронтенду, розбиралося назад без втрат (PDF/PNG/ре-рендер підпису).
+func (k *Kind) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), `"`)
+	if v, ok := kindByName[s]; ok {
+		*k = v
+		return nil
+	}
+	if n, err := strconv.Atoi(s); err == nil { // запасний шлях — сире число
+		*k = Kind(n)
+		return nil
+	}
+	return errors.New("невідомий тип фігури: " + s)
+}
 
 // Point — точка у координатах діаграми (y росте вниз).
 type Point struct {
