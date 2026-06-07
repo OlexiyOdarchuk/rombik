@@ -88,7 +88,27 @@ func renderOne(_ js.Value, args []js.Value) any {
 	return result(map[string]any{"svg": svg.Render(&d), "typst": typst.Render(&d)})
 }
 
-// typstAll(diagramsJSON) -> {typst} — один Typst-документ з усіх схем (масив
+func argBool(args []js.Value, i int) bool {
+	return len(args) > i && !args[i].IsUndefined() && !args[i].IsNull() && args[i].Bool()
+}
+
+// typstOne(diagramJSON, fragment?) -> {typst}. fragment=true → лише cetz.canvas
+// (без преамбули/сторінки) для вставки у свій .typ.
+func typstOne(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return result(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var d diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &d); err != nil {
+		return result(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	if argBool(args, 1) {
+		return result(map[string]any{"typst": typst.Fragment(&d)})
+	}
+	return result(map[string]any{"typst": typst.Render(&d)})
+}
+
+// typstAll(diagramsJSON, fragment?) -> {typst} — усі схеми одним Typst (масив
 // diagram із уже виставленими полями підпису). Для «експортувати все».
 func typstAll(_ js.Value, args []js.Value) any {
 	if len(args) == 0 {
@@ -97,6 +117,9 @@ func typstAll(_ js.Value, args []js.Value) any {
 	var ds []*diagram.Diagram
 	if err := json.Unmarshal([]byte(args[0].String()), &ds); err != nil {
 		return result(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	if argBool(args, 1) {
+		return result(map[string]any{"typst": typst.FragmentAll(ds)})
 	}
 	return result(map[string]any{"typst": typst.RenderAll(ds)})
 }
@@ -148,6 +171,7 @@ func result(v any) string {
 func main() {
 	js.Global().Set("rombikGenerate", js.FuncOf(generate))
 	js.Global().Set("rombikRenderOne", js.FuncOf(renderOne))
+	js.Global().Set("rombikTypstOne", js.FuncOf(typstOne))
 	js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))
 	js.Global().Set("rombikSvgAll", js.FuncOf(svgAll))
 	js.Global().Set("rombikExcalidraw", js.FuncOf(excal))

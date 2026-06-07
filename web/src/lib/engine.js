@@ -124,9 +124,16 @@ export async function renderPng(diagram, cap, scale, onProgress) {
 	return b64ToBytes(res.png);
 }
 
-/** Один Typst-документ з УСІХ схем (diagrams — масив із виставленими підписами). */
-export function renderTypstAll(diagrams) {
-	const res = JSON.parse(globalThis.rombikTypstAll(JSON.stringify(diagrams)));
+/** Typst однієї схеми. fragment=true → лише cetz.canvas (без преамбули). */
+export function renderTypst(diagram, fragment = false) {
+	const res = JSON.parse(globalThis.rombikTypstOne(JSON.stringify(diagram), fragment));
+	if (res.error) throw new Error(res.error);
+	return res.typst;
+}
+
+/** Один Typst з УСІХ схем. fragment=true → лише canvas-блоки (без преамбули). */
+export function renderTypstAll(diagrams, fragment = false) {
+	const res = JSON.parse(globalThis.rombikTypstAll(JSON.stringify(diagrams), fragment));
 	if (res.error) throw new Error(res.error);
 	return res.typst;
 }

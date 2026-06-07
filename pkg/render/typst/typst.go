@@ -63,6 +63,22 @@ func figure(b *strings.Builder, d *diagram.Diagram) {
 	}
 }
 
+// Fragment — лише блок cetz.canvas (без преамбули/сторінки/підпису), щоб
+// вставити у свій .typ-документ (де import cetz уже є). Зручно для звіту.
+func Fragment(d *diagram.Diagram) string { return renderCanvas(d) }
+
+// FragmentAll — кілька canvas-фрагментів поспіль (через порожній рядок).
+func FragmentAll(ds []*diagram.Diagram) string {
+	var b strings.Builder
+	for i, d := range ds {
+		if i > 0 {
+			b.WriteString("\n")
+		}
+		b.WriteString(renderCanvas(d))
+	}
+	return b.String()
+}
+
 // renderCanvas — сам блок cetz.canvas зі схемою (без сторінки/підпису).
 func renderCanvas(d *diagram.Diagram) string {
 	var b strings.Builder

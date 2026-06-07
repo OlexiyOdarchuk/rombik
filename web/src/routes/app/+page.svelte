@@ -5,6 +5,7 @@
 		renderCaption,
 		renderPdf,
 		renderPng,
+		renderTypst,
 		renderTypstAll,
 		renderPdfAll,
 		renderSvgAll,
@@ -59,7 +60,8 @@
 		capWord: 'Рисунок', // слово підпису (Рисунок / Рис. / своє)
 		capFormat: '{word} {num} — {text}', // шаблон підпису
 		figStart: 1, // з якого номера нумерувати схеми
-		pngScale: 3 // якість PNG (пікселів на одиницю)
+		pngScale: 3, // якість PNG (пікселів на одиницю)
+		typstFragment: false // Typst лише фрагмент (без преамбули) — для вставки у свій .typ
 	});
 	const BRANCH = { так: ['Так', 'Ні'], yes: ['Yes', 'No'], pm: ['+', '−'] };
 	const IO = { short: ['Ввід', 'Вивід'], verbose: ['Введення', 'Виведення'], imperative: ['Ввести', 'Вивести'] };
@@ -161,13 +163,14 @@
 	}
 
 	function exportTypst(f) {
-		download(`${f.name}.typ`, f.typst, 'text/plain');
+		const typ = s.typstFragment ? renderTypst({ ...f.diagram, ...capOpts(f) }, true) : f.typst;
+		download(`${f.name}.typ`, typ, 'text/plain');
 	}
 
 	// --- Експорт УСІХ схем одним документом/зображенням ---
 	function exportAllTypst() {
 		try {
-			download('схеми.typ', renderTypstAll(exportDiagrams()), 'text/plain');
+			download('схеми.typ', renderTypstAll(exportDiagrams(), s.typstFragment), 'text/plain');
 			status = 'Typst (усі схеми) готовий.';
 		} catch (e) {
 			errored = true;
@@ -366,6 +369,10 @@
 								oninput={() => funcs.length && renumber()}
 								class="w-20 rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
 							/>
+						</label>
+						<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
+							<input type="checkbox" bind:checked={s.typstFragment} class="rounded border-slate-300" />
+							Typst: лише фрагмент (без преамбули)
 						</label>
 						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
 							Якість PNG
