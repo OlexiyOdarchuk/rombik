@@ -509,6 +509,24 @@ func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float6
 	return P(cx, contY)
 }
 
+// placeGuardLoopBody розкладає тіло циклу, що ЗАКІНЧУЄТЬСЯ guard-ом: спершу
+// попередні інструкції (звичайно), тоді останній guard, чиє «Ні» — дуга
+// повернення вгору в заголовок. Обробляє break усередині попередніх інструкцій.
+func (b *build) placeGuardLoopBody(body *ir.Block, g *ir.If, cx, headHalf, headCy, headBottom float64, entryLabel, exitLabel string) diagram.Point {
+	b.pushLoop()
+	fromY, el := headBottom, entryLabel
+	if pre := body.Stmts[:len(body.Stmts)-1]; len(pre) > 0 {
+		bodyTop := headBottom + vGap
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Label: entryLabel, Points: []diagram.Point{{X: cx, Y: headBottom}, {X: cx, Y: bodyTop}}})
+		exit, _ := b.placeBlock(&ir.Block{Stmts: pre}, cx, bodyTop)
+		fromY, el = exit.Y, ""
+	}
+	cont := b.placeLoopGuard(g, cx, headHalf, headCy, fromY, el, exitLabel)
+	brks := b.popLoop()
+	b.routeBreaks(cx, cont.Y, brks)
+	return cont
+}
+
 // branch малює одну гілку if від кута ромба (vx,midY). Повертає, чи гілка
 // завершилась (return/raise/exit). Порожня гілка — ОДНА суцільна лінія до
 // злиття без стрілки-голови в нікуди.
@@ -548,9 +566,9 @@ func (b *build) placeFor(n *ir.For, cx, top float64) diagram.Point {
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Hexagon, X: cx - hw/2, Y: top, W: hw, H: hexH, Text: n.Spec})
 	headCy := top + hexH/2
 
-	// Тіло = один guard (if cond: terminate) → «Ні» одразу дугою вгору в заголовок.
-	if g := termGuardLast(n.Body); g != nil && len(n.Body.Stmts) == 1 {
-		return b.placeLoopGuard(g, cx, hw/2, headCy, top+hexH, "", "")
+	// Тіло закінчується guard-ом → його «Ні» одразу дугою вгору в заголовок.
+	if g := termGuardLast(n.Body); g != nil {
+		return b.placeGuardLoopBody(n.Body, g, cx, hw/2, headCy, top+hexH, "", "")
 	}
 
 	bw, _ := b.blockSize(n.Body)
@@ -571,8 +589,8 @@ func (b *build) placeWhile(n *ir.While, cx, top float64) diagram.Point {
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	headCy := top + diaH/2
 
-	if g := termGuardLast(n.Body); g != nil && len(n.Body.Stmts) == 1 {
-		return b.placeLoopGuard(g, cx, dw/2, headCy, top+diaH, b.yes, b.no)
+	if g := termGuardLast(n.Body); g != nil {
+		return b.placeGuardLoopBody(n.Body, g, cx, dw/2, headCy, top+diaH, b.yes, b.no)
 	}
 
 	bw, _ := b.blockSize(n.Body)
