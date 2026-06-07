@@ -28,6 +28,7 @@ type Node interface{ node() }
 | `Terminal{Text}` | прямокутник → веде в «Кінець» | `return`/`raise`/`exit` |
 | `Call{Text}` | прямокутник із рисками | виклик функції з цього ж файлу |
 | `Break{}` | — (без фігури) | вихід із циклу |
+| `Continue{}` | — (без фігури) | стрибок на заголовок циклу (наступна ітерація) |
 
 > `Terminal` малюється звичайним прямокутником (або паралелограмом за опцією
 > `ReturnAsIO`), але **завершує гілку** і веде у термінатор «Кінець». →
@@ -36,16 +37,21 @@ type Node interface{ node() }
 ## Керівні вузли
 
 ```go
-type If struct { Cond string; Then, Else *Block }   // ромб + дві гілки
-type For struct { Spec string; Body *Block }        // шестикутник + тіло
-type While struct { Cond string; Body *Block }      // передумова: ромб згори
-type DoWhile struct { Cond string; Body *Block }    // післяумова: ромб знизу
-type InfLoop struct { Body *Block }                 // while True без умови
+type If struct { Cond string; Then, Else *Block }        // ромб + дві гілки
+type For struct { Spec string; Body, Else *Block }       // шестикутник + тіло (+ for/else)
+type While struct { Cond string; Body, Else *Block }     // передумова: ромб згори (+ while/else)
+type DoWhile struct { Cond string; Body *Block }         // післяумова: ромб знизу
+type InfLoop struct { Body *Block }                      // while True без умови
 ```
 
 - **`For.Spec`** — готовий підпис «i = 0, n-1, 1» (його будує парсер, не layout).
+- **`For.Else`/`While.Else`** — гілка `for/else`/`while/else`: виконується після
+  **нормального** завершення циклу (без `break`); `nil`/порожня — якщо її нема.
 - **`DoWhile.Cond`** — умова `break` з ідіоми `while True: … if cond: break`.
 - **`InfLoop`** — `while True` із break-ами десь усередині; виходить лише через `break`.
+
+> `Break` і `Continue` — стрибки без фігури: `Break` веде на вихід циклу, `Continue` —
+> на заголовок (дуга повторної ітерації). → [[Розкладка-циклів]].
 
 Як кожен із них розкладається — [[Розкладка-циклів]], [[Розкладка-if-guard-і-симетрія]].
 

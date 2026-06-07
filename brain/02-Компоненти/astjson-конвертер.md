@@ -62,13 +62,18 @@ Switch по `Kind` → конкретний тип `ir`:
 
 ```
 process → ir.Process   io → ir.IO        terminal → ir.Terminal
-call → ir.Call         if → ir.If        for → ir.For{Spec: n.Cond}
-while → ir.While       dowhile → ir.DoWhile   infloop → ir.InfLoop
-break → ir.Break       (інше → nil, тихо пропускається)
+call → ir.Call         if → ir.If        for → ir.For{Spec, Body, Else}
+while → ir.While{Cond, Body, Else}        dowhile → ir.DoWhile   infloop → ir.InfLoop
+break → ir.Break       continue → ir.Continue   (інше → nil, тихо пропускається)
 ```
 
-Зверни увагу: для `for` поле JSON зветься `Cond`, а в `ir.For` — `Spec`
-(«змінна = початок, кінець, крок»). Конвертер це мапить.
+Зверни увагу:
+- для `for` поле JSON зветься `Cond`, а в `ir.For` — `Spec` («змінна = початок, кінець,
+  крок»). Конвертер це мапить.
+- `for`/`while` тепер несуть і **`Else`** (гілка `for/else`/`while/else`) — береться з
+  поля `n.Else`. → [[IR-проміжне-представлення]].
+- `continue` додано разом із `break` (обидва — стрибки без фігури).
+- `match` сюди не доходить окремим видом: парсер зводить його в ланцюг `if`.
 
 ## Пов'язане
 

@@ -6,68 +6,69 @@ tags: [usage, cli]
 
 **Команда:** `cmd/rombik` · `go run ./cmd/rombik [прапорці]`
 
-Перетворює Python-файл на блок-схему. Формат виводу — за розширенням `-o`.
+Перетворює Python-файл на блок-схему. Формат виводу — за розширенням `-o`. PNG і PDF —
+**нативні** (без зовнішніх бінарників). → [[Растровий-рендер-PNG-PDF]].
 
 ## Прапорці
 
-| Прапорець       | Тип    | Типово    | Призначення |
-|-----------------|--------|-----------|-------------|
-| `-py FILE`      | string | `""`      | Python-файл. Без нього — захардкоджене демо (`demo()`). |
-| `-o FILE`       | string | `out.svg` | Вихід. Розширення → формат: `.svg` / `.png` / `.json`. |
-| `-fn NAME`      | string | `""`      | Малювати лише функцію з цим іменем. |
-| `-calls-plain`  | bool   | `false`   | Виклики підпрограм → звичайний прямокутник (опція `CallAsProcess`). |
-| `-single-end`   | bool   | `false`   | Один спільний «Кінець» (опція `SingleEnd`). |
-| `-scale N`      | float  | `2`       | Масштаб PNG (роздільність). |
+| Прапорець | Тип | Типово | Призначення |
+|-----------|-----|--------|-------------|
+| `-py FILE` | string | `""` | Python-файл (без нього — демо). |
+| `-o FILE` | string | `out.svg` | Вихід. Розширення → формат: `.svg`/`.png`/`.pdf`/`.typ`/`.json`. |
+| `-fn NAME` | string | `""` | Малювати лише функцію з цим іменем. |
+| `-calls-plain` | bool | `false` | Виклики підпрограм → звичайний прямокутник (`CallAsProcess`). |
+| `-single-end` | bool | `false` | Один спільний «Кінець» (`SingleEnd`). |
+| `-scale N` | float | `2` | Щільність PNG (пікселів на одиницю). |
+| `-caption S` | string | `""` | Підпис схеми (інакше — ім'я функції; `«-»` — без підпису). |
+| `-fignum N` | int | `0` | Номер «Рисунок N» (0 — за порядком функцій). |
+| `-figword S` | string | `""` | Слово підпису: «Рисунок» (замовч.), «Рис.» тощо. |
+| `-capformat S` | string | `""` | Шаблон, напр. `«{num}. {text}»` (замовч. `«{word} {num} — {text}»`). |
 
-Прапорці `-calls-plain` і `-single-end` — це підмножина [[Опції-рендера]]; решта опцій
-(слова вводу/виводу, тексти термінаторів, StripTypes, ReturnAsIO) доступні через WASM
-з фронтенду, але **не** виведені окремими прапорцями CLI.
+`-calls-plain`/`-single-end` — підмножина [[Опції-рендера]]; решта структурних опцій
+(слова I/O, тексти термінаторів, StripTypes, ReturnAsIO) доступні через WASM/фронтенд.
+Підпис — [[Diagram-модель-геометрії|поля Caption/FigNum/CapWord/CapFormat]].
 
 ## Формати виводу (`write`)
 
 ```
-.json → json.MarshalIndent(diagram)        — сира геометрія
-.png  → svg.Render → rsvg-convert -z scale — растр (потрібен librsvg)
-інше  → svg.Render                          — SVG-текст
+.json → json.MarshalIndent(diagram)   — сира геометрія
+.png  → raster.PNG(d, scale)          — НАТИВНИЙ растр (tdewolff/canvas, без rsvg)
+.pdf  → raster.PDF / raster.PDFAll    — НАТИВНИЙ PDF (без typst-бінарника)
+.typ  → typst.Render / RenderAll      — вихідний код Typst (CeTZ)
+інше  → svg.Render                    — SVG-текст
 ```
 
-PNG вимагає `rsvg-convert` у `$PATH`; без нього — зрозуміла помилка з підказкою
-поставити librsvg або вивести `.svg`.
+> [!note] rsvg-convert більше НЕ потрібен
+> Раніше `.png` йшов через `rsvg-convert`. Тепер PNG і PDF малюються нативно в Go. У
+> коментарях файлу ще лишилися згадки rsvg — це історія, код їх не кличе.
 
 ## Кілька функцій
 
-- **Одна функція** у файлі (або відфільтрована `-fn`) → точно у `-o`.
-- **Кілька функцій** → файли `<основа>_<функція>.<ext>`. Напр. `-o out.svg` дасть
-  `out_grade.svg`, `out_main.svg`.
-
-Кожна функція = окрема схема (так їх ділить [[Парсер-Python|parser.py]]).
+- **Одна** функція (або відфільтрована `-fn`) → точно у `-o`.
+- **Кілька** функцій:
+  - `.pdf` і `.typ` → **один спільний документ** (`PDFAll`/`RenderAll`, наскрізна нумерація);
+  - інші формати → файли `<основа>_<функція>.<ext>`.
 
 ## Приклади
 
 ```bash
-go run ./cmd/rombik                                   # демо → out.svg
+go run ./cmd/rombik                                        # демо → out.svg
 go run ./cmd/rombik -py examples/grade.py -o grade.svg
 go run ./cmd/rombik -py examples/grade.py -o grade.png -scale 3
-go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o matrix.svg
-go run ./cmd/rombik -py examples/course.py -o схема.json   # геометрія в JSON
-go run ./cmd/rombik -py examples/course.py -single-end -calls-plain -o s.svg
-```
-
-## Що друкує
-
-Після запису — рядок-підсумок:
-
-```
-Готово: grade.svg (472×564, фігур: 7, ребер: 9)
+go run ./cmd/rombik -py examples/course.py -o course.pdf   # усі функції → один PDF
+go run ./cmd/rombik -py examples/course.py -o course.typ   # Typst для вставки в курсову
+go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o m.svg
+go run ./cmd/rombik -py f.py -figword "Рис." -capformat "{word} {num}. {text}" -o s.pdf
 ```
 
 ## Залежності рантайму
 
-- **`python3` 3.9+** — обов'язково (рідний `ast`, заради `ast.unparse`).
-- **`rsvg-convert`** (librsvg) — лише для `.png`.
+- **`python3` 3.9+** — обов'язково для CLI (рідний `ast`).
+- PNG/PDF/SVG/Typst — **нічого зовнішнього** (усе в Go-бінарнику). Готові бінарники на
+  6 платформ — у GitHub Releases ([[Збірка-і-запуск]]).
 
 ## Пов'язане
 
-- [[Опції-рендера]]
-- [[Підтримувані-конструкції-Python]]
-- [[Конвеєр-обробки]]
+- [[Опції-рендера]] · [[Підтримувані-конструкції-Python]]
+- [[Растровий-рендер-PNG-PDF]] · [[Typst-рендер]]
+- [[Публічний-API-rombik]] · [[Конвеєр-обробки]]

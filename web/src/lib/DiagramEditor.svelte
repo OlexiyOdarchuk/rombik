@@ -1,11 +1,10 @@
 <script>
-	// Інтерактивний редактор схеми (Фаза 1): вибір, перетягування з рероутом ребер,
-	// правка тексту, додавання/видалення фігур, конектор «А-в-кружечку».
-	// Працює на копії моделі; Зберегти → віддає diagram {shapes,edges,w,h} назад.
+	// Візуальний редактор схеми (Фаза 2): безмежне полотно (пан+зум), редаговані
+	// стрілки (вибір, тягання вузлів і кінців, переприв'язка, малювання нових),
+	// авто-ортогональний рероут при русі блоків, розділення конектором.
 	let { diagram, onsave, oncancel } = $props();
 
 	const MARGIN = 24;
-	// Палітра типів: [kind, підпис, типова ширина/висота].
 	const PALETTE = [
 		['process', 'Дія', 150, 46],
 		['decision', 'Умова', 150, 76],
@@ -13,309 +12,447 @@
 		['terminator', 'Початок/Кінець', 130, 42],
 		['loop', 'Цикл', 150, 50],
 		['subprogram', 'Підпрограма', 150, 46],
-		['connector', 'Конектор', 44, 44]
+		['connector', 'Конектор', 46, 46]
 	];
 
 	let nodes = $state([]);
 	let edges = $state([]);
-	let W = $state(100);
-	let H = $state(100);
-	let selId = $state(null);
+	let sel = $state(null); // {type:'node'|'edge', id}
 	let editId = $state(null);
-	let svgEl;
-	let nid = 0;
+	let view = $state({ x: 40, y: 40, scale: 1 });
+	let gEl; // внутрішня <g> з трансформацією (для коректного перерахунку координат)
+	let nid = 0,
+		eid = 0;
 
-	// Завантажуємо модель із diagram (копія, щоб не псувати оригінал до Зберегти).
-	$effect(() => {
-		load(diagram);
-	});
+	$effect(() => load(diagram));
 
 	function load(d) {
-		// Будуємо ЛОКАЛЬНІ масиви (не читаємо реактивні nodes у $effect — інакше цикл).
 		let k = 0;
-		const ns = (d.shapes ?? []).map((s) => ({
-			id: 'n' + k++,
-			kind: s.kind,
-			x: s.x,
-			y: s.y,
-			w: s.w,
-			h: s.h,
-			text: s.text ?? ''
-		}));
+		const ns = (d.shapes ?? []).map((s) => ({ id: 'n' + k++, kind: s.kind, x: s.x, y: s.y, w: s.w, h: s.h, text: s.text ?? '' }));
 		const at = (pt) => {
 			if (!pt) return null;
-			for (const n of ns)
-				if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
+			for (const n of ns) if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
 			return null;
 		};
-		const es = (d.edges ?? []).map((e, i) => {
+		let j = 0;
+		const es = (d.edges ?? []).map((e) => {
 			const pts = (e.points ?? []).map((p) => ({ x: p.x, y: p.y }));
-			return {
-				id: 'e' + i,
-				points: pts,
-				label: e.label ?? '',
-				arrowless: !!e.arrowless,
-				fromId: at(pts[0]),
-				toId: at(pts[pts.length - 1])
-			};
+			return { id: 'e' + j++, points: pts, label: e.label ?? '', arrowless: !!e.arrowless, fromId: at(pts[0]), toId: at(pts[pts.length - 1]), manual: false };
 		});
 		nid = k;
+		eid = j;
 		nodes = ns;
 		edges = es;
-		W = d.w ?? 100;
-		H = d.h ?? 100;
-		selId = null;
+		sel = null;
 		editId = null;
 	}
 
 	const nodeById = (id) => nodes.find((n) => n.id === id);
 
-	// Ортогональний рероут ребра між фігурами from→to (після переміщення).
-	function reroute(e) {
-		const a = nodeById(e.fromId);
-		const b = nodeById(e.toId);
-		if (!a || !b) return;
+	// --- координати: екран → світ (через CTM внутрішньої <g>, враховує пан+зум) ---
+	function toWorld(clientX, clientY) {
+		const p = gEl.ownerSVGElement.createSVGPoint();
+		p.x = clientX;
+		p.y = clientY;
+		const r = p.matrixTransform(gEl.getScreenCTM().inverse());
+		return { x: r.x, y: r.y };
+	}
+
+	// --- ортогональний маршрут між фігурами (порт-до-порту) ---
+	function portRoute(a, b) {
 		const acx = a.x + a.w / 2,
-			bcx = b.x + b.w / 2,
 			acy = a.y + a.h / 2,
+			bcx = b.x + b.w / 2,
 			bcy = b.y + b.h / 2;
 		const dx = bcx - acx,
 			dy = bcy - acy;
 		if (Math.abs(dy) >= Math.abs(dx)) {
 			const ay = dy >= 0 ? a.y + a.h : a.y;
 			const by = dy >= 0 ? b.y : b.y + b.h;
-			e.points =
-				acx === bcx
-					? [{ x: acx, y: ay }, { x: bcx, y: by }]
-					: [{ x: acx, y: ay }, { x: acx, y: (ay + by) / 2 }, { x: bcx, y: (ay + by) / 2 }, { x: bcx, y: by }];
-		} else {
-			const ax = dx >= 0 ? a.x + a.w : a.x;
-			const bx = dx >= 0 ? b.x : b.x + b.w;
-			e.points =
-				acy === bcy
-					? [{ x: ax, y: acy }, { x: bx, y: bcy }]
-					: [{ x: ax, y: acy }, { x: (ax + bx) / 2, y: acy }, { x: (ax + bx) / 2, y: bcy }, { x: bx, y: bcy }];
+			if (Math.abs(acx - bcx) < 1) return [{ x: acx, y: ay }, { x: bcx, y: by }];
+			const my = (ay + by) / 2;
+			return [{ x: acx, y: ay }, { x: acx, y: my }, { x: bcx, y: my }, { x: bcx, y: by }];
+		}
+		const ax = dx >= 0 ? a.x + a.w : a.x;
+		const bx = dx >= 0 ? b.x : b.x + b.w;
+		if (Math.abs(acy - bcy) < 1) return [{ x: ax, y: acy }, { x: bx, y: bcy }];
+		const mx = (ax + bx) / 2;
+		return [{ x: ax, y: acy }, { x: mx, y: acy }, { x: mx, y: bcy }, { x: bx, y: bcy }];
+	}
+
+	// Рероут усіх ребер, дотичних до фігури. Авто-ребра — повний ортогональний
+	// маршрут; ручні (користувач тягав вузол) — лише зсув приєднаного кінця.
+	function rerouteFor(nodeId, dx, dy) {
+		for (const e of edges) {
+			const touchFrom = e.fromId === nodeId,
+				touchTo = e.toId === nodeId;
+			if (!touchFrom && !touchTo) continue;
+			const a = nodeById(e.fromId),
+				b = nodeById(e.toId);
+			if (!e.manual && a && b) {
+				e.points = portRoute(a, b);
+			} else {
+				if (touchFrom && e.points[0]) {
+					e.points[0].x += dx;
+					e.points[0].y += dy;
+				}
+				if (touchTo && e.points.length) {
+					e.points[e.points.length - 1].x += dx;
+					e.points[e.points.length - 1].y += dy;
+				}
+			}
 		}
 	}
 
-	// Клієнтські координати → координати схеми (через CTM — коректно при масштабі).
-	function toSvg(clientX, clientY) {
-		const p = svgEl.createSVGPoint();
-		p.x = clientX;
-		p.y = clientY;
-		const m = svgEl.getScreenCTM().inverse();
-		const r = p.matrixTransform(m);
-		return { x: r.x, y: r.y };
+	// --- взаємодія (одна машина станів через pointer) ---
+	let act = $state(null); // {kind, ...}
+
+	function bgDown(ev) {
+		// фон: пан полотна + зняти виділення
+		sel = null;
+		editId = null;
+		act = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, vx: view.x, vy: view.y };
 	}
 
-	let drag = null;
-	function startDrag(ev, n) {
-		if (editId) return;
-		selId = n.id;
-		const s = toSvg(ev.clientX, ev.clientY);
-		drag = { id: n.id, ox: n.x, oy: n.y, sx: s.x, sy: s.y };
+	function nodeDown(ev, n) {
 		ev.stopPropagation();
+		if (editId && editId !== n.id) editId = null;
+		sel = { type: 'node', id: n.id };
+		const w = toWorld(ev.clientX, ev.clientY);
+		act = { kind: 'node', id: n.id, ox: n.x, oy: n.y, wx: w.x, wy: w.y };
 	}
+
+	function edgeDown(ev, e) {
+		ev.stopPropagation();
+		sel = { type: 'edge', id: e.id };
+	}
+
+	function vertexDown(ev, e, i) {
+		ev.stopPropagation();
+		sel = { type: 'edge', id: e.id };
+		act = { kind: 'vertex', id: e.id, i, end: i === 0 || i === e.points.length - 1 };
+		e.manual = true;
+	}
+
+	function portDown(ev, n, side) {
+		ev.stopPropagation();
+		const w = toWorld(ev.clientX, ev.clientY);
+		act = { kind: 'draw', from: n.id, side, x: w.x, y: w.y };
+	}
+
 	function onMove(ev) {
-		if (!drag) return;
-		const s = toSvg(ev.clientX, ev.clientY);
-		const n = nodeById(drag.id);
-		n.x = drag.ox + (s.x - drag.sx);
-		n.y = drag.oy + (s.y - drag.sy);
-		for (const e of edges) if (e.fromId === n.id || e.toId === n.id) reroute(e);
-		nodes = [...nodes];
-		edges = [...edges];
+		if (!act) return;
+		const w = toWorld(ev.clientX, ev.clientY);
+		if (act.kind === 'pan') {
+			view.x = act.vx + (ev.clientX - act.sx);
+			view.y = act.vy + (ev.clientY - act.sy);
+		} else if (act.kind === 'node') {
+			const n = nodeById(act.id);
+			const nx = act.ox + (w.x - act.wx),
+				ny = act.oy + (w.y - act.wy);
+			const dx = nx - n.x,
+				dy = ny - n.y;
+			n.x = nx;
+			n.y = ny;
+			rerouteFor(n.id, dx, dy);
+			nodes = [...nodes];
+			edges = [...edges];
+		} else if (act.kind === 'vertex') {
+			const e = edges.find((x) => x.id === act.id);
+			e.points[act.i] = { x: w.x, y: w.y };
+			edges = [...edges];
+		} else if (act.kind === 'draw') {
+			act.x = w.x;
+			act.y = w.y;
+			edges = [...edges]; // оновити пунктир-прев'ю
+		}
 	}
-	const endDrag = () => (drag = null);
+
+	function nodeAtPoint(pt) {
+		for (const n of nodes) if (pt.x >= n.x && pt.x <= n.x + n.w && pt.y >= n.y && pt.y <= n.y + n.h) return n;
+		return null;
+	}
+
+	function onUp(ev) {
+		if (!act) return;
+		const w = toWorld(ev.clientX, ev.clientY);
+		if (act.kind === 'vertex' && act.end) {
+			// відпустили кінець ребра над фігурою → переприв'язка
+			const over = nodeAtPoint(w);
+			const e = edges.find((x) => x.id === act.id);
+			if (over) {
+				if (act.i === 0) e.fromId = over.id;
+				else e.toId = over.id;
+			}
+			edges = [...edges];
+		} else if (act.kind === 'draw') {
+			const over = nodeAtPoint(w);
+			if (over && over.id !== act.from) {
+				const a = nodeById(act.from);
+				edges.push({ id: 'e' + eid++, points: portRoute(a, over), label: '', arrowless: false, fromId: act.from, toId: over.id, manual: false });
+				edges = [...edges];
+			}
+		}
+		act = null;
+	}
+
+	function onWheel(ev) {
+		ev.preventDefault();
+		const w = toWorld(ev.clientX, ev.clientY);
+		const f = ev.deltaY < 0 ? 1.1 : 1 / 1.1;
+		const ns = Math.min(3, Math.max(0.2, view.scale * f));
+		// масштабуємо навколо курсора
+		view.x = ev.clientX - (gEl.ownerSVGElement.getBoundingClientRect().left + w.x * ns + 0);
+		view.y = ev.clientY - (gEl.ownerSVGElement.getBoundingClientRect().top + w.y * ns + 0);
+		view.scale = ns;
+	}
+
+	function zoom(f) {
+		view.scale = Math.min(3, Math.max(0.2, view.scale * f));
+	}
+	function fit() {
+		view = { x: 40, y: 40, scale: 1 };
+	}
 
 	function addNode(kind, w, h) {
+		const c = toWorld(gEl.ownerSVGElement.getBoundingClientRect().left + 300, gEl.ownerSVGElement.getBoundingClientRect().top + 200);
 		const id = 'n' + nid++;
-		nodes.push({ id, kind, x: W / 2 - w / 2, y: H / 2 - h / 2, w, h, text: kind === 'connector' ? 'А' : 'текст' });
+		nodes.push({ id, kind, x: c.x, y: c.y, w, h, text: kind === 'connector' ? nextLetter() : 'текст' });
 		nodes = [...nodes];
-		selId = id;
-		editId = id;
+		sel = { type: 'node', id };
+		if (kind !== 'connector') editId = id;
 	}
 
 	function delSel() {
-		if (!selId) return;
-		nodes = nodes.filter((n) => n.id !== selId);
-		edges = edges.filter((e) => e.fromId !== selId && e.toId !== selId);
-		selId = null;
+		if (!sel) return;
+		if (sel.type === 'node') {
+			nodes = nodes.filter((n) => n.id !== sel.id);
+			edges = edges.filter((e) => e.fromId !== sel.id && e.toId !== sel.id);
+		} else {
+			edges = edges.filter((e) => e.id !== sel.id);
+		}
+		sel = null;
 	}
 
 	function onKey(ev) {
 		if (editId) return;
-		if ((ev.key === 'Delete' || ev.key === 'Backspace') && selId) {
+		if ((ev.key === 'Delete' || ev.key === 'Backspace') && sel) {
 			ev.preventDefault();
 			delSel();
 		}
 	}
 
-	// Текст фігури → автоширина (щоб уміщався), окрім конектора (фіксоване коло).
 	function setText(n, v) {
 		n.text = v;
 		if (n.kind !== 'connector') n.w = Math.max(n.w, v.length * 8.5 + 32);
 		nodes = [...nodes];
 	}
 
+	// Наступна вільна літера для конектора (А, Б, В…).
+	const ABC = 'АБВГДЕЖЗИКЛМНОП';
+	function nextLetter() {
+		const used = new Set(nodes.filter((n) => n.kind === 'connector').map((n) => n.text));
+		for (const c of ABC) if (!used.has(c)) return c;
+		return 'А';
+	}
+
+	// Розділення: клік-на-блок → схема ділиться надвоє парою конекторів.
+	// Вхідні в блок → у конектор-вихід «X»; сам блок і його нащадки їдуть вправо,
+	// перед блоком — конектор-вхід «X».
+	function splitAt(nodeId) {
+		const node = nodeById(nodeId);
+		if (!node) return;
+		const letter = nextLetter();
+		// нащадки (BFS по вихідних ребрах), разом із блоком
+		const desc = new Set([nodeId]);
+		const q = [nodeId];
+		while (q.length) {
+			const cur = q.shift();
+			for (const e of edges) if (e.fromId === cur && e.toId && !desc.has(e.toId)) { desc.add(e.toId); q.push(e.toId); }
+		}
+		// зсув частини-2 праворуч від усього наявного
+		let maxX = 0;
+		for (const n of nodes) maxX = Math.max(maxX, n.x + n.w);
+		const offX = maxX + 100 - node.x;
+		const offY = -node.y + 40;
+		for (const n of nodes)
+			if (desc.has(n.id)) {
+				n.x += offX;
+				n.y += offY;
+			}
+		// конектор-вихід на місці старого блоку; вхідні ребра ведемо в нього
+		const c1 = { id: 'n' + nid++, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y, w: 46, h: 46, text: letter };
+		// конектор-вхід над переміщеним блоком
+		const c2 = { id: 'n' + nid++, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y - 100, w: 46, h: 46, text: letter };
+		for (const e of edges) {
+			if (e.toId === nodeId && !desc.has(e.fromId)) {
+				e.toId = c1.id;
+				e.manual = false;
+			}
+		}
+		nodes.push(c1, c2);
+		edges.push({ id: 'e' + eid++, points: portRoute(c2, node), label: '', arrowless: false, fromId: c2.id, toId: nodeId, manual: false });
+		// рероут до нових конекторів
+		for (const e of edges) {
+			const a = nodeById(e.fromId),
+				b = nodeById(e.toId);
+			if (!e.manual && a && b && (e.toId === c1.id || e.fromId === c2.id)) e.points = portRoute(a, b);
+		}
+		nodes = [...nodes];
+		edges = [...edges];
+		sel = null;
+	}
+
 	function save() {
-		// Нормалізуємо межі: зсуваємо все так, щоб усе було видимим, рахуємо W/H.
 		let minX = Infinity,
 			minY = Infinity,
 			maxX = -Infinity,
 			maxY = -Infinity;
-		const pts = [];
-		for (const n of nodes) pts.push([n.x, n.y], [n.x + n.w, n.y + n.h]);
-		for (const e of edges) for (const p of e.points) pts.push([p.x, p.y]);
-		for (const [x, y] of pts) {
+		const acc = (x, y) => {
 			minX = Math.min(minX, x);
 			minY = Math.min(minY, y);
 			maxX = Math.max(maxX, x);
 			maxY = Math.max(maxY, y);
+		};
+		for (const n of nodes) {
+			acc(n.x, n.y);
+			acc(n.x + n.w, n.y + n.h);
 		}
+		for (const e of edges) for (const p of e.points) acc(p.x, p.y);
 		if (!isFinite(minX)) {
 			minX = minY = 0;
 			maxX = maxY = 100;
 		}
 		const dx = MARGIN - minX,
 			dy = MARGIN - minY;
-		const d = {
+		onsave?.({
 			shapes: nodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
-			edges: edges.map((e) => ({
-				points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
-				label: e.label || undefined,
-				arrowless: e.arrowless || undefined
-			})),
+			edges: edges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
 			w: maxX - minX + 2 * MARGIN,
 			h: maxY - minY + 2 * MARGIN
-		};
-		onsave?.(d);
+		});
 	}
 
-	// --- геометрія фігур для SVG ---
+	// --- геометрія фігур ---
 	function poly(n) {
 		const { x, y, w, h } = n;
 		const cx = x + w / 2,
 			cy = y + h / 2;
-		switch (n.kind) {
-			case 'decision':
-				return `${cx},${y} ${x + w},${cy} ${cx},${y + h} ${x},${cy}`;
-			case 'io': {
-				const s = h * 0.4;
-				return `${x + s},${y} ${x + w},${y} ${x + w - s},${y + h} ${x},${y + h}`;
-			}
-			case 'loop': {
-				const s = h * 0.5;
-				return `${x + s},${y} ${x + w - s},${y} ${x + w},${cy} ${x + w - s},${y + h} ${x + s},${y + h} ${x},${cy}`;
-			}
+		if (n.kind === 'decision') return `${cx},${y} ${x + w},${cy} ${cx},${y + h} ${x},${cy}`;
+		if (n.kind === 'io') {
+			const s = h * 0.4;
+			return `${x + s},${y} ${x + w},${y} ${x + w - s},${y + h} ${x},${y + h}`;
+		}
+		if (n.kind === 'loop') {
+			const s = h * 0.5;
+			return `${x + s},${y} ${x + w - s},${y} ${x + w},${cy} ${x + w - s},${y + h} ${x + s},${y + h} ${x},${cy}`;
 		}
 		return '';
 	}
 	const pathD = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' ');
+	const isSel = (t, id) => sel && sel.type === t && sel.id === id;
+	const ports = (n) => [
+		{ side: 'top', x: n.x + n.w / 2, y: n.y },
+		{ side: 'bottom', x: n.x + n.w / 2, y: n.y + n.h },
+		{ side: 'left', x: n.x, y: n.y + n.h / 2 },
+		{ side: 'right', x: n.x + n.w, y: n.y + n.h / 2 }
+	];
 </script>
 
-<svelte:window onpointermove={onMove} onpointerup={endDrag} onkeydown={onKey} />
+<svelte:window onpointermove={onMove} onpointerup={onUp} onkeydown={onKey} />
 
-<div class="fixed inset-0 z-50 flex flex-col bg-slate-900/60 backdrop-blur-sm">
+<div class="fixed inset-0 z-50 flex flex-col bg-slate-900/70 backdrop-blur-sm">
 	<!-- тулбар -->
-	<div class="flex items-center gap-2 border-b border-slate-200 bg-white px-4 py-2 dark:border-slate-700 dark:bg-slate-900">
-		<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Редактор схеми</span>
-		<div class="ml-2 flex flex-wrap gap-1">
+	<div class="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-2 dark:border-slate-700 dark:bg-slate-900">
+		<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Редактор</span>
+		<div class="flex flex-wrap gap-1">
 			{#each PALETTE as [kind, label, w, h] (kind)}
-				<button
-					onclick={() => addNode(kind, w, h)}
-					class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-				>
-					+ {label}
-				</button>
+				<button onclick={() => addNode(kind, w, h)} class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">+ {label}</button>
 			{/each}
 		</div>
-		<button
-			onclick={delSel}
-			disabled={!selId}
-			class="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
-		>
-			Видалити
-		</button>
-		<div class="ml-auto flex gap-2">
-			<button onclick={() => oncancel?.()} class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
-				Скасувати
-			</button>
-			<button onclick={save} class="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700">
-				Зберегти
-			</button>
+		<div class="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700"></div>
+		{#if sel?.type === 'node' && nodeById(sel.id)?.kind !== 'connector'}
+			<button onclick={() => splitAt(sel.id)} class="rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розділити тут</button>
+		{/if}
+		<button onclick={delSel} disabled={!sel} class="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
+		<div class="ml-auto flex items-center gap-1.5">
+			<button onclick={() => zoom(1 / 1.2)} class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300">−</button>
+			<span class="w-10 text-center text-xs text-slate-400">{Math.round(view.scale * 100)}%</span>
+			<button onclick={() => zoom(1.2)} class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300">+</button>
+			<button onclick={fit} class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 dark:border-slate-600 dark:text-slate-300">Скинути</button>
+			<div class="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700"></div>
+			<button onclick={() => oncancel?.()} class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">Скасувати</button>
+			<button onclick={save} class="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700">Зберегти</button>
 		</div>
 	</div>
 
-	<!-- полотно -->
-	<div class="min-h-0 flex-1 overflow-auto bg-white p-6 dark:bg-slate-950">
-		<svg
-			bind:this={svgEl}
-			viewBox="0 0 {W} {H}"
-			width={W}
-			height={H}
-			class="mx-auto block max-w-full"
-			style="height:auto"
-			font-family="Arial, sans-serif"
-			font-size="14"
-			onpointerdown={() => (selId = null)}
-			role="presentation"
-		>
-			<defs>
-				<marker id="ed-arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">
-					<path d="M0,0 L8,3 L0,6 Z" fill="#222" />
-				</marker>
-			</defs>
-			<rect width={W} height={H} fill="#fff" />
-
+	<!-- безмежне полотно -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<svg class="min-h-0 flex-1 touch-none bg-white dark:bg-slate-950" onpointerdown={bgDown} onwheel={onWheel} role="presentation">
+		<defs>
+			<marker id="ed-arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#222" /></marker>
+			<pattern id="ed-grid" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="translate({view.x},{view.y}) scale({view.scale})">
+				<path d="M28 0H0V28" fill="none" stroke="#e2e8f0" stroke-width="1" />
+			</pattern>
+		</defs>
+		<rect width="100%" height="100%" fill="url(#ed-grid)" />
+		<g bind:this={gEl} transform="translate({view.x},{view.y}) scale({view.scale})">
+			<!-- ребра -->
 			{#each edges as e (e.id)}
-				<path d={pathD(e.points)} fill="none" stroke="#222" stroke-width="1.5" marker-end={e.arrowless ? '' : 'url(#ed-arr)'} />
-				{#if e.label}
-					<text x={e.points[0].x + 6} y={e.points[0].y - 6} font-size="12" fill="#444">{e.label}</text>
+				<!-- товста невидима «хіт-зона» для зручного кліку -->
+				<path d={pathD(e.points)} fill="none" stroke="transparent" stroke-width="12" class="cursor-pointer" onpointerdown={(ev) => edgeDown(ev, e)} role="presentation" />
+				<path d={pathD(e.points)} fill="none" stroke={isSel('edge', e.id) ? '#2563eb' : '#222'} stroke-width={isSel('edge', e.id) ? 2.5 : 1.5} marker-end={e.arrowless ? '' : 'url(#ed-arr)'} pointer-events="none" />
+				{#if e.label}<text x={e.points[0].x + 6} y={e.points[0].y - 6} font-size="12" fill="#444" pointer-events="none">{e.label}</text>{/if}
+				{#if isSel('edge', e.id)}
+					{#each e.points as p, i (i)}
+						<circle cx={p.x} cy={p.y} r="5" fill="#fff" stroke="#2563eb" stroke-width="2" class="cursor-grab" onpointerdown={(ev) => vertexDown(ev, e, i)} role="presentation" />
+					{/each}
 				{/if}
 			{/each}
 
+			<!-- прев'ю нового ребра -->
+			{#if act?.kind === 'draw' && nodeById(act.from)}
+				{@const a = nodeById(act.from)}
+				<line x1={a.x + a.w / 2} y1={a.y + a.h / 2} x2={act.x} y2={act.y} stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 4" />
+			{/if}
+
+			<!-- фігури -->
 			{#each nodes as n (n.id)}
-				<g
-					class="cursor-move"
-					onpointerdown={(ev) => startDrag(ev, n)}
-					ondblclick={() => (editId = n.id)}
-					role="presentation"
-				>
+				<g class="cursor-move" onpointerdown={(ev) => nodeDown(ev, n)} ondblclick={() => (editId = n.id)} role="presentation">
 					{#if n.kind === 'process' || n.kind === 'subprogram'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} fill="#fdfdfd" stroke={selId === n.id ? '#2563eb' : '#222'} stroke-width={selId === n.id ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} fill="#fdfdfd" stroke={isSel('node', n.id) ? '#2563eb' : '#222'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 						{#if n.kind === 'subprogram'}
 							<line x1={n.x + 9} y1={n.y} x2={n.x + 9} y2={n.y + n.h} stroke="#222" stroke-width="1.5" />
 							<line x1={n.x + n.w - 9} y1={n.y} x2={n.x + n.w - 9} y2={n.y + n.h} stroke="#222" stroke-width="1.5" />
 						{/if}
 					{:else if n.kind === 'terminator'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} fill="#fdfdfd" stroke={selId === n.id ? '#2563eb' : '#222'} stroke-width={selId === n.id ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} fill="#fdfdfd" stroke={isSel('node', n.id) ? '#2563eb' : '#222'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 					{:else if n.kind === 'connector'}
-						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} fill="#fdfdfd" stroke={selId === n.id ? '#2563eb' : '#222'} stroke-width={selId === n.id ? 2.5 : 1.5} />
+						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} fill="#fdfdfd" stroke={isSel('node', n.id) ? '#2563eb' : '#222'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 					{:else}
-						<polygon points={poly(n)} fill="#fdfdfd" stroke={selId === n.id ? '#2563eb' : '#222'} stroke-width={selId === n.id ? 2.5 : 1.5} />
+						<polygon points={poly(n)} fill="#fdfdfd" stroke={isSel('node', n.id) ? '#2563eb' : '#222'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 					{/if}
 
 					{#if editId === n.id}
 						<foreignObject x={n.x} y={n.y + n.h / 2 - 12} width={n.w} height="24">
-							<input
-								value={n.text}
-								oninput={(ev) => setText(n, ev.currentTarget.value)}
-								onblur={() => (editId = null)}
-								onkeydown={(ev) => ev.key === 'Enter' && (editId = null)}
-								onpointerdown={(ev) => ev.stopPropagation()}
-								class="h-full w-full border-0 bg-transparent text-center text-sm outline-none"
-								autofocus
-							/>
+							<input value={n.text} oninput={(ev) => setText(n, ev.currentTarget.value)} onblur={() => (editId = null)} onkeydown={(ev) => ev.key === 'Enter' && (editId = null)} onpointerdown={(ev) => ev.stopPropagation()} class="h-full w-full border-0 bg-transparent text-center text-sm outline-none" autofocus />
 						</foreignObject>
 					{:else}
 						<text x={n.x + n.w / 2} y={n.y + n.h / 2} text-anchor="middle" dominant-baseline="middle" fill="#111" pointer-events="none">{n.text}</text>
 					{/if}
+
+					<!-- порти для малювання стрілок (на виділеному блоці) -->
+					{#if isSel('node', n.id) && n.kind !== 'connector'}
+						{#each ports(n) as pt (pt.side)}
+							<circle cx={pt.x} cy={pt.y} r="4.5" fill="#2563eb" class="cursor-crosshair" onpointerdown={(ev) => portDown(ev, n, pt.side)} role="presentation" />
+						{/each}
+					{/if}
 				</g>
 			{/each}
-		</svg>
-	</div>
+		</g>
+	</svg>
+
 	<p class="border-t border-slate-200 bg-white px-4 py-1.5 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-900">
-		Перетягни фігуру мишкою · подвійний клік — змінити текст · Delete — видалити · додавай фігури з палітри
+		Тягни фон — рух полотна · колесо — масштаб · клік по стрілці — редагувати її вузли · сині порти — тягни нову стрілку · подвійний клік — текст · ✂ — розділити схему
 	</p>
 </div>
