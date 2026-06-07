@@ -18,11 +18,41 @@
 	let nodes = $state([]);
 	let edges = $state([]);
 	let sel = $state(null); // {type:'node'|'edge', id}
-	let editId = $state(null);
+	let editId = $state(null); // фігура, чий текст редагуємо
+	let editLabel = $state(null); // ребро, чий підпис (Так/Ні) редагуємо
+	let guides = $state([]); // напрямні-магніти під час перетягування
 	let view = $state({ x: 40, y: 40, scale: 1 });
 	let gEl; // внутрішня <g> з трансформацією (для коректного перерахунку координат)
 	let nid = 0,
 		eid = 0;
+
+	// --- історія (undo/redo) ---
+	let past = [];
+	let futureH = [];
+	const snap = () => JSON.stringify({ nodes, edges });
+	function remember() {
+		past.push(snap());
+		if (past.length > 60) past.shift();
+		futureH = [];
+	}
+	function restore(s) {
+		const o = JSON.parse(s);
+		nodes = o.nodes;
+		edges = o.edges;
+		sel = null;
+		editId = null;
+		editLabel = null;
+	}
+	function undo() {
+		if (!past.length) return;
+		futureH.push(snap());
+		restore(past.pop());
+	}
+	function redo() {
+		if (!futureH.length) return;
+		past.push(snap());
+		restore(futureH.pop());
+	}
 
 	$effect(() => load(diagram));
 
@@ -37,7 +67,18 @@
 		let j = 0;
 		const es = (d.edges ?? []).map((e) => {
 			const pts = (e.points ?? []).map((p) => ({ x: p.x, y: p.y }));
-			return { id: 'e' + j++, points: pts, label: e.label ?? '', arrowless: !!e.arrowless, fromId: at(pts[0]), toId: at(pts[pts.length - 1]), manual: false };
+			const p0 = pts[0] ?? { x: 0, y: 0 };
+			return {
+				id: 'e' + j++,
+				points: pts,
+				label: e.label ?? '',
+				lx: p0.x + 8,
+				ly: p0.y - 8, // позиція підпису (рухається окремо)
+				arrowless: !!e.arrowless,
+				fromId: at(pts[0]),
+				toId: at(pts[pts.length - 1]),
+				manual: false
+			};
 		});
 		nid = k;
 		eid = j;
@@ -104,6 +145,28 @@
 		}
 	}
 
+	// Магнічення: підрівнюємо позицію фігури до країв/центрів інших фігур.
+	function magnet(nx, ny, node) {
+		const T = 7 / view.scale;
+		const myX = [nx, nx + node.w / 2, nx + node.w];
+		const myY = [ny, ny + node.h / 2, ny + node.h];
+		let rx = nx,
+			ry = ny,
+			gx = null,
+			gy = null;
+		for (const o of nodes) {
+			if (o.id === node.id) continue;
+			const oX = [o.x, o.x + o.w / 2, o.x + o.w];
+			const oY = [o.y, o.y + o.h / 2, o.y + o.h];
+			for (let i = 0; i < 3; i++) for (const v of oX) if (gx === null && Math.abs(myX[i] - v) < T) ((rx = nx + (v - myX[i])), (gx = v));
+			for (let i = 0; i < 3; i++) for (const v of oY) if (gy === null && Math.abs(myY[i] - v) < T) ((ry = ny + (v - myY[i])), (gy = v));
+		}
+		const g = [];
+		if (gx !== null) g.push({ t: 'v', v: gx });
+		if (gy !== null) g.push({ t: 'h', v: gy });
+		return { x: rx, y: ry, g };
+	}
+
 	// --- взаємодія (одна машина станів через pointer) ---
 	let act = $state(null); // {kind, ...}
 
@@ -127,6 +190,13 @@
 		sel = { type: 'edge', id: e.id };
 	}
 
+	function labelDown(ev, e) {
+		ev.stopPropagation();
+		sel = { type: 'edge', id: e.id };
+		const w = toWorld(ev.clientX, ev.clientY);
+		act = { kind: 'label', id: e.id, ox: e.lx, oy: e.ly, wx: w.x, wy: w.y };
+	}
+
 	function vertexDown(ev, e, i) {
 		ev.stopPropagation();
 		sel = { type: 'edge', id: e.id };
@@ -142,20 +212,34 @@
 
 	function onMove(ev) {
 		if (!act) return;
+		// Знімок в історію — лише при ПЕРШОМУ русі (не на простий клік-вибір).
+		if (!act.saved && (act.kind === 'node' || act.kind === 'vertex' || act.kind === 'label')) {
+			remember();
+			act.saved = true;
+		}
 		const w = toWorld(ev.clientX, ev.clientY);
 		if (act.kind === 'pan') {
 			view.x = act.vx + (ev.clientX - act.sx);
 			view.y = act.vy + (ev.clientY - act.sy);
 		} else if (act.kind === 'node') {
 			const n = nodeById(act.id);
-			const nx = act.ox + (w.x - act.wx),
+			let nx = act.ox + (w.x - act.wx),
 				ny = act.oy + (w.y - act.wy);
+			const m = magnet(nx, ny, n);
+			nx = m.x;
+			ny = m.y;
+			guides = m.g;
 			const dx = nx - n.x,
 				dy = ny - n.y;
 			n.x = nx;
 			n.y = ny;
 			rerouteFor(n.id, dx, dy);
 			nodes = [...nodes];
+			edges = [...edges];
+		} else if (act.kind === 'label') {
+			const e = edges.find((x) => x.id === act.id);
+			e.lx = act.ox + (w.x - act.wx);
+			e.ly = act.oy + (w.y - act.wy);
 			edges = [...edges];
 		} else if (act.kind === 'vertex') {
 			const e = edges.find((x) => x.id === act.id);
@@ -188,11 +272,14 @@
 		} else if (act.kind === 'draw') {
 			const over = nodeAtPoint(w);
 			if (over && over.id !== act.from) {
+				remember();
 				const a = nodeById(act.from);
-				edges.push({ id: 'e' + eid++, points: portRoute(a, over), label: '', arrowless: false, fromId: act.from, toId: over.id, manual: false });
+				const p = portRoute(a, over);
+				edges.push({ id: 'e' + eid++, points: p, label: '', lx: p[0].x + 8, ly: p[0].y - 8, arrowless: false, fromId: act.from, toId: over.id, manual: false });
 				edges = [...edges];
 			}
 		}
+		guides = [];
 		act = null;
 	}
 
@@ -215,6 +302,7 @@
 	}
 
 	function addNode(kind, w, h) {
+		remember();
 		const c = toWorld(gEl.ownerSVGElement.getBoundingClientRect().left + 300, gEl.ownerSVGElement.getBoundingClientRect().top + 200);
 		const id = 'n' + nid++;
 		nodes.push({ id, kind, x: c.x, y: c.y, w, h, text: kind === 'connector' ? nextLetter() : 'текст' });
@@ -225,6 +313,7 @@
 
 	function delSel() {
 		if (!sel) return;
+		remember();
 		if (sel.type === 'node') {
 			nodes = nodes.filter((n) => n.id !== sel.id);
 			edges = edges.filter((e) => e.fromId !== sel.id && e.toId !== sel.id);
@@ -235,7 +324,18 @@
 	}
 
 	function onKey(ev) {
-		if (editId) return;
+		if (editId || editLabel) return;
+		const mod = ev.ctrlKey || ev.metaKey;
+		if (mod && (ev.key === 'z' || ev.key === 'Z')) {
+			ev.preventDefault();
+			ev.shiftKey ? redo() : undo();
+			return;
+		}
+		if (mod && (ev.key === 'y' || ev.key === 'Y')) {
+			ev.preventDefault();
+			redo();
+			return;
+		}
 		if ((ev.key === 'Delete' || ev.key === 'Backspace') && sel) {
 			ev.preventDefault();
 			delSel();
@@ -256,48 +356,53 @@
 		return 'А';
 	}
 
-	// Розділення: клік-на-блок → схема ділиться надвоє парою конекторів.
-	// Вхідні в блок → у конектор-вихід «X»; сам блок і його нащадки їдуть вправо,
-	// перед блоком — конектор-вхід «X».
+	// Розділення: клік-на-блок → схема рветься надвоє парою конекторів «X».
+	// Блок із усіма нащадками (разом із їхніми ребрами!) їде в окрему колонку
+	// праворуч; на стику в частині-1 стає конектор-вихід «X», перед блоком —
+	// конектор-вхід «X».
 	function splitAt(nodeId) {
 		const node = nodeById(nodeId);
 		if (!node) return;
+		remember();
 		const letter = nextLetter();
-		// нащадки (BFS по вихідних ребрах), разом із блоком
-		const desc = new Set([nodeId]);
+		// нащадки вперед (BFS по вихідних ребрах), разом із блоком
+		const set = new Set([nodeId]);
 		const q = [nodeId];
 		while (q.length) {
 			const cur = q.shift();
-			for (const e of edges) if (e.fromId === cur && e.toId && !desc.has(e.toId)) { desc.add(e.toId); q.push(e.toId); }
+			for (const e of edges) if (e.fromId === cur && e.toId && !set.has(e.toId)) { set.add(e.toId); q.push(e.toId); }
 		}
-		// зсув частини-2 праворуч від усього наявного
-		let maxX = 0;
+		// зсув частини-2 у чисту колонку праворуч
+		let maxX = -Infinity,
+			sx = Infinity,
+			sy = Infinity;
 		for (const n of nodes) maxX = Math.max(maxX, n.x + n.w);
-		const offX = maxX + 100 - node.x;
-		const offY = -node.y + 40;
-		for (const n of nodes)
-			if (desc.has(n.id)) {
-				n.x += offX;
-				n.y += offY;
-			}
-		// конектор-вихід на місці старого блоку; вхідні ребра ведемо в нього
-		const c1 = { id: 'n' + nid++, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y, w: 46, h: 46, text: letter };
-		// конектор-вхід над переміщеним блоком
-		const c2 = { id: 'n' + nid++, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y - 100, w: 46, h: 46, text: letter };
+		for (const n of nodes) if (set.has(n.id)) ((sx = Math.min(sx, n.x)), (sy = Math.min(sy, n.y)));
+		const offX = maxX + 90 - sx;
+		const offY = 100 - sy; // верх частини-2 ~ під конектором-входом
+		const ox0 = node.x,
+			oy0 = node.y; // ОРИГІНАЛЬНЕ місце блоку (для конектора-виходу)
+		// рухаємо вузли І їхні внутрішні ребра
+		for (const n of nodes) if (set.has(n.id)) ((n.x += offX), (n.y += offY));
+		for (const e of edges) if (set.has(e.fromId) && set.has(e.toId)) for (const p of e.points) ((p.x += offX), (p.y += offY));
+		// конектори: вихід на місці блоку (частина-1), вхід над переміщеним блоком
+		const exit = { id: 'n' + nid++, kind: 'connector', x: ox0 + node.w / 2 - 23, y: oy0, w: 46, h: 46, text: letter };
+		const entry = { id: 'n' + nid++, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y - 92, w: 46, h: 46, text: letter };
+		nodes.push(exit, entry);
+		// межові ребра: вхідні в блок із частини-1 → у конектор-вихід; інші межові — рероут
 		for (const e of edges) {
-			if (e.toId === nodeId && !desc.has(e.fromId)) {
-				e.toId = c1.id;
-				e.manual = false;
+			const fin = set.has(e.fromId),
+				tin = set.has(e.toId);
+			if (fin === tin) continue;
+			if (e.toId === nodeId && !fin) {
+				e.toId = exit.id;
 			}
-		}
-		nodes.push(c1, c2);
-		edges.push({ id: 'e' + eid++, points: portRoute(c2, node), label: '', arrowless: false, fromId: c2.id, toId: nodeId, manual: false });
-		// рероут до нових конекторів
-		for (const e of edges) {
 			const a = nodeById(e.fromId),
 				b = nodeById(e.toId);
-			if (!e.manual && a && b && (e.toId === c1.id || e.fromId === c2.id)) e.points = portRoute(a, b);
+			if (a && b) ((e.points = portRoute(a, b)), (e.manual = false));
 		}
+		const p = portRoute(entry, node);
+		edges.push({ id: 'e' + eid++, points: p, label: '', lx: p[0].x + 8, ly: p[0].y - 8, arrowless: false, fromId: entry.id, toId: nodeId, manual: false });
 		nodes = [...nodes];
 		edges = [...edges];
 		sel = null;
@@ -375,6 +480,8 @@
 			<button onclick={() => splitAt(sel.id)} class="rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розділити тут</button>
 		{/if}
 		<button onclick={delSel} disabled={!sel} class="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
+		<button onclick={undo} title="Скасувати (Ctrl+Z)" class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↶</button>
+		<button onclick={redo} title="Повторити (Ctrl+Shift+Z)" class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↷</button>
 		<div class="ml-auto flex items-center gap-1.5">
 			<button onclick={() => zoom(1 / 1.2)} class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300">−</button>
 			<span class="w-10 text-center text-xs text-slate-400">{Math.round(view.scale * 100)}%</span>
@@ -402,11 +509,26 @@
 				<!-- товста невидима «хіт-зона» для зручного кліку -->
 				<path d={pathD(e.points)} fill="none" stroke="transparent" stroke-width="12" class="cursor-pointer" onpointerdown={(ev) => edgeDown(ev, e)} role="presentation" />
 				<path d={pathD(e.points)} fill="none" stroke={isSel('edge', e.id) ? '#2563eb' : '#222'} stroke-width={isSel('edge', e.id) ? 2.5 : 1.5} marker-end={e.arrowless ? '' : 'url(#ed-arr)'} pointer-events="none" />
-				{#if e.label}<text x={e.points[0].x + 6} y={e.points[0].y - 6} font-size="12" fill="#444" pointer-events="none">{e.label}</text>{/if}
+				{#if editLabel === e.id}
+					<foreignObject x={e.lx - 6} y={e.ly - 16} width="90" height="22">
+						<input value={e.label} oninput={(ev) => { e.label = ev.currentTarget.value; edges = [...edges]; }} onblur={() => (editLabel = null)} onkeydown={(ev) => ev.key === 'Enter' && (editLabel = null)} onpointerdown={(ev) => ev.stopPropagation()} class="w-full rounded border border-blue-300 bg-white px-1 text-xs outline-none dark:bg-slate-800 dark:text-slate-200" autofocus />
+					</foreignObject>
+				{:else if e.label}
+					<text x={e.lx} y={e.ly} font-size="12" fill={isSel('edge', e.id) ? '#2563eb' : '#444'} class="cursor-move" onpointerdown={(ev) => labelDown(ev, e)} ondblclick={() => (editLabel = e.id)} role="presentation">{e.label}</text>
+				{/if}
 				{#if isSel('edge', e.id)}
 					{#each e.points as p, i (i)}
 						<circle cx={p.x} cy={p.y} r="5" fill="#fff" stroke="#2563eb" stroke-width="2" class="cursor-grab" onpointerdown={(ev) => vertexDown(ev, e, i)} role="presentation" />
 					{/each}
+				{/if}
+			{/each}
+
+			<!-- напрямні-магніти (під час перетягування) -->
+			{#each guides as gd (gd.t + gd.v)}
+				{#if gd.t === 'v'}
+					<line x1={gd.v} y1={-5000} x2={gd.v} y2={5000} stroke="#f43f5e" stroke-width={1 / view.scale} stroke-dasharray="4 3" pointer-events="none" />
+				{:else}
+					<line x1={-5000} y1={gd.v} x2={5000} y2={gd.v} stroke="#f43f5e" stroke-width={1 / view.scale} stroke-dasharray="4 3" pointer-events="none" />
 				{/if}
 			{/each}
 
@@ -418,7 +540,7 @@
 
 			<!-- фігури -->
 			{#each nodes as n (n.id)}
-				<g class="cursor-move" onpointerdown={(ev) => nodeDown(ev, n)} ondblclick={() => (editId = n.id)} role="presentation">
+				<g class="cursor-move" onpointerdown={(ev) => nodeDown(ev, n)} ondblclick={() => { remember(); editId = n.id; }} role="presentation">
 					{#if n.kind === 'process' || n.kind === 'subprogram'}
 						<rect x={n.x} y={n.y} width={n.w} height={n.h} fill="#fdfdfd" stroke={isSel('node', n.id) ? '#2563eb' : '#222'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 						{#if n.kind === 'subprogram'}
