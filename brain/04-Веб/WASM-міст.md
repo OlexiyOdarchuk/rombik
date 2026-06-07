@@ -4,74 +4,60 @@ tags: [web, wasm, component]
 
 # WASM-міст
 
-**Пакет:** `cmd/wasm` · **Файл:** `main.go` · тег збірки `//go:build js && wasm`
+**Пакети:** `cmd/wasm` (легкий) + `cmd/wasmraster` (важкий) · тег `//go:build js && wasm`
 
-Точка входу Go-двигуна у браузері. Реєструє в JS глобальну функцію `rombikGenerate` і
-лишається «живим». **Не імпортує** `parser/python` — Python розбирає Pyodide, сюди
-приходить готовий AST-JSON. → [[Розділення-відповідальностей]].
+Go-двигун у браузері поділено на **два WASM-модулі**, бо растровий рендер (PNG/PDF)
+тягне важкі залежності, які не потрібні для звичайного перегляду. Жоден із них **не
+імпортує** `parser/python` (там `os/exec`) — Python розбирає Pyodide, сюди приходить
+готовий AST-JSON. → [[Розділення-відповідальностей]].
 
-## Що реєструє
+## Модуль 1 — `cmd/wasm` (легкий, `rombik.wasm` ~4 МБ)
 
-```go
-func main() {
-    js.Global().Set("rombikGenerate", js.FuncOf(generate))
-    select {}   // тримаємо модуль живим (інакше Go-main завершиться і функція зникне)
-}
-```
-
-`select{}` блокує `main` назавжди — без цього після виходу з `main` зареєстрована
-функція стала б недоступна. У JS її не `await`-ять (`go.run` без await) саме тому —
-[[Браузерний-двигун]].
-
-## Контракт generate
-
-```
-rombikGenerate(astJSON: string, optionsJSON?: string) -> string (JSON)
-```
+Парсинг-результат → SVG/Typst. Реєструє три глобальні функції:
 
 ```go
-func generate(_ js.Value, args []js.Value) any {
-    // 1) опції (необов'язкові)
-    if len(args) > 1 && !args[1].IsUndefined() {
-        json.Unmarshal([]byte(args[1].String()), &opts)   // layout.Options
-    }
-    // 2) AST-JSON → ir
-    funcs, err := astjson.FromJSON([]byte(args[0].String()))
-    if err != nil { return result({"error": err.Error()}) }
-    // 3) КОЖНУ функцію розкласти + відрендерити
-    for _, f := range funcs {
-        d := layout.Build(f.Body, opts)
-        res = append(res, outFunc{Name: f.Name, SVG: svg.Render(d), Diagram: d})
-    }
-    return result({"functions": res})
-}
+js.Global().Set("rombikGenerate", js.FuncOf(generate))   // AST-JSON → схеми (svg+typst+diagram)
+js.Global().Set("rombikRenderOne", js.FuncOf(renderOne)) // дешевий ре-рендер однієї схеми
+js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))   // експорт усіх схем одним .typ
+select {}                                                 // тримаємо модуль живим
 ```
 
-Вихід:
+| Функція | Вхід | Вихід (JSON) |
+|---------|------|--------------|
+| `rombikGenerate(astJSON, optionsJSON?)` | AST-JSON + опції | `{functions:[{name, svg, typst, diagram, ...}]}` |
+| `rombikRenderOne(diagramJSON, captionJSON?)` | один `Diagram` + правки підпису | `{svg, typst}` |
+| `rombikTypstAll(diagramsJSON)` | масив `Diagram` | `{typst}` |
 
-```json
-{ "functions": [ { "name": "...", "svg": "<svg>…</svg>", "diagram": {…} } ] }
-// або
-{ "error": "повідомлення" }
+`rombikRenderOne` — ключ до **живого редагування підпису**: фронт міняє лише
+`Caption/FigNum/CapWord` і просить перемалювати ОДНУ схему, **без повторного парсингу**.
+Саме заради цього `Diagram` має `UnmarshalJSON` ([[Diagram-модель-геометрії]]).
+
+## Модуль 2 — `cmd/wasmraster` (важкий, `rombik-raster.wasm` ~16 МБ)
+
+Нативний PNG/PDF через [[Растровий-рендер-PNG-PDF|raster]] (tdewolff/canvas). Фронт
+вантажить його **ліниво** — лише на першому експорті PNG/PDF. Реєструє:
+
+```go
+js.Global().Set("rombikPng",    js.FuncOf(png))     // Diagram → PNG (base64)
+js.Global().Set("rombikPdf",    js.FuncOf(pdf))     // Diagram → PDF
+js.Global().Set("rombikPdfAll", js.FuncOf(pdfAll))  // масив Diagram → багатосторінковий PDF
 ```
 
-`svg` готовий до вставки в DOM; `diagram` — сира геометрія
-([[Diagram-модель-геометрії]]) для експорту JSON / альтернативного рендеру.
+## Чому два модулі
 
-## Те саме ядро, що в CLI
+- **Швидкий старт:** для перегляду схем досить легкого 4 МБ, а не 16 МБ.
+- **Lazy:** важкий растровий код вантажиться, лише коли реально треба PNG/PDF.
+- **Та сама межа:** обидва беруть `Diagram`/AST-JSON і кличуть спільне ядро
+  (`layout.Build` + рендери) — як і CLI. → [[Конвеєр-обробки]].
 
-`generate` робить рівно те, що й CLI після парсингу: `astjson.FromJSON` →
-`layout.Build` → `svg.Render`. Порівняй із `cmd/rombik/main.go`. Різниця лише в
-адаптерах входу/виходу — ядро байт-у-байт спільне. → [[Конвеєр-обробки]].
+## select{} — чому
 
-## Опції з JS
-
-`layout.Options` має JSON-теги (`json:"callAsProcess"` тощо), тож галочки інтерфейсу
-серіалізуються в `optionsJSON` і десеріалізуються тут. Список — [[Опції-рендера]].
+`main` навмисно висить на `select{}`: інакше після виходу з `main` зареєстровані
+функції зникли б. У JS `go.run(instance)` не `await`-ять саме тому. → [[Браузерний-двигун]].
 
 ## Пов'язане
 
-- [[Браузерний-двигун]]
-- [[astjson-конвертер]]
-- [[Layout-рушій-розкладки]]
+- [[Браузерний-двигун]] · [[Фронтенд-SvelteKit]]
+- [[astjson-конвертер]] · [[Layout-рушій-розкладки]]
+- [[Растровий-рендер-PNG-PDF]] · [[Typst-рендер]]
 - [[Розділення-відповідальностей]]

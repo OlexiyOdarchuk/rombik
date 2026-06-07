@@ -31,9 +31,10 @@
 	});
 
 	function load(d) {
-		nid = 0;
-		nodes = (d.shapes ?? []).map((s) => ({
-			id: 'n' + nid++,
+		// Будуємо ЛОКАЛЬНІ масиви (не читаємо реактивні nodes у $effect — інакше цикл).
+		let k = 0;
+		const ns = (d.shapes ?? []).map((s) => ({
+			id: 'n' + k++,
 			kind: s.kind,
 			x: s.x,
 			y: s.y,
@@ -41,17 +42,26 @@
 			h: s.h,
 			text: s.text ?? ''
 		}));
-		edges = (d.edges ?? []).map((e, i) => {
+		const at = (pt) => {
+			if (!pt) return null;
+			for (const n of ns)
+				if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
+			return null;
+		};
+		const es = (d.edges ?? []).map((e, i) => {
 			const pts = (e.points ?? []).map((p) => ({ x: p.x, y: p.y }));
 			return {
 				id: 'e' + i,
 				points: pts,
 				label: e.label ?? '',
 				arrowless: !!e.arrowless,
-				fromId: nodeAt(pts[0]),
-				toId: nodeAt(pts[pts.length - 1])
+				fromId: at(pts[0]),
+				toId: at(pts[pts.length - 1])
 			};
 		});
+		nid = k;
+		nodes = ns;
+		edges = es;
 		W = d.w ?? 100;
 		H = d.h ?? 100;
 		selId = null;
@@ -59,16 +69,6 @@
 	}
 
 	const nodeById = (id) => nodes.find((n) => n.id === id);
-
-	// Чи точка в межах якоїсь фігури (для прив'язки кінців ребер).
-	function nodeAt(pt, margin = 8) {
-		if (!pt) return null;
-		for (const n of nodes) {
-			if (pt.x >= n.x - margin && pt.x <= n.x + n.w + margin && pt.y >= n.y - margin && pt.y <= n.y + n.h + margin)
-				return n.id;
-		}
-		return null;
-	}
 
 	// Ортогональний рероут ребра між фігурами from→to (після переміщення).
 	function reroute(e) {

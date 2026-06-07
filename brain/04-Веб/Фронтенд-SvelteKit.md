@@ -4,63 +4,72 @@ tags: [web, frontend]
 
 # Фронтенд SvelteKit
 
-**Тека:** `web/` · SvelteKit + Tailwind v4, повністю статичний (`adapter-static`) — без
-сервера. Лендинг + гайд + редактор.
+**Тека:** `web/` · SvelteKit (Svelte 5) + Tailwind v4, повністю статичний
+(`adapter-static`) — без сервера. Лендинг + гайд + повноцінний редактор.
 
 ## Стек
 
-- **SvelteKit** з `adapter-static` — на виході чиста статика (`build/`), хоститься
+- **SvelteKit 2 / Svelte 5** з `adapter-static` — чиста статика (`build/`), хоститься
   будь-де (GitHub Pages, CDN).
-- **Tailwind v4** — стилі.
-- **Vite** — збірка/дев-сервер.
-- Рантайм-двигун — **Pyodide + rombik.wasm** ([[Браузерний-двигун]]).
+- **Tailwind v4** (`@tailwindcss/vite`) — стилі, з підтримкою темної теми.
+- **CodeMirror 6** — редактор коду Python (підсвітка, нумерація, дужки).
+- Рантайм-двигун — **Pyodide + два WASM** ([[Браузерний-двигун]]).
 
 ## Структура
 
 ```
-web/
-├── build-wasm.sh         збірка WASM-артефактів у static/
-├── src/
-│   ├── app.html, app.css
-│   ├── lib/
-│   │   ├── engine.js      ← клей Pyodide+WASM (warmup/generate)
-│   │   ├── Nav.svelte
-│   │   └── Footer.svelte
-│   └── routes/
-│       ├── +layout.svelte / +layout.js
-│       ├── +page.svelte         лендинг
-│       ├── guide/+page.svelte   «як це працює» + довідник фігур
-│       └── app/+page.svelte     редактор
-└── static/
-    ├── rombik.wasm      Go-двигун (артефакт)
-    ├── wasm_exec.js      міст Go↔JS (артефакт)
-    ├── parser.py         парсер для Pyodide (артефакт)
-    └── favicon.svg
+web/src/
+├── app.html, app.css        Tailwind + токени теми (--color-paper тощо)
+├── lib/
+│   ├── engine.js            клей Pyodide + два WASM-двигуни
+│   ├── CodeEditor.svelte    CodeMirror 6 (Python); тема через Compartment
+│   ├── ThemeToggle.svelte   перемикач світла/темна
+│   ├── Nav.svelte           шапка: лого-ромбік, навігація, ThemeToggle
+│   └── Footer.svelte
+└── routes/
+    ├── +page.svelte         лендинг (герой, можливості, 3 кроки)
+    ├── guide/+page.svelte   «як це працює» + довідник 6 фігур ([[ДСТУ-19.701-90]])
+    └── app/+page.svelte     редактор
 ```
 
-> `rombik.wasm`, `wasm_exec.js`, `parser.py` — **генеровані** артефакти
-> (`build-wasm.sh`); у `.gitignore` `*.wasm` ігнорується. Перед `npm run dev` їх треба
-> згенерувати. → [[Збірка-і-запуск]].
+Артефакти `rombik.wasm`, `rombik-raster.wasm`, `wasm_exec.js`, `parser.py` —
+**генеровані** (`build-wasm.sh`), у `.gitignore` `*.wasm`. → [[Збірка-і-запуск]].
 
-## Сторінки
+## Темна тема
 
-- **`/`** — лендинг: що це, можливості, заклик спробувати.
-- **`/guide`** — пояснення конвеєра + довідник ДСТУ-фігур ([[ДСТУ-19.701-90]]).
-- **`/app`** — редактор: поле коду → `engine.generate(code, options)` → перегляд SVG +
-  експорт (SVG/PNG/JSON). Опції рендера — галочки, що йдуть у `optionsJSON`
-  ([[Опції-рендера]]).
+- Стратегія — **клас `.dark` на `<html>`** (Tailwind `@custom-variant dark`).
+- `ThemeToggle` перемикає клас і зберігає вибір у `localStorage['theme']`.
+- **CodeMirror** слухає зміну класу (`MutationObserver`) і через `Compartment`
+  перемикає тему `oneDark` ↔ світла.
+- Прев'ю схеми **завжди на світлому тлі** (SVG-фон білий) — щоб роздруківка збігалася.
+
+## Редактор `/app`
+
+**Розкладка (50/50 на десктопі):** зліва `CodeEditor`, справа список схем.
+
+**Тулбар:** «Побудувати», випадайна панель **Налаштування**, групова кнопка експорту
+(PDF / Typst для всіх схем разом).
+
+**Панель налаштувань** (галочки/списки) → серіалізуються в `optionsJSON`:
+- структура: `singleEnd`, `callAsProcess`, `stripTypes`, `returnAsIO`;
+- мітки гілок (Так/Ні · Yes/No · +/−), слова I/O (Ввід · Введення · Ввести);
+- **підпис**: показувати «Рисунок N», слово (Рисунок/Рис./Figure), шаблон, стартовий номер.
+
+Повний перелік перемикачів — [[Опції-рендера]].
+
+**Картка кожної схеми:** ім'я функції, кнопки експорту **SVG / PNG / Typst / PDF**,
+поля редагування підпису (номер + текст), прев'ю SVG.
 
 ## Потік у редакторі
 
-1. На вхід — Python-код і обрані опції.
-2. `engine.generate` → Pyodide парсить, rombik.wasm розкладає
+1. Код + опції → `engine.generate` → Pyodide парсить, легкий WASM розкладає й рендерить
    ([[Браузерний-двигун]]).
-3. Результат `{functions:[{name, svg, diagram}]}` — вставляємо `svg` у DOM.
-4. Експорт: SVG напряму; PNG — через canvas у браузері; JSON — поле `diagram`.
+2. Результат `{functions:[{name, svg, typst, diagram}]}` → `svg` у DOM.
+3. Правка підпису → `renderCaption` (дешевий ре-рендер, без парсингу).
+4. Експорт: SVG/Typst — напряму з легкого модуля; **PNG/PDF — ліниво** через
+   растровий WASM ([[WASM-міст]]).
 
 ## Пов'язане
 
-- [[Браузерний-двигун]]
-- [[WASM-міст]]
-- [[Збірка-і-запуск]]
-- [[Опції-рендера]]
+- [[Браузерний-двигун]] · [[WASM-міст]]
+- [[Опції-рендера]] · [[Збірка-і-запуск]]
