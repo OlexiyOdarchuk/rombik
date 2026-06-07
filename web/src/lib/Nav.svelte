@@ -12,9 +12,9 @@
 	<nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
 		<a href="/" class="flex items-center gap-2 font-semibold text-slate-900">
 			<span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-600 text-white shadow-sm">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<rect x="8" y="2" width="8" height="5" rx="1" /><path d="M12 7v4" />
-					<rect x="7" y="11" width="10" height="6" rx="1" /><path d="M12 17v3" />
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+					<path d="M12 5 L19 12 L12 19 L5 12 Z" />
+					<path d="M12 2 V5" /><path d="M12 19 V22" />
 				</svg>
 			</span>
 			<span>rombik<span class="text-blue-600">.</span></span>
