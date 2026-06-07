@@ -97,6 +97,26 @@ func pdfAll(_ js.Value, args []js.Value) any {
 	return out(map[string]any{"pdf": base64.StdEncoding.EncodeToString(b)})
 }
 
+// pngAll(diagramsJSON, scale?) -> {png: base64} — усі схеми в одному PNG.
+func pngAll(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return out(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var ds []*diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &ds); err != nil {
+		return out(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	scale := 2.0
+	if len(args) > 1 && !args[1].IsUndefined() && !args[1].IsNull() {
+		scale = args[1].Float()
+	}
+	b, err := raster.PNGAll(ds, scale)
+	if err != nil {
+		return out(map[string]any{"error": "png: " + err.Error()})
+	}
+	return out(map[string]any{"png": base64.StdEncoding.EncodeToString(b)})
+}
+
 func out(v any) string {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -109,5 +129,6 @@ func main() {
 	js.Global().Set("rombikPng", js.FuncOf(png))
 	js.Global().Set("rombikPdf", js.FuncOf(pdf))
 	js.Global().Set("rombikPdfAll", js.FuncOf(pdfAll))
+	js.Global().Set("rombikPngAll", js.FuncOf(pngAll))
 	select {}
 }

@@ -6,7 +6,9 @@
 		renderPdf,
 		renderPng,
 		renderTypstAll,
-		renderPdfAll
+		renderPdfAll,
+		renderSvgAll,
+		renderPngAll
 	} from '$lib/engine.js';
 	import CodeEditor from '$lib/CodeEditor.svelte';
 	import { onMount } from 'svelte';
@@ -148,7 +150,7 @@
 		download(`${f.name}.typ`, f.typst, 'text/plain');
 	}
 
-	// --- Експорт УСІХ схем одним документом ---
+	// --- Експорт УСІХ схем одним документом/зображенням ---
 	function exportAllTypst() {
 		try {
 			download('схеми.typ', renderTypstAll(exportDiagrams()), 'text/plain');
@@ -156,6 +158,31 @@
 		} catch (e) {
 			errored = true;
 			status = 'Typst: ' + (e?.message ?? e);
+		}
+	}
+
+	function exportAllSvg() {
+		try {
+			download('схеми.svg', renderSvgAll(exportDiagrams()), 'image/svg+xml');
+			status = 'SVG (усі схеми) готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'SVG: ' + (e?.message ?? e);
+		}
+	}
+
+	async function exportAllPng() {
+		busy = true;
+		errored = false;
+		try {
+			const png = await renderPngAll(exportDiagrams(), s.pngScale, (st) => (status = st));
+			download('схеми.png', png, 'image/png');
+			status = 'PNG (усі схеми) готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'PNG: ' + (e?.message ?? e);
+		} finally {
+			busy = false;
 		}
 	}
 
@@ -322,20 +349,16 @@
 		{#if funcs.length}
 			<div class="ml-auto flex items-center gap-2">
 				<span class="text-sm text-slate-500 dark:text-slate-400">{funcs.length} схем</span>
-				<span class="text-xs text-slate-400">Усі →</span>
-				<button
-					onclick={exportAllPdf}
-					disabled={busy}
-					class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
-				>
-					PDF
-				</button>
-				<button
-					onclick={exportAllTypst}
-					class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-				>
-					Typst
-				</button>
+				<span class="text-xs font-medium text-slate-400">Завантажити всі:</span>
+				{#each [['SVG', exportAllSvg], ['PNG', exportAllPng], ['Typst', exportAllTypst], ['PDF', exportAllPdf]] as [label, fn] (label)}
+					<button
+						onclick={fn}
+						disabled={busy}
+						class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+					>
+						{label}
+					</button>
+				{/each}
 			</div>
 		{/if}
 	</div>
@@ -364,10 +387,9 @@
 							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-700">
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
 								<div class="flex shrink-0 gap-1">
-									<button onclick={() => exportSvg(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">SVG</button>
-									<button onclick={() => exportPng(f)} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">PNG</button>
-									<button onclick={() => exportTypst(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">Typst</button>
-									<button onclick={() => exportPdf(f)} disabled={busy} class="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900">PDF</button>
+									{#each [['SVG', () => exportSvg(f)], ['PNG', () => exportPng(f)], ['Typst', () => exportTypst(f)], ['PDF', () => exportPdf(f)]] as [label, fn] (label)}
+										<button onclick={fn} disabled={busy} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">{label}</button>
+									{/each}
 								</div>
 								{#if s.showCaption}
 									<div class="flex w-full items-center gap-1.5">

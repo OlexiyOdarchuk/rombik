@@ -100,6 +100,18 @@ func typstAll(_ js.Value, args []js.Value) any {
 	return result(map[string]any{"typst": typst.RenderAll(ds)})
 }
 
+// svgAll(diagramsJSON) -> {svg} — усі схеми в одному SVG (вертикально).
+func svgAll(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return result(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var ds []*diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &ds); err != nil {
+		return result(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	return result(map[string]any{"svg": svg.RenderAll(ds)})
+}
+
 func result(v any) string {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -112,5 +124,6 @@ func main() {
 	js.Global().Set("rombikGenerate", js.FuncOf(generate))
 	js.Global().Set("rombikRenderOne", js.FuncOf(renderOne))
 	js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))
+	js.Global().Set("rombikSvgAll", js.FuncOf(svgAll))
 	select {} // тримаємо модуль живим
 }

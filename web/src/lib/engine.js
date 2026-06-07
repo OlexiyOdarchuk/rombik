@@ -123,6 +123,21 @@ export function renderTypstAll(diagrams) {
 	return res.typst;
 }
 
+/** Один SVG з УСІХ схем (вертикально). */
+export function renderSvgAll(diagrams) {
+	const res = JSON.parse(globalThis.rombikSvgAll(JSON.stringify(diagrams)));
+	if (res.error) throw new Error(res.error);
+	return res.svg;
+}
+
+/** Один PNG з УСІХ схем (Uint8Array). */
+export async function renderPngAll(diagrams, scale, onProgress) {
+	await loadRaster(onProgress);
+	const res = JSON.parse(globalThis.rombikPngAll(JSON.stringify(diagrams), scale));
+	if (res.error) throw new Error(res.error);
+	return b64ToBytes(res.png);
+}
+
 /** Один багатосторінковий PDF з УСІХ схем (Uint8Array). */
 export async function renderPdfAll(diagrams, onProgress) {
 	await loadRaster(onProgress);

@@ -12,28 +12,76 @@ import (
 // capGap — висота, що резервується під підпис «Рисунок N — …» знизу.
 const capGap = 30
 
+// diagHeight — повна висота схеми разом із місцем під підпис.
+func diagHeight(d *diagram.Diagram) float64 {
+	if d.CaptionLine() != "" {
+		return d.H + capGap
+	}
+	return d.H
+}
+
+const arrowDefs = `<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">` +
+	`<path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>`
+
 // Render повертає SVG-рядок для діаграми.
 func Render(d *diagram.Diagram) string {
 	var b strings.Builder
-	cap := d.CaptionLine()
-	totalH := d.H
-	if cap != "" {
-		totalH += capGap
-	}
+	totalH := diagHeight(d)
 	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family="Arial, sans-serif" font-size="14">`,
 		d.W, totalH, d.W, totalH)
-	// Маркер-стрілка.
-	b.WriteString(`<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">` +
-		`<path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>`)
+	b.WriteString(arrowDefs)
 	b.WriteString(`<rect width="100%" height="100%" fill="#ffffff"/>`)
+	writeBody(&b, d)
+	b.WriteString(`</svg>`)
+	return b.String()
+}
 
+// RenderAll складає всі схеми в ОДИН SVG (вертикально, по центру, із проміжком).
+func RenderAll(ds []*diagram.Diagram) string {
+	if len(ds) == 0 {
+		return ""
+	}
+	if len(ds) == 1 {
+		return Render(ds[0])
+	}
+	const gap = 44.0
+	var maxW, totalH float64
+	for i, d := range ds {
+		if d.W > maxW {
+			maxW = d.W
+		}
+		totalH += diagHeight(d)
+		if i > 0 {
+			totalH += gap
+		}
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family="Arial, sans-serif" font-size="14">`,
+		maxW, totalH, maxW, totalH)
+	b.WriteString(arrowDefs)
+	b.WriteString(`<rect width="100%" height="100%" fill="#ffffff"/>`)
+	y := 0.0
+	for _, d := range ds {
+		dx := (maxW - d.W) / 2 // центруємо по горизонталі
+		fmt.Fprintf(&b, `<g transform="translate(%.1f,%.1f)">`, dx, y)
+		writeBody(&b, d)
+		b.WriteString(`</g>`)
+		y += diagHeight(d) + gap
+	}
+	b.WriteString(`</svg>`)
+	return b.String()
+}
+
+// writeBody малює саму схему (ребра, фігури, підпис) — без обгортки <svg>/фону.
+func writeBody(b *strings.Builder, d *diagram.Diagram) {
+	cap := d.CaptionLine()
 	// Спершу ребра (під фігурами), потім фігури.
 	for _, e := range d.Edges {
 		marker := ` marker-end="url(#arr)"`
 		if e.Arrowless {
 			marker = ""
 		}
-		fmt.Fprintf(&b, `<path d="%s" fill="none" stroke="#222" stroke-width="1.5"%s/>`,
+		fmt.Fprintf(b, `<path d="%s" fill="none" stroke="#222" stroke-width="1.5"%s/>`,
 			pathOf(e.Points), marker)
 		if e.Label != "" && len(e.Points) >= 2 {
 			// Мітку (Так/Ні) ставимо біля початку ребра (вершини ромба).
@@ -47,20 +95,18 @@ func Render(d *diagram.Diagram) string {
 				// горизонтальний вліво — текст назовні зліва
 				anchor, lx = "end", p0.X-6
 			}
-			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" text-anchor="%s" font-size="12" fill="#444">%s</text>`,
+			fmt.Fprintf(b, `<text x="%.1f" y="%.1f" text-anchor="%s" font-size="12" fill="#444">%s</text>`,
 				lx, ly, anchor, esc(e.Label))
 		}
 	}
 	for _, s := range d.Shapes {
-		renderShape(&b, s)
+		renderShape(b, s)
 	}
 	// Підпис схеми («Рисунок N — …») — по центру під схемою.
 	if cap != "" {
-		fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" text-anchor="middle" font-size="14" fill="#111">%s</text>`,
+		fmt.Fprintf(b, `<text x="%.1f" y="%.1f" text-anchor="middle" font-size="14" fill="#111">%s</text>`,
 			d.W/2, d.H+capGap*0.6, esc(cap))
 	}
-	b.WriteString(`</svg>`)
-	return b.String()
 }
 
 func renderShape(b *strings.Builder, s diagram.Shape) {

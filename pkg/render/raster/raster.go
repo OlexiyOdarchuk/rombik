@@ -6,7 +6,10 @@ package raster
 import (
 	"bytes"
 	_ "embed"
+	"image"
 	"image/color"
+	"image/draw"
+	"image/png"
 	"math"
 
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
@@ -55,6 +58,51 @@ func PNG(d *diagram.Diagram, scale float64) ([]byte, error) {
 	}
 	var buf bytes.Buffer
 	if err := c.Write(&buf, renderers.PNG(canvas.DPI(72*scale))); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// PNGAll складає всі схеми в ОДИН PNG (вертикально, по центру, із проміжком).
+func PNGAll(ds []*diagram.Diagram, scale float64) ([]byte, error) {
+	if len(ds) <= 1 {
+		if len(ds) == 0 {
+			return PNG(&diagram.Diagram{W: 100, H: 100}, scale)
+		}
+		return PNG(ds[0], scale)
+	}
+	imgs := make([]image.Image, len(ds))
+	gap := int(44 * scale)
+	maxW, totalH := 0, 0
+	for i, d := range ds {
+		b, err := PNG(d, scale)
+		if err != nil {
+			return nil, err
+		}
+		im, err := png.Decode(bytes.NewReader(b))
+		if err != nil {
+			return nil, err
+		}
+		imgs[i] = im
+		if w := im.Bounds().Dx(); w > maxW {
+			maxW = w
+		}
+		totalH += im.Bounds().Dy()
+		if i > 0 {
+			totalH += gap
+		}
+	}
+	out := image.NewRGBA(image.Rect(0, 0, maxW, totalH))
+	draw.Draw(out, out.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+	y := 0
+	for _, im := range imgs {
+		dx := (maxW - im.Bounds().Dx()) / 2 // центруємо
+		r := image.Rect(dx, y, dx+im.Bounds().Dx(), y+im.Bounds().Dy())
+		draw.Draw(out, r, im, im.Bounds().Min, draw.Over)
+		y += im.Bounds().Dy() + gap
+	}
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, out); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
