@@ -34,8 +34,11 @@ func main() {
 	callPlain := flag.Bool("calls-plain", false, "виклики підпрограм — звичайним прямокутником (не ДСТУ-символом)")
 	singleEnd := flag.Bool("single-end", false, "один спільний Кінець (інакше — на кожен return/raise)")
 	scale := flag.Float64("scale", 2, "масштаб для PNG (роздільність)")
+	caption := flag.String("caption", "", "підпис схеми (інакше — ім'я функції; «-» — без підпису)")
+	figNum := flag.Int("fignum", 0, "номер «Рисунок N» (0 — за порядком функцій)")
+	figWord := flag.String("figword", "", "слово підпису: Рисунок (замовч.), Рис. тощо")
 	flag.Parse()
-	opts := rombik.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd}
+	opts := rombik.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd, CapWord: *figWord}
 
 	var funcs []rombik.Result
 	if *pyFile == "" {
@@ -57,6 +60,20 @@ func main() {
 		if len(funcs) == 0 {
 			fmt.Fprintf(os.Stderr, "функцію %q не знайдено\n", *fnName)
 			os.Exit(1)
+		}
+	}
+
+	// Перекриття підпису з CLI: «-» вимикає, інакше задає текст; -fignum задає
+	// стартовий номер (далі по порядку).
+	for i, f := range funcs {
+		switch {
+		case *caption == "-":
+			f.Diagram.Caption = ""
+		case *caption != "":
+			f.Diagram.Caption = *caption
+		}
+		if *figNum > 0 {
+			f.Diagram.FigNum = *figNum + i
 		}
 	}
 

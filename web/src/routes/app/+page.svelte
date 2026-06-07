@@ -1,5 +1,5 @@
 <script>
-	import { generate, warmup } from '$lib/engine.js';
+	import { generate, warmup, renderCaption, typstToPdf } from '$lib/engine.js';
 	import CodeEditor from '$lib/CodeEditor.svelte';
 	import { onMount } from 'svelte';
 
@@ -30,7 +30,9 @@
 		stripTypes: false,
 		returnAsIO: false,
 		branch: 'так', // так | yes | pm
-		io: 'short' // short | verbose | imperative
+		io: 'short', // short | verbose | imperative
+		showCaption: true, // підпис «Рисунок N — …» під схемою
+		capWord: 'Рисунок' // слово підпису (Рисунок / Рис. / своє)
 	});
 	const BRANCH = { так: ['Так', 'Ні'], yes: ['Yes', 'No'], pm: ['+', '−'] };
 	const IO = { short: ['Ввід', 'Вивід'], verbose: ['Введення', 'Виведення'], imperative: ['Ввести', 'Вивести'] };
@@ -46,11 +48,32 @@
 			yes,
 			no,
 			inWord,
-			outWord
+			outWord,
+			capWord: s.capWord
 		};
 	}
 	// Перебудувати при зміні налаштування, якщо схеми вже є.
 	const reapply = () => funcs.length && build();
+
+	// Опції підпису для однієї схеми (з урахуванням глобального перемикача).
+	const capOpts = (f) => ({
+		caption: s.showCaption ? (f.caption ?? '') : '',
+		figNum: Number(f.figNum) || 0,
+		capWord: s.capWord
+	});
+
+	// Дешевий ре-рендер підпису однієї схеми / усіх (без розбору коду).
+	function reCaption(f) {
+		const out = renderCaption(f.diagram, capOpts(f));
+		if (out.error) {
+			errored = true;
+			status = out.error;
+			return;
+		}
+		f.svg = out.svg;
+		f.typst = out.typst;
+	}
+	const reCaptionAll = () => funcs.forEach(reCaption);
 
 	// Прогріваємо середовище заздалегідь (вантажиться Pyodide ~6 МБ).
 	onMount(() => {
@@ -91,6 +114,21 @@
 
 	function exportTypst(f) {
 		download(`${f.name}.typ`, f.typst, 'text/plain');
+	}
+
+	async function exportPdf(f) {
+		busy = true;
+		errored = false;
+		try {
+			const pdf = await typstToPdf(f.typst, (st) => (status = st));
+			download(`${f.name}.pdf`, pdf, 'application/pdf');
+			status = 'PDF готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'PDF не вдався: ' + (e?.message ?? e);
+		} finally {
+			busy = false;
+		}
 	}
 
 	function exportSvg(f) {
@@ -187,6 +225,24 @@
 							</select>
 						</label>
 					</div>
+					<div class="space-y-2.5 border-t border-slate-100 pt-3">
+						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Підпис схеми</p>
+						<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
+							<input type="checkbox" bind:checked={s.showCaption} onchange={() => funcs.length && reCaptionAll()} class="rounded border-slate-300" />
+							Показувати підпис «Рисунок N»
+						</label>
+						<label class="flex items-center justify-between gap-2 text-sm text-slate-700">
+							Слово підпису
+							<input
+								type="text"
+								bind:value={s.capWord}
+								oninput={() => funcs.length && reCaptionAll()}
+								placeholder="Рисунок"
+								class="w-28 rounded-md border-slate-300 py-1 text-sm"
+							/>
+						</label>
+						<p class="text-xs text-slate-400">Напр. «Рисунок», «Рис.», «Figure». Номер і текст — під кожною схемою.</p>
+					</div>
 				</div>
 			{/if}
 		</div>
@@ -217,28 +273,34 @@
 				{#if funcs.length}
 					{#each funcs as f (f.name)}
 						<div class="rounded-lg border border-slate-200 bg-white shadow-sm">
-							<div class="flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2">
-								<span class="truncate font-mono text-sm font-semibold text-slate-700">{f.name}</span>
+							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2">
+								<span class="font-mono text-xs text-slate-400">{f.name}</span>
 								<div class="flex shrink-0 gap-1">
-									<button
-										onclick={() => exportSvg(f)}
-										class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
-									>
-										SVG
-									</button>
-									<button
-										onclick={() => exportPng(f)}
-										class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
-									>
-										PNG
-									</button>
-									<button
-										onclick={() => exportTypst(f)}
-										class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
-									>
-										Typst
-									</button>
+									<button onclick={() => exportSvg(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">SVG</button>
+									<button onclick={() => exportPng(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">PNG</button>
+									<button onclick={() => exportTypst(f)} class="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100">Typst</button>
+									<button onclick={() => exportPdf(f)} disabled={busy} class="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50">PDF</button>
 								</div>
+								{#if s.showCaption}
+									<div class="flex w-full items-center gap-1.5">
+										<span class="shrink-0 text-xs text-slate-500">{s.capWord || 'Рисунок'}</span>
+										<input
+											type="number"
+											min="0"
+											bind:value={f.figNum}
+											oninput={() => reCaption(f)}
+											class="w-14 rounded-md border-slate-300 px-1.5 py-1 text-xs"
+										/>
+										<span class="shrink-0 text-xs text-slate-400">—</span>
+										<input
+											type="text"
+											bind:value={f.caption}
+											oninput={() => reCaption(f)}
+											placeholder="підпис схеми"
+											class="min-w-0 flex-1 rounded-md border-slate-300 px-2 py-1 text-xs"
+										/>
+									</div>
+								{/if}
 							</div>
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							<div class="schema grid place-items-center overflow-auto p-3">{@html f.svg}</div>

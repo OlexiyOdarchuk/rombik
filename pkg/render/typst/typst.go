@@ -21,7 +21,7 @@ func Render(d *diagram.Diagram) string {
 	b.WriteString("#set figure.caption(separator: [ — ])\n") // ДСТУ: «Рисунок N — назва»
 	// Зручний помічник: підпис «Рисунок N» з авто-нумерацією (kind: flowchart).
 	b.WriteString(`#let flowchart(body, caption: none) = figure(` + "\n" +
-		"  body, caption: caption, supplement: [" + diagram.CaptionWord + `], kind: "flowchart", numbering: "1",` + "\n)\n")
+		"  body, caption: caption, supplement: [" + d.CapSupplement() + `], kind: "flowchart", numbering: "1",` + "\n)\n")
 
 	canvas := renderCanvas(d)
 	if d.Caption != "" {

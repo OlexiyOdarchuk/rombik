@@ -71,6 +71,8 @@ type Options struct {
 	StripTypes bool `json:"stripTypes"`
 	// ReturnAsIO: return малювати паралелограмом (інакше — прямокутником).
 	ReturnAsIO bool `json:"returnAsIO"`
+	// CapWord: слово підпису схеми («Рисунок»/«Рис.»/своє; порожнє — «Рисунок»).
+	CapWord string `json:"capWord"`
 }
 
 // build несе стан розкладки: полотно, точки до єдиного Кінця, стек збирачів

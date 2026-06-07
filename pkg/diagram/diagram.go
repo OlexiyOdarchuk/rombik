@@ -67,7 +67,8 @@ type Edge struct {
 //
 // Caption — підпис схеми (за замовч. ім'я функції; редагований). FigNum — номер
 // «Рисунок N» для растрових форматів (SVG/PNG), де нема авто-нумерації; у Typst
-// нумерує сам figure. Порожній Caption — без підпису.
+// нумерує сам figure. CapWord — слово-supplement («Рисунок»/«Рис.»/своє); порожнє
+// = ДСТУ-замовч. Порожній Caption — без підпису.
 type Diagram struct {
 	Shapes  []Shape `json:"shapes"`
 	Edges   []Edge  `json:"edges"`
@@ -75,10 +76,19 @@ type Diagram struct {
 	H       float64 `json:"h"`
 	Caption string  `json:"caption,omitempty"`
 	FigNum  int     `json:"figNum,omitempty"`
+	CapWord string  `json:"capWord,omitempty"`
 }
 
-// CaptionWord — слово-supplement підпису (ДСТУ: «Рисунок»).
+// CaptionWord — слово-supplement підпису за замовчуванням (ДСТУ: «Рисунок»).
 const CaptionWord = "Рисунок"
+
+// CapSupplement — слово підпису (своє або ДСТУ-замовч.).
+func (d *Diagram) CapSupplement() string {
+	if d.CapWord != "" {
+		return d.CapWord
+	}
+	return CaptionWord
+}
 
 // CaptionLine — повний рядок підпису для растрових форматів: «Рисунок N — текст»
 // (або просто текст, якщо номера нема). Порожньо, якщо підпису нема.
@@ -87,7 +97,7 @@ func (d *Diagram) CaptionLine() string {
 		return ""
 	}
 	if d.FigNum > 0 {
-		return CaptionWord + " " + strconv.Itoa(d.FigNum) + " — " + d.Caption
+		return d.CapSupplement() + " " + strconv.Itoa(d.FigNum) + " — " + d.Caption
 	}
 	return d.Caption
 }

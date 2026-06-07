@@ -56,8 +56,9 @@ func generate(_ js.Value, args []js.Value) any {
 	return result(map[string]any{"functions": res})
 }
 
-// renderOne(diagramJSON, caption?, figNum?) -> {svg, typst}. Дешевий ре-рендер
-// після редагування підпису у фронті — без повторного розбору коду.
+// renderOne(diagramJSON, captionJSON?) -> {svg, typst}. Дешевий ре-рендер після
+// редагування підпису у фронті — без повторного розбору коду. captionJSON =
+// {"caption":..,"figNum":..,"capWord":..} перекриває відповідні поля схеми.
 func renderOne(_ js.Value, args []js.Value) any {
 	if len(args) == 0 {
 		return result(map[string]any{"error": "немає diagram-JSON"})
@@ -67,10 +68,21 @@ func renderOne(_ js.Value, args []js.Value) any {
 		return result(map[string]any{"error": "розбір diagram: " + err.Error()})
 	}
 	if len(args) > 1 && !args[1].IsUndefined() && !args[1].IsNull() {
-		d.Caption = args[1].String()
-	}
-	if len(args) > 2 && !args[2].IsUndefined() && !args[2].IsNull() {
-		d.FigNum = args[2].Int()
+		var cap struct {
+			Caption *string `json:"caption"`
+			FigNum  *int    `json:"figNum"`
+			CapWord *string `json:"capWord"`
+		}
+		_ = json.Unmarshal([]byte(args[1].String()), &cap)
+		if cap.Caption != nil {
+			d.Caption = *cap.Caption
+		}
+		if cap.FigNum != nil {
+			d.FigNum = *cap.FigNum
+		}
+		if cap.CapWord != nil {
+			d.CapWord = *cap.CapWord
+		}
 	}
 	return result(map[string]any{"svg": svg.Render(&d), "typst": typst.Render(&d)})
 }

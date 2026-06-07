@@ -63,6 +63,47 @@ export async function generate(code, options = {}, onProgress) {
 	}
 }
 
+/**
+ * Дешевий ре-рендер однієї схеми після зміни підпису (без розбору коду).
+ * cap = { caption, figNum, capWord }. Повертає { svg, typst } або { error }.
+ */
+export function renderCaption(diagram, cap) {
+	try {
+		return JSON.parse(globalThis.rombikRenderOne(JSON.stringify(diagram), JSON.stringify(cap)));
+	} catch (e) {
+		return { error: 'ре-рендер: ' + (e?.message ?? e) };
+	}
+}
+
+// --- Typst → PDF у браузері (typst.ts) ---
+// Компілятор важкий (~10 МБ wasm), тож вантажимо ЛИШЕ на першу вимогу PDF.
+const TYPST_VER = '0.7.0';
+const TYPST_CDN = (pkg, file) => `https://cdn.jsdelivr.net/npm/@myriaddreamin/${pkg}@${TYPST_VER}/pkg/${file}`;
+let typstPromise = null;
+
+async function getTypst() {
+	if (!typstPromise)
+		typstPromise = (async () => {
+			const { $typst } = await import('@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs');
+			$typst.setCompilerInitOptions({
+				getModule: () => TYPST_CDN('typst-ts-web-compiler', 'typst_ts_web_compiler_bg.wasm')
+			});
+			$typst.setRendererInitOptions({
+				getModule: () => TYPST_CDN('typst-ts-renderer', 'typst_ts_renderer_bg.wasm')
+			});
+			return $typst;
+		})();
+	return typstPromise;
+}
+
+/** Компілює Typst-код у PDF (Uint8Array). Потребує мережі (cetz-пакет + wasm). */
+export async function typstToPdf(code, onProgress) {
+	onProgress?.('Завантаження Typst-компілятора…');
+	const $typst = await getTypst();
+	onProgress?.('Компіляція PDF…');
+	return await $typst.pdf({ mainContent: code });
+}
+
 // Витягуємо людську суть із трейсбеку Python (останній рядок — «SyntaxError: …»).
 function cleanPyError(msg) {
 	const lines = msg.trim().split('\n').filter(Boolean);
