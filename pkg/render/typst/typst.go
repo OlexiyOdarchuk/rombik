@@ -15,26 +15,52 @@ import (
 // figure. Береш цей код і одразу компілюєш у тісний PDF.
 func Render(d *diagram.Diagram) string {
 	var b strings.Builder
+	preamble(&b, d)
+	figure(&b, d)
+	return b.String()
+}
+
+// RenderAll повертає ОДИН Typst-документ з усіма схемами (кожна — окрема
+// сторінка авто-розміру, figure з авто-нумерацією «Рисунок 1, 2, …»). Слово й
+// роздільник підпису беремо з першої схеми (вони глобальні).
+func RenderAll(ds []*diagram.Diagram) string {
+	if len(ds) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	preamble(&b, ds[0])
+	for i, d := range ds {
+		if i > 0 {
+			b.WriteString("#pagebreak()\n")
+		}
+		figure(&b, d)
+	}
+	return b.String()
+}
+
+// preamble — шапка документа: import, авто-сторінка, шрифт, помічник #flowchart.
+func preamble(b *strings.Builder, d *diagram.Diagram) {
 	b.WriteString(`#import "@preview/cetz:0.3.4"` + "\n")
 	b.WriteString("#set page(width: auto, height: auto, margin: 14pt)\n")
 	b.WriteString("#set text(" + font + ")\n")
-	fmt.Fprintf(&b, "#set figure.caption(separator: [%s])\n", d.CapSeparator()) // напр. « — »
-	// Зручний помічник: підпис «Рисунок N» з авто-нумерацією (kind: flowchart).
+	fmt.Fprintf(b, "#set figure.caption(separator: [%s])\n", d.CapSeparator()) // напр. « — »
 	supplement := "[" + d.CapSupplement() + "]"
 	if !d.CapHasWord() { // шаблон без {word} — без слова-supplement
 		supplement = "none"
 	}
 	b.WriteString(`#let flowchart(body, caption: none) = figure(` + "\n" +
 		"  body, caption: caption, supplement: " + supplement + `, kind: "flowchart", numbering: "1",` + "\n)\n")
+}
 
+// figure — одна схема: cetz.canvas, за потреби загорнутий у #flowchart-підпис.
+func figure(b *strings.Builder, d *diagram.Diagram) {
 	canvas := renderCanvas(d)
 	if d.Caption != "" {
 		// #%q — рядкова форма, щоб спецсимволи Typst у підписі не ламали документ.
-		fmt.Fprintf(&b, "#flowchart(caption: [#%q])[\n%s]\n", d.Caption, canvas)
+		fmt.Fprintf(b, "#flowchart(caption: [#%q])[\n%s]\n", d.Caption, canvas)
 	} else {
 		b.WriteString(canvas)
 	}
-	return b.String()
 }
 
 // renderCanvas — сам блок cetz.canvas зі схемою (без сторінки/підпису).

@@ -87,6 +87,19 @@ func renderOne(_ js.Value, args []js.Value) any {
 	return result(map[string]any{"svg": svg.Render(&d), "typst": typst.Render(&d)})
 }
 
+// typstAll(diagramsJSON) -> {typst} — один Typst-документ з усіх схем (масив
+// diagram із уже виставленими полями підпису). Для «експортувати все».
+func typstAll(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return result(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var ds []*diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &ds); err != nil {
+		return result(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	return result(map[string]any{"typst": typst.RenderAll(ds)})
+}
+
 func result(v any) string {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -98,5 +111,6 @@ func result(v any) string {
 func main() {
 	js.Global().Set("rombikGenerate", js.FuncOf(generate))
 	js.Global().Set("rombikRenderOne", js.FuncOf(renderOne))
+	js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))
 	select {} // тримаємо модуль живим
 }

@@ -81,6 +81,22 @@ func pdf(_ js.Value, args []js.Value) any {
 	return out(map[string]any{"pdf": base64.StdEncoding.EncodeToString(b)})
 }
 
+// pdfAll(diagramsJSON) -> {pdf: base64} — один багатосторінковий PDF з усіх схем.
+func pdfAll(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return out(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var ds []*diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &ds); err != nil {
+		return out(map[string]any{"error": "розбір: " + err.Error()})
+	}
+	b, err := raster.PDFAll(ds)
+	if err != nil {
+		return out(map[string]any{"error": "pdf: " + err.Error()})
+	}
+	return out(map[string]any{"pdf": base64.StdEncoding.EncodeToString(b)})
+}
+
 func out(v any) string {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -92,5 +108,6 @@ func out(v any) string {
 func main() {
 	js.Global().Set("rombikPng", js.FuncOf(png))
 	js.Global().Set("rombikPdf", js.FuncOf(pdf))
+	js.Global().Set("rombikPdfAll", js.FuncOf(pdfAll))
 	select {}
 }

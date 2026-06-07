@@ -1,5 +1,13 @@
 <script>
-	import { generate, warmup, renderCaption, renderPdf, renderPng } from '$lib/engine.js';
+	import {
+		generate,
+		warmup,
+		renderCaption,
+		renderPdf,
+		renderPng,
+		renderTypstAll,
+		renderPdfAll
+	} from '$lib/engine.js';
 	import CodeEditor from '$lib/CodeEditor.svelte';
 	import { onMount } from 'svelte';
 
@@ -33,6 +41,8 @@
 		io: 'short', // short | verbose | imperative
 		showCaption: true, // підпис «Рисунок N — …» під схемою
 		capWord: 'Рисунок', // слово підпису (Рисунок / Рис. / своє)
+		capFormat: '{word} {num} — {text}', // шаблон підпису
+		figStart: 1, // з якого номера нумерувати схеми
 		pngScale: 3 // якість PNG (пікселів на одиницю)
 	});
 	const BRANCH = { так: ['Так', 'Ні'], yes: ['Yes', 'No'], pm: ['+', '−'] };
@@ -60,8 +70,18 @@
 	const capOpts = (f) => ({
 		caption: s.showCaption ? (f.caption ?? '') : '',
 		figNum: Number(f.figNum) || 0,
-		capWord: s.capWord
+		capWord: s.capWord,
+		capFormat: s.capFormat
 	});
+
+	// Масив діаграм із УЖЕ виставленими полями підпису — для «експортувати все».
+	const exportDiagrams = () => funcs.map((f) => ({ ...f.diagram, ...capOpts(f) }));
+
+	// Перенумерувати схеми з глобального старту (s.figStart, далі по порядку).
+	function renumber() {
+		funcs.forEach((f, i) => (f.figNum = s.figStart + i));
+		reCaptionAll();
+	}
 
 	// Дешевий ре-рендер підпису однієї схеми / усіх (без розбору коду).
 	function reCaption(f) {
@@ -105,6 +125,7 @@
 				return;
 			}
 			funcs = res.functions ?? [];
+			if (funcs.length && s.figStart !== 1) renumber(); // глобальний старт нумерації
 			status = funcs.length ? `Готово: ${funcs.length} схем.` : 'Порожньо: нема що малювати.';
 		} catch (e) {
 			errored = true;
@@ -125,6 +146,32 @@
 
 	function exportTypst(f) {
 		download(`${f.name}.typ`, f.typst, 'text/plain');
+	}
+
+	// --- Експорт УСІХ схем одним документом ---
+	function exportAllTypst() {
+		try {
+			download('схеми.typ', renderTypstAll(exportDiagrams()), 'text/plain');
+			status = 'Typst (усі схеми) готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'Typst: ' + (e?.message ?? e);
+		}
+	}
+
+	async function exportAllPdf() {
+		busy = true;
+		errored = false;
+		try {
+			const pdf = await renderPdfAll(exportDiagrams(), (st) => (status = st));
+			download('схеми.pdf', pdf, 'application/pdf');
+			status = 'PDF (усі схеми) готовий.';
+		} catch (e) {
+			errored = true;
+			status = 'PDF: ' + (e?.message ?? e);
+		} finally {
+			busy = false;
+		}
 	}
 
 	async function exportPdf(f) {
@@ -238,6 +285,27 @@
 							/>
 						</label>
 						<p class="text-xs text-slate-400">Напр. «Рисунок», «Рис.», «Figure». Номер і текст — під кожною схемою.</p>
+						<label class="flex items-center justify-between gap-2 text-sm text-slate-700 dark:text-slate-300">
+							Шаблон
+							<input
+								type="text"
+								bind:value={s.capFormat}
+								oninput={() => funcs.length && reCaptionAll()}
+								placeholder="{'{word} {num} — {text}'}"
+								class="w-40 rounded-md border-slate-300 py-1 font-mono text-xs dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+							/>
+						</label>
+						<p class="text-xs text-slate-400">Плейсхолдери: <code>{'{word}'}</code> <code>{'{num}'}</code> <code>{'{text}'}</code>. Напр. <code>{'{num}. {text}'}</code>.</p>
+						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+							Нумерувати з
+							<input
+								type="number"
+								min="1"
+								bind:value={s.figStart}
+								oninput={() => funcs.length && renumber()}
+								class="w-20 rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+							/>
+						</label>
 						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
 							Якість PNG
 							<select bind:value={s.pngScale} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
@@ -252,7 +320,23 @@
 		</div>
 
 		{#if funcs.length}
-			<span class="ml-auto text-sm text-slate-500 dark:text-slate-400">{funcs.length} схем</span>
+			<div class="ml-auto flex items-center gap-2">
+				<span class="text-sm text-slate-500 dark:text-slate-400">{funcs.length} схем</span>
+				<span class="text-xs text-slate-400">Усі →</span>
+				<button
+					onclick={exportAllPdf}
+					disabled={busy}
+					class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
+				>
+					PDF
+				</button>
+				<button
+					onclick={exportAllTypst}
+					class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+				>
+					Typst
+				</button>
+			</div>
 		{/if}
 	</div>
 

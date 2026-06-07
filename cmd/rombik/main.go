@@ -37,6 +37,7 @@ func main() {
 	caption := flag.String("caption", "", "підпис схеми (інакше — ім'я функції; «-» — без підпису)")
 	figNum := flag.Int("fignum", 0, "номер «Рисунок N» (0 — за порядком функцій)")
 	figWord := flag.String("figword", "", "слово підпису: Рисунок (замовч.), Рис. тощо")
+	figFmt := flag.String("capformat", "", "шаблон підпису, напр. «{num}. {text}» (замовч. «{word} {num} — {text}»)")
 	flag.Parse()
 	opts := rombik.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd, CapWord: *figWord}
 
@@ -75,6 +76,7 @@ func main() {
 		if *figNum > 0 {
 			f.Diagram.FigNum = *figNum + i
 		}
+		f.Diagram.CapFormat = *figFmt
 	}
 
 	// Одна схема → точно в -o; кілька → <основа>_<функція>.<ext>.
@@ -83,9 +85,33 @@ func main() {
 		return
 	}
 	base, ext := splitExt(*outFile)
+	// .typ/.pdf для кількох функцій → ОДИН документ з усіма схемами.
+	if low := strings.ToLower(ext); low == ".typ" || low == ".pdf" {
+		writeCombined(funcs, *outFile, low)
+		return
+	}
 	for _, f := range funcs {
 		write(f.Diagram, fmt.Sprintf("%s_%s%s", base, f.Name, ext), *scale)
 	}
+}
+
+// writeCombined зводить усі схеми в один .typ або .pdf документ.
+func writeCombined(funcs []rombik.Result, out, ext string) {
+	ds := make([]*diagram.Diagram, len(funcs))
+	for i, f := range funcs {
+		ds[i] = f.Diagram
+	}
+	if ext == ".typ" {
+		writeFile(out, []byte(typst.RenderAll(ds)))
+	} else {
+		b, err := raster.PDFAll(ds)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "pdf:", err)
+			os.Exit(1)
+		}
+		writeFile(out, b)
+	}
+	fmt.Printf("Готово: %s (%d схем одним документом)\n", out, len(funcs))
 }
 
 // write серіалізує діаграму у файл за розширенням: .json → дані, .png/.pdf →

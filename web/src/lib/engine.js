@@ -116,6 +116,21 @@ export async function renderPng(diagram, cap, scale, onProgress) {
 	return b64ToBytes(res.png);
 }
 
+/** Один Typst-документ з УСІХ схем (diagrams — масив із виставленими підписами). */
+export function renderTypstAll(diagrams) {
+	const res = JSON.parse(globalThis.rombikTypstAll(JSON.stringify(diagrams)));
+	if (res.error) throw new Error(res.error);
+	return res.typst;
+}
+
+/** Один багатосторінковий PDF з УСІХ схем (Uint8Array). */
+export async function renderPdfAll(diagrams, onProgress) {
+	await loadRaster(onProgress);
+	const res = JSON.parse(globalThis.rombikPdfAll(JSON.stringify(diagrams)));
+	if (res.error) throw new Error(res.error);
+	return b64ToBytes(res.pdf);
+}
+
 // Витягуємо людську суть із трейсбеку Python (останній рядок — «SyntaxError: …»).
 function cleanPyError(msg) {
 	const lines = msg.trim().split('\n').filter(Boolean);

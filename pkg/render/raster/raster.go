@@ -12,6 +12,7 @@ import (
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers"
+	pdfrender "github.com/tdewolff/canvas/renderers/pdf"
 )
 
 //go:embed font.ttf
@@ -67,6 +68,32 @@ func PDF(d *diagram.Diagram) ([]byte, error) {
 	}
 	var buf bytes.Buffer
 	if err := c.Write(&buf, renderers.PDF()); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// PDFAll малює всі схеми в ОДИН багатосторінковий PDF (кожна — окрема сторінка
+// свого розміру). Для експорту цілого звіту одним файлом.
+func PDFAll(ds []*diagram.Diagram) ([]byte, error) {
+	if len(ds) == 0 {
+		return PDF(&diagram.Diagram{W: 100, H: 100})
+	}
+	var buf bytes.Buffer
+	var doc *pdfrender.PDF
+	for i, d := range ds {
+		c, err := build(d)
+		if err != nil {
+			return nil, err
+		}
+		if i == 0 {
+			doc = pdfrender.New(&buf, c.W, c.H, nil) // перша сторінка
+		} else {
+			doc.NewPage(c.W, c.H) // наступна
+		}
+		c.RenderTo(doc)
+	}
+	if err := doc.Close(); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
