@@ -84,11 +84,16 @@ def funcblock(fn):
 | `for i in range(a,b,c)` | `for` | `forspec`: «i = a, b-1, c»; кінець = `stop-1` (range напіввідкритий) |
 | `while True: … if C: break` (останнім) | `dowhile` | післяумова; `Cond` = умова break |
 | `while True:` (break десь усередині) | `infloop` | без ромба-умови |
-| `while C:` | `while` | передумова |
+| `while C:` / `for …:` | `while`/`for` | + поле `else` (гілка `for/else`, `while/else`) |
+| `continue` | `continue` | стрибок на заголовок циклу (без фігури) |
+| `match/case` | `if` (ланцюг) | 3.10+; патерни value/singleton/or/as → умови `if` |
 | `return v` / `raise e` / `exit()` | `terminal` | «Повернути v» / «Помилка: e» / «Вихід» |
 | `x = моя_функція()` | `call` | лише якщо `моя_функція in defined` |
 | `with ... :` | `block` | «відкрити: …» + тіло |
 | `try/except` | `block` | прозоро: тіло `try+else`, обробку винятків опускаємо |
+
+> **Нове:** `continue`, `for/else`, `while/else`, `match` (як `if`-ланцюг). Повна
+> таблиця й нюанси — [[Підтримувані-конструкції-Python]].
 
 ### Дрібниці форматування
 
