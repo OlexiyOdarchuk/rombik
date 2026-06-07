@@ -110,3 +110,50 @@ func TestStripTypes(t *testing.T) {
 		t.Errorf("тип-анотацію не знято: %+v", d.Shapes)
 	}
 }
+
+// TestNilBlocksNoPanic — ручний IR із nil-блоками (Else/Body) не має падати.
+func TestNilBlocksNoPanic(t *testing.T) {
+	cases := []*ir.Block{
+		ir.NewBlock(&ir.If{Cond: "x > 0", Then: ir.NewBlock(&ir.Process{Text: "a"})}), // Else nil
+		ir.NewBlock(&ir.If{Cond: "x > 0"}),                                            // обидві гілки nil
+		ir.NewBlock(&ir.For{Spec: "i"}),                                               // Body і Else nil
+		ir.NewBlock(&ir.While{Cond: "c"}),                                             // Body і Else nil
+	}
+	for i, prog := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("кейс %d: паніка на nil-блоці: %v", i, r)
+				}
+			}()
+			Build(prog, Options{})
+		}()
+	}
+}
+
+// TestContinueNoShape — continue не має давати фігуру (це стрибок, а не блок).
+func TestContinueNoShape(t *testing.T) {
+	body := ir.NewBlock(
+		&ir.If{Cond: "x < 0", Then: ir.NewBlock(&ir.Continue{}), Else: ir.NewBlock()},
+		&ir.Process{Text: "p"},
+	)
+	d := Build(ir.NewBlock(&ir.For{Spec: "x", Body: body}), Options{})
+	if countText(d, "continue") != 0 {
+		t.Error("continue не має бути намальований фігурою")
+	}
+	if countKind(d, diagram.Decision) != 1 {
+		t.Error("умова continue має бути ромбом")
+	}
+}
+
+// TestLoopElse — гілка for/else має малюватись після виходу з циклу.
+func TestLoopElse(t *testing.T) {
+	prog := ir.NewBlock(&ir.For{
+		Spec: "x", Body: ir.NewBlock(&ir.Process{Text: "a"}),
+		Else: ir.NewBlock(&ir.Process{Text: "кінець-циклу"}),
+	})
+	d := Build(prog, Options{})
+	if countText(d, "кінець-циклу") != 1 {
+		t.Error("гілку else циклу не намальовано")
+	}
+}

@@ -70,11 +70,57 @@ def break_if(st):
     # «if COND: break» без else і єдиним break у тілі
     return (isinstance(st, ast.If) and not st.orelse
             and len(st.body)==1 and isinstance(st.body[0], ast.Break))
+def match_cond(subj, pat):
+    # умова-текст для патерна match; "" -> завжди істина (wildcard/capture)
+    if isinstance(pat, ast.MatchValue):
+        return subj+" == "+expr(pat.value)
+    if isinstance(pat, ast.MatchSingleton):
+        return subj+" is "+repr(pat.value)
+    if isinstance(pat, ast.MatchOr):
+        parts = [match_cond(subj, p) for p in pat.patterns]
+        return "" if "" in parts else " or ".join(parts)
+    if isinstance(pat, ast.MatchAs):
+        return "" if pat.pattern is None else match_cond(subj, pat.pattern)
+    try: return subj+" ~ "+ast.unparse(pat)        # складні патерни — текстом
+    except Exception: return subj+" ~ ?"
+def lower_match(m):
+    # match/case -> ланцюг if/elif (кожен кейс — ромб; case _ -> else)
+    subj = expr(m.subject)
+    def build(i):
+        if i >= len(m.cases):
+            return {"kind":"block","stmts":[]}
+        c = m.cases[i]
+        cond = match_cond(subj, c.pattern)
+        if c.guard is not None:
+            cond = (cond+" and "+expr(c.guard)) if cond else expr(c.guard)
+        if cond == "":                              # завжди-істинний — решта недосяжна
+            return block(c.body)
+        return {"kind":"block","stmts":[{"kind":"if","cond":oneline(cond),
+                "then":block(c.body),"else":build(i+1)}]}
+    return build(0)
+def lower_try(t):
+    # try/except/finally -> тіло + ланцюг if «Виняток <Тип>?» (обробники) + finally.
+    # Чесно показуємо обробку винятків, а не мовчки її викидаємо.
+    out = block(t.body)["stmts"]
+    if t.handlers:
+        def build(i):
+            if i >= len(t.handlers):
+                return {"kind":"block","stmts":[]}
+            h = t.handlers[i]
+            typ = (" "+expr(h.type)) if h.type else ""
+            return {"kind":"block","stmts":[{"kind":"if","cond":oneline("Виняток"+typ+"?"),
+                    "then":block(h.body),"else":build(i+1)}]}
+        out += build(0)["stmts"]
+    out += block(t.orelse)["stmts"]                 # try/else: шлях без винятку
+    out += block(t.finalbody)["stmts"]              # finally: завжди наприкінці
+    return {"kind":"block","stmts":out}
 def stmt(s):
     if isinstance(s, ast.If):
         return {"kind":"if","cond":expr(s.test),"then":block(s.body),"else":block(s.orelse)}
     if isinstance(s, ast.Break):
         return {"kind":"break"}
+    if isinstance(s, ast.Continue):
+        return {"kind":"continue"}
     if isinstance(s, ast.While):
         # ідіома післяумови: while True: … if COND: break
         if is_true(s.test) and s.body and break_if(s.body[-1]):
@@ -82,9 +128,11 @@ def stmt(s):
         # while True з break десь усередині — нескінченний цикл (без ромба)
         if is_true(s.test):
             return {"kind":"infloop","body":block(s.body)}
-        return {"kind":"while","cond":expr(s.test),"body":block(s.body)}
+        return {"kind":"while","cond":expr(s.test),"body":block(s.body),"else":block(s.orelse)}
     if isinstance(s, ast.For):
-        return {"kind":"for","cond":forspec(s),"body":block(s.body)}
+        return {"kind":"for","cond":forspec(s),"body":block(s.body),"else":block(s.orelse)}
+    if getattr(ast, "Match", None) and isinstance(s, ast.Match):  # 3.10+
+        return lower_match(s)
     if isinstance(s, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
         if isinstance(s, ast.Assign) and has_input(s.value):
             return io("Ввід "+", ".join(expr(t) for t in s.targets))
@@ -106,9 +154,8 @@ def stmt(s):
     if isinstance(s, ast.With):  # контекст-менеджер: заголовок + тіло
         items = ", ".join((expr(i.context_expr)+(" → "+expr(i.optional_vars) if i.optional_vars else "")) for i in s.items)
         return {"kind":"block","stmts":[{"kind":"process","text":oneline("відкрити: "+items)}]+[stmt(x) for x in s.body]}
-    if isinstance(s, ast.Try):  # прозоро: тіло try+else; обробку винятків опускаємо
-        inner = [x for x in (s.body + s.orelse) if not isinstance(x, SKIP) and not is_docstring(x)]
-        return {"kind":"block","stmts":[stmt(x) for x in inner]}
+    if isinstance(s, ast.Try):
+        return lower_try(s)
     return {"kind":"process","text":expr(s)}
 SKIP = (ast.Pass, ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 def block(stmts):

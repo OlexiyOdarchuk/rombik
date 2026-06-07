@@ -39,17 +39,22 @@ func (*If) node() {}
 
 // For — цикл з лічильником (шестикутник ДСТУ «початок циклу»). Spec — підпис
 // у форматі «змінна = початок, кінець, крок» (напр. «i = 0, n-1, 1»).
+// Else — гілка for/else (виконується після НОРМАЛЬНОГО завершення, без break);
+// nil або порожній — якщо її нема.
 type For struct {
 	Spec string
 	Body *Block
+	Else *Block
 }
 
 func (*For) node() {}
 
 // While — цикл з передумовою: ромб згори, тіло, дуга повернення.
+// Else — гілка while/else (після виходу з циклу по умові, без break).
 type While struct {
 	Cond string
 	Body *Block
+	Else *Block
 }
 
 func (*While) node() {}
@@ -73,6 +78,11 @@ func (*InfLoop) node() {}
 type Break struct{}
 
 func (*Break) node() {}
+
+// Continue — стрибок на наступну ітерацію (у заголовок циклу), без фігури.
+type Continue struct{}
+
+func (*Continue) node() {}
 
 // Block — послідовність вузлів (виконуються згори вниз).
 type Block struct{ Stmts []Node }

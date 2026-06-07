@@ -16,7 +16,9 @@ import (
 //
 //	process/io/call — Text
 //	if              — Cond, Then, Else
-//	for/while/dowhile — Cond, Body
+//	for/while       — Cond, Body, Else (гілка циклу else; для for — без Cond-умови)
+//	dowhile/infloop — Cond, Body
+//	break/continue  — (без полів)
 //	block           — Stmts (вкладені block інлайняться)
 type Node struct {
 	Kind  string `json:"kind"`
@@ -81,15 +83,17 @@ func ToNode(n *Node) ir.Node {
 	case "if":
 		return &ir.If{Cond: n.Cond, Then: ToBlock(n.Then), Else: ToBlock(n.Else)}
 	case "for":
-		return &ir.For{Spec: n.Cond, Body: ToBlock(n.Body)}
+		return &ir.For{Spec: n.Cond, Body: ToBlock(n.Body), Else: ToBlock(n.Else)}
 	case "while":
-		return &ir.While{Cond: n.Cond, Body: ToBlock(n.Body)}
+		return &ir.While{Cond: n.Cond, Body: ToBlock(n.Body), Else: ToBlock(n.Else)}
 	case "dowhile":
 		return &ir.DoWhile{Cond: n.Cond, Body: ToBlock(n.Body)}
 	case "infloop":
 		return &ir.InfLoop{Body: ToBlock(n.Body)}
 	case "break":
 		return &ir.Break{}
+	case "continue":
+		return &ir.Continue{}
 	}
 	return nil
 }

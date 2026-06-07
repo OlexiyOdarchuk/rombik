@@ -79,6 +79,7 @@ type build struct {
 	d          *diagram.Diagram
 	ends       []diagram.Point
 	loopBreaks [][]diagram.Point
+	loopConts  [][]diagram.Point // точки continue поточних циклів (вкладені)
 	singleEnd  bool
 	yes, no    string
 	inWord     string
@@ -110,18 +111,28 @@ func (b *build) procText(t string) string {
 	return t
 }
 
-func (b *build) pushLoop() { b.loopBreaks = append(b.loopBreaks, nil) }
+func (b *build) pushLoop() {
+	b.loopBreaks = append(b.loopBreaks, nil)
+	b.loopConts = append(b.loopConts, nil)
+}
 
-func (b *build) popLoop() []diagram.Point {
+// popLoop знімає поточний цикл зі стеку й повертає його точки break та continue.
+func (b *build) popLoop() (brks, conts []diagram.Point) {
 	n := len(b.loopBreaks) - 1
-	pts := b.loopBreaks[n]
-	b.loopBreaks = b.loopBreaks[:n]
-	return pts
+	brks, conts = b.loopBreaks[n], b.loopConts[n]
+	b.loopBreaks, b.loopConts = b.loopBreaks[:n], b.loopConts[:n]
+	return
 }
 
 func (b *build) recordBreak(p diagram.Point) {
 	if n := len(b.loopBreaks); n > 0 {
 		b.loopBreaks[n-1] = append(b.loopBreaks[n-1], p)
+	}
+}
+
+func (b *build) recordContinue(p diagram.Point) {
+	if n := len(b.loopConts); n > 0 {
+		b.loopConts[n-1] = append(b.loopConts[n-1], p)
 	}
 }
 
@@ -137,8 +148,17 @@ func (b *build) routeBreaks(cx, contY float64, pts []diagram.Point) {
 	}
 }
 
+// routeContinues заводить точки continue у колонку дуги повернення (backX): звідти
+// наявна дуга несе потік угору в заголовок (наступна ітерація). Без вістря.
+func (b *build) routeContinues(backX float64, pts []diagram.Point) {
+	for _, p := range pts {
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(backX, p.Y)}})
+	}
+}
+
 // Build розкладає програму (тіло) у повну діаграму: Початок → тіло → Кінець.
 func Build(prog *ir.Block, opts Options) *diagram.Diagram {
+	ensureBlocks(prog) // нормалізуємо nil-блоки (захист від ручних IR)
 	if opts.CallAsProcess {
 		mapCalls(prog)
 	}
@@ -279,23 +299,25 @@ func (b *build) size(n ir.Node) (w, h float64) {
 		tw, th := b.branchSize(x.Then)
 		ew, eh := b.branchSize(x.Else)
 		h := diaH + branchGap + max(th, eh) + mergeGap
-		if (len(x.Then.Stmts) == 0) != (len(x.Else.Stmts) == 0) { // guard: одна гілка порожня
+		if (nstmts(x.Then) == 0) != (nstmts(x.Else) == 0) { // guard: одна гілка порожня
 			return max(diaW(x.Cond), max(tw, ew)+2*hGap), h
 		}
 		return max(diaW(x.Cond), tw+hGap+ew), h
 	case *ir.For:
 		bw, bh := b.blockSize(x.Body)
-		return max(hexW(x.Spec), bw) + 2*arcGap, hexH + vGap + bh + vGap
+		w, h := max(hexW(x.Spec), bw)+2*arcGap, hexH+vGap+bh+vGap
+		return b.withElse(x.Else, w, h)
 	case *ir.While:
 		bw, bh := b.blockSize(x.Body)
-		return max(diaW(x.Cond), bw) + 2*arcGap, diaH + vGap + bh + vGap
+		w, h := max(diaW(x.Cond), bw)+2*arcGap, diaH+vGap+bh+vGap
+		return b.withElse(x.Else, w, h)
 	case *ir.DoWhile:
 		bw, bh := b.blockSize(x.Body)
 		return max(diaW(x.Cond), bw) + 2*arcGap, bh + vGap + diaH + vGap
 	case *ir.InfLoop:
 		bw, bh := b.blockSize(x.Body)
 		return bw + 2*arcGap, bh + vGap
-	case *ir.Break:
+	case *ir.Break, *ir.Continue:
 		return 0, 0 // без фігури
 	}
 	return minBoxW, boxH
@@ -308,6 +330,56 @@ func (b *build) branchSize(blk *ir.Block) (w, h float64) {
 		return 0, 0
 	}
 	return b.blockSize(blk)
+}
+
+// nstmts — кількість інструкцій блоку, безпечно для nil (IR можуть будувати
+// вручну, лишивши Then/Else == nil).
+func nstmts(blk *ir.Block) int {
+	if blk == nil {
+		return 0
+	}
+	return len(blk.Stmts)
+}
+
+// withElse доповнює габарити циклу розміром гілки else (for/while), якщо вона є.
+func (b *build) withElse(els *ir.Block, w, h float64) (float64, float64) {
+	if nstmts(els) == 0 {
+		return w, h
+	}
+	ew, eh := b.blockSize(els)
+	return max(w, ew), h + vGap + eh
+}
+
+// ensureBlocks гарантує, що жоден під-блок IR не nil (Then/Else/Body) — інакше
+// глибше буде SIGSEGV. Безпечне доповнення до nil-перевірок у branchSize/blockSize:
+// нормалізуємо дерево один раз на вході, далі всі звертання безпечні.
+func ensureBlocks(blk *ir.Block) {
+	fix := func(p **ir.Block) {
+		if *p == nil {
+			*p = &ir.Block{}
+		}
+		ensureBlocks(*p)
+	}
+	if blk == nil {
+		return
+	}
+	for _, s := range blk.Stmts {
+		switch x := s.(type) {
+		case *ir.If:
+			fix(&x.Then)
+			fix(&x.Else)
+		case *ir.For:
+			fix(&x.Body)
+			fix(&x.Else)
+		case *ir.While:
+			fix(&x.Body)
+			fix(&x.Else)
+		case *ir.DoWhile:
+			fix(&x.Body)
+		case *ir.InfLoop:
+			fix(&x.Body)
+		}
+	}
 }
 
 func (b *build) blockSize(blk *ir.Block) (w, h float64) {
@@ -344,9 +416,9 @@ func (b *build) place(n ir.Node, cx, top float64) (diagram.Point, bool) {
 	case *ir.If:
 		return b.placeIf(x, cx, top)
 	case *ir.For:
-		return b.placeFor(x, cx, top), false
+		return b.placeFor(x, cx, top)
 	case *ir.While:
-		return b.placeWhile(x, cx, top), false
+		return b.placeWhile(x, cx, top)
 	case *ir.DoWhile:
 		return b.placeDoWhile(x, cx, top), false
 	case *ir.InfLoop:
@@ -354,6 +426,10 @@ func (b *build) place(n ir.Node, cx, top float64) (diagram.Point, bool) {
 	case *ir.Break:
 		// стрибок на вихід циклу — без фігури; з'єднання зробить routeBreaks
 		b.recordBreak(P(cx, top))
+		return P(cx, top), true
+	case *ir.Continue:
+		// стрибок на наступну ітерацію — без фігури; з'єднання зробить routeContinues
+		b.recordContinue(P(cx, top))
 		return P(cx, top), true
 	}
 	return P(cx, top), false
@@ -387,10 +463,14 @@ func (b *build) placeBlock(blk *ir.Block, cx, top float64) (diagram.Point, bool)
 	cur := top
 	exit := P(cx, top)
 	for i, s := range blk.Stmts {
-		// break не має фігури — з'єднання від попереднього виходу зробить
-		// routeBreaks; стрілку-голову в нікуди не малюємо.
+		// break/continue не мають фігури — з'єднання від попереднього виходу
+		// зробить routeBreaks/routeContinues; стрілку-голову в нікуди не малюємо.
 		if _, isBreak := s.(*ir.Break); isBreak {
 			b.recordBreak(exit)
+			return exit, true
+		}
+		if _, isCont := s.(*ir.Continue); isCont {
+			b.recordContinue(exit)
 			return exit, true
 		}
 		if i > 0 {
@@ -406,14 +486,57 @@ func (b *build) placeBlock(blk *ir.Block, cx, top float64) (diagram.Point, bool)
 	return exit, false
 }
 
+// soleJump повертає Break/Continue, якщо блок — це рівно один такий стрибок.
+func soleJump(blk *ir.Block) ir.Node {
+	if nstmts(blk) == 1 {
+		switch blk.Stmts[0].(type) {
+		case *ir.Break, *ir.Continue:
+			return blk.Stmts[0]
+		}
+	}
+	return nil
+}
+
+// placeJumpGuard малює «if cond: break/continue» (else порожній): ромб-умова,
+// стрибок (Так) — убік (break ліворуч до виходу циклу, continue праворуч до дуги
+// повернення), а основний потік (Ні) — прямо вниз до наступної інструкції. Так
+// стрибок не тягнеться по центру крізь подальші блоки тіла.
+func (b *build) placeJumpGuard(cond string, jump ir.Node, cx, top float64) (diagram.Point, bool) {
+	dw := diaW(cond)
+	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: cond})
+	midY := top + diaH/2
+	_, isBreak := jump.(*ir.Break)
+	side := 1.0 // continue → праворуч (до дуги повернення)
+	if isBreak {
+		side = -1 // break → ліворуч (до виходу циклу)
+	}
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: b.yes, Points: []diagram.Point{
+		{X: cx + side*dw/2, Y: midY}, {X: cx + side*(dw/2+hGap), Y: midY},
+	}})
+	p := P(cx+side*(dw/2+hGap), midY)
+	if isBreak {
+		b.recordBreak(p)
+	} else {
+		b.recordContinue(p)
+	}
+	return P(cx, top+diaH), false // Ні — прямо вниз (основний потік)
+}
+
 func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
+	// «if cond: break/continue» — стрибок убік, основний потік прямо вниз.
+	if nstmts(n.Else) == 0 {
+		if j := soleJump(n.Then); j != nil {
+			return b.placeJumpGuard(n.Cond, j, cx, top)
+		}
+	}
+
 	dw := diaW(n.Cond)
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	midY := top + diaH/2
 	branchTop := top + diaH + branchGap
 
-	thenEmpty := len(n.Then.Stmts) == 0
-	elseEmpty := len(n.Else.Stmts) == 0
+	thenEmpty := nstmts(n.Then) == 0
+	elseEmpty := nstmts(n.Else) == 0
 
 	// Guard (одна гілка порожня): дія прямо вниз, порожня гілка обходить збоку.
 	if elseEmpty && !thenEmpty {
@@ -480,7 +603,7 @@ func termGuardLast(blk *ir.Block) *ir.If {
 		return nil
 	}
 	g, ok := blk.Stmts[len(blk.Stmts)-1].(*ir.If)
-	if ok && len(g.Else.Stmts) == 0 && endsBlock(g.Then) {
+	if ok && nstmts(g.Else) == 0 && endsBlock(g.Then) {
 		return g
 	}
 	return nil
@@ -490,7 +613,7 @@ func termGuardLast(blk *ir.Block) *ir.If {
 // Ні→дуга повернення ВГОРУ в заголовок (праворуч). Повертає вихід циклу.
 // headHalf/headCy — піввисота-по-X і центр заголовка; headBottom — його низ;
 // entryLabel — підпис ребра заголовок→ромб (для while це «Так»).
-func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float64, startS, startE int, entryLabel, exitLabel string) diagram.Point {
+func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float64, startS, startE int, entryLabel, exitLabel string) (diagram.Point, float64) {
 	dw := diaW(g.Cond)
 	diaTop := headBottom + vGap
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: entryLabel, Points: []diagram.Point{{X: cx, Y: headBottom}, {X: cx, Y: diaTop}}})
@@ -516,7 +639,7 @@ func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float6
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: exitLabel, Points: []diagram.Point{
 		{X: cx - headHalf, Y: headCy}, {X: leftX, Y: headCy}, {X: leftX, Y: contY}, {X: cx, Y: contY},
 	}})
-	return P(cx, contY)
+	return P(cx, contY), backX
 }
 
 // placeGuardLoopBody розкладає тіло циклу, що ЗАКІНЧУЄТЬСЯ guard-ом: спершу
@@ -532,8 +655,9 @@ func (b *build) placeGuardLoopBody(body *ir.Block, g *ir.If, cx, headHalf, headC
 		exit, _ := b.placeBlock(&ir.Block{Stmts: pre}, cx, bodyTop)
 		fromY, el = exit.Y, ""
 	}
-	cont := b.placeLoopGuard(g, cx, headHalf, headCy, fromY, startS, startE, el, exitLabel)
-	brks := b.popLoop()
+	cont, backX := b.placeLoopGuard(g, cx, headHalf, headCy, fromY, startS, startE, el, exitLabel)
+	brks, conts := b.popLoop()
+	b.routeContinues(backX, conts)
 	b.routeBreaks(cx, cont.Y, brks)
 	return cont
 }
@@ -572,14 +696,15 @@ func (b *build) branch(blk *ir.Block, label string, cx, vx, midY, bcx, branchTop
 
 // placeFor — цикл for: шестикутник згори, тіло під ним, дуга повернення справа,
 // вихід зліва вниз (як у курсових схемах на fletcher).
-func (b *build) placeFor(n *ir.For, cx, top float64) diagram.Point {
+func (b *build) placeFor(n *ir.For, cx, top float64) (diagram.Point, bool) {
 	hw := hexW(n.Spec)
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Hexagon, X: cx - hw/2, Y: top, W: hw, H: hexH, Text: n.Spec})
 	headCy := top + hexH/2
 
 	// Тіло закінчується guard-ом → його «Ні» одразу дугою вгору в заголовок.
 	if g := termGuardLast(n.Body); g != nil {
-		return b.placeGuardLoopBody(n.Body, g, cx, hw/2, headCy, top+hexH, "", "")
+		cont := b.placeGuardLoopBody(n.Body, g, cx, hw/2, headCy, top+hexH, "", "")
+		return b.placeLoopElse(n.Else, cx, cont)
 	}
 
 	bodyTop := top + hexH + vGap
@@ -587,21 +712,23 @@ func (b *build) placeFor(n *ir.For, cx, top float64) diagram.Point {
 	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, bodyTop)
-	brks := b.popLoop()
-	cont := b.loopArcs(cx, hw/2, headCy, startS, startE, bodyExit.Y, "")
-	b.routeBreaks(cx, cont.Y, brks)
-	return cont
+	brks, conts := b.popLoop()
+	cont := b.loopArcs(cx, hw/2, headCy, startS, startE, bodyExit.Y, "", conts)
+	cont, ended := b.placeLoopElse(n.Else, cx, cont) // for/else: після нормального виходу
+	b.routeBreaks(cx, cont.Y, brks)                  // break оминає else
+	return cont, ended
 }
 
 // placeWhile — цикл while: ромб-передумова, Так→тіло, дуга повернення справа,
 // Ні→вихід зліва вниз.
-func (b *build) placeWhile(n *ir.While, cx, top float64) diagram.Point {
+func (b *build) placeWhile(n *ir.While, cx, top float64) (diagram.Point, bool) {
 	dw := diaW(n.Cond)
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: top, W: dw, H: diaH, Text: n.Cond})
 	headCy := top + diaH/2
 
 	if g := termGuardLast(n.Body); g != nil {
-		return b.placeGuardLoopBody(n.Body, g, cx, dw/2, headCy, top+diaH, b.yes, b.no)
+		cont := b.placeGuardLoopBody(n.Body, g, cx, dw/2, headCy, top+diaH, b.yes, b.no)
+		return b.placeLoopElse(n.Else, cx, cont)
 	}
 
 	bodyTop := top + diaH + vGap
@@ -609,10 +736,11 @@ func (b *build) placeWhile(n *ir.While, cx, top float64) diagram.Point {
 	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, bodyTop)
-	brks := b.popLoop()
-	cont := b.loopArcs(cx, dw/2, headCy, startS, startE, bodyExit.Y, b.no)
+	brks, conts := b.popLoop()
+	cont := b.loopArcs(cx, dw/2, headCy, startS, startE, bodyExit.Y, b.no, conts)
+	cont, ended := b.placeLoopElse(n.Else, cx, cont)
 	b.routeBreaks(cx, cont.Y, brks)
-	return cont
+	return cont, ended
 }
 
 // placeDoWhile — цикл з післяумовою: тіло згори, ромб-умова знизу, Так→вихід,
@@ -621,7 +749,7 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, top)
-	brks := b.popLoop()
+	brks, conts := b.popLoop()
 
 	diaTop := bodyExit.Y + vGap
 	dw := diaW(n.Cond)
@@ -631,6 +759,7 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 
 	right, _ := b.bodyExtent(startS, startE)
 	backX := right + arcGap
+	b.routeContinues(backX, conts) // continue → наступна ітерація (вгору) через дугу
 	mergeY := top - vGap/2
 	// Без вістря: вливається в лінію входу (не у фігуру) — щоб не було «двох голів».
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Arrowless: true, Points: []diagram.Point{
@@ -651,12 +780,13 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 	startS, startE := len(b.d.Shapes), len(b.d.Edges)
 	b.pushLoop()
 	bodyExit, _ := b.placeBlock(n.Body, cx, top)
-	brks := b.popLoop()
+	brks, conts := b.popLoop()
 
 	// Безумовна дуга повернення справа: низ тіла → праворуч → вгору → вхід.
 	// Із центру низу (трохи вниз) і без вістря (вливається в лінію входу).
 	right, _ := b.bodyExtent(startS, startE)
 	backX := right + arcGap
+	b.routeContinues(backX, conts)
 	mergeY := top - vGap/2
 	drop := bodyExit.Y + mergeGap/2
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
@@ -670,11 +800,12 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 
 // loopArcs малює дугу повернення (низ тіла → праворуч → вгору → правий кут
 // заголовка) і дугу виходу (лівий кут заголовка → ліворуч → вниз → центр).
-func (b *build) loopArcs(cx, headHalf, headCy float64, startS, startE int, bodyBottom float64, exitLabel string) diagram.Point {
+func (b *build) loopArcs(cx, headHalf, headCy float64, startS, startE int, bodyBottom float64, exitLabel string, conts []diagram.Point) diagram.Point {
 	right, left := b.bodyExtent(startS, startE)
 	backX := right + arcGap
 	leftX := left - arcGap
 	contY := bodyBottom + vGap
+	b.routeContinues(backX, conts) // continue → колонка дуги повернення → вгору
 	// Дуга повернення — у правий кут заголовка; виходить із центру низу тіла
 	// (спершу трохи вниз, тоді вбік — не «з кута»).
 	drop := bodyBottom + mergeGap/2
@@ -686,6 +817,19 @@ func (b *build) loopArcs(cx, headHalf, headCy float64, startS, startE int, bodyB
 		{X: cx - headHalf, Y: headCy}, {X: leftX, Y: headCy}, {X: leftX, Y: contY}, {X: cx, Y: contY},
 	}})
 	return P(cx, contY)
+}
+
+// placeLoopElse розкладає гілку for/else (while/else) — виконується після
+// НОРМАЛЬНОГО завершення циклу. cont — точка виходу циклу; повертає нову точку
+// продовження (нижче else). Якщо else порожній — повертає cont без змін.
+// Break, що оминає else, маршрутизують ПІСЛЯ цього виклику (на новий cont).
+func (b *build) placeLoopElse(els *ir.Block, cx float64, cont diagram.Point) (diagram.Point, bool) {
+	if nstmts(els) == 0 {
+		return cont, false
+	}
+	top := cont.Y + vGap
+	b.d.Edges = append(b.d.Edges, edge(cont, P(cx, top)))
+	return b.placeBlock(els, cx, top)
 }
 
 // --- дрібні помічники ---
