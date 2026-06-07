@@ -283,18 +283,17 @@ func (r *rnd) arrow(a, b diagram.Point) {
 	r.ctx.Fill()
 }
 
-// label ставить підпис (Так/Ні) біля початку ребра — як у SVG-рендері.
+// label ставить підпис (Так/Ні) за diagram.LabelAnchor (далі від ромба).
 func (r *rnd) label(s string, p0, p1 diagram.Point) {
-	const boxW = 60.0
-	halign := canvas.Left
-	lx, ly := p0.X+6, p0.Y-7
-	switch {
-	case p1.X == p0.X: // вертикальний сегмент — збоку, посередині
-		ly = (p0.Y + p1.Y) / 2
-	case p1.X < p0.X: // вліво — текст назовні зліва
-		halign = canvas.Right
-		lx, ly = p0.X-6-boxW, p0.Y-7
+	x, y, align := diagram.LabelAnchor(p0, p1)
+	const boxW = 80.0
+	ha, bx := canvas.Center, x-boxW/2
+	switch align {
+	case "start":
+		ha, bx = canvas.Left, x
+	case "end":
+		ha, bx = canvas.Right, x-boxW
 	}
-	t := canvas.NewTextBox(r.lbl, s, boxW*ptPerUnit, 14*ptPerUnit, halign, canvas.Center, nil)
-	r.ctx.DrawText(r.x(lx), r.y(ly)+7*ptPerUnit, t)
+	t := canvas.NewTextBox(r.lbl, s, boxW*ptPerUnit, 14*ptPerUnit, ha, canvas.Center, nil)
+	r.ctx.DrawText(r.x(bx), r.y(y)+7*ptPerUnit, t)
 }

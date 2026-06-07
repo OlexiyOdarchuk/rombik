@@ -73,6 +73,25 @@ type Point struct {
 	Y float64 `json:"y"`
 }
 
+// LabelAnchor — позиція й вирівнювання підпису ребра (Так/Ні) за першим його
+// сегментом. Для горизонтального плеча — ПОСЕРЕДИНІ плеча (далі від ромба, до 34
+// одиниць), для вертикального — збоку посередині. align: «start|middle|end».
+func LabelAnchor(p0, p1 Point) (x, y float64, align string) {
+	if p1.Y == p0.Y && p1.X != p0.X { // горизонтальний сегмент
+		off := (p1.X - p0.X) / 2
+		if off > 34 {
+			off = 34
+		} else if off < -34 {
+			off = -34
+		}
+		return p0.X + off, p0.Y - 9, "middle"
+	}
+	if p1.X == p0.X { // вертикальний сегмент
+		return p0.X + 10, (p0.Y + p1.Y) / 2, "start"
+	}
+	return p0.X + 8, p0.Y - 8, "start"
+}
+
 // Shape — фігура. X,Y — лівий верхній кут; текст центрується.
 type Shape struct {
 	Kind Kind    `json:"kind"`

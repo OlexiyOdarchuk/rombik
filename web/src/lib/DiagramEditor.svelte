@@ -67,13 +67,13 @@
 		let j = 0;
 		const es = (d.edges ?? []).map((e) => {
 			const pts = (e.points ?? []).map((p) => ({ x: p.x, y: p.y }));
-			const p0 = pts[0] ?? { x: 0, y: 0 };
+			const lp = labelAnchor(pts[0], pts[1]);
 			return {
 				id: 'e' + j++,
 				points: pts,
 				label: e.label ?? '',
-				lx: p0.x + 8,
-				ly: p0.y - 8, // позиція підпису (рухається окремо)
+				lx: lp.x,
+				ly: lp.y, // позиція підпису (рухається окремо)
 				arrowless: !!e.arrowless,
 				fromId: at(pts[0]),
 				toId: at(pts[pts.length - 1]),
@@ -89,6 +89,19 @@
 	}
 
 	const nodeById = (id) => nodes.find((n) => n.id === id);
+
+	// Позиція підпису ребра (Так/Ні) — як у Go diagram.LabelAnchor (далі від ромба).
+	function labelAnchor(p0, p1) {
+		if (!p0) return { x: 0, y: 0 };
+		if (!p1) return { x: p0.x + 8, y: p0.y - 8 };
+		if (p1.y === p0.y && p1.x !== p0.x) {
+			let off = (p1.x - p0.x) / 2;
+			off = Math.max(-34, Math.min(34, off));
+			return { x: p0.x + off, y: p0.y - 9 };
+		}
+		if (p1.x === p0.x) return { x: p0.x + 10, y: (p0.y + p1.y) / 2 };
+		return { x: p0.x + 8, y: p0.y - 8 };
+	}
 
 	// --- координати: екран → світ (через CTM внутрішньої <g>, враховує пан+зум) ---
 	function toWorld(clientX, clientY) {
@@ -514,7 +527,7 @@
 						<input value={e.label} oninput={(ev) => { e.label = ev.currentTarget.value; edges = [...edges]; }} onblur={() => (editLabel = null)} onkeydown={(ev) => ev.key === 'Enter' && (editLabel = null)} onpointerdown={(ev) => ev.stopPropagation()} class="w-full rounded border border-blue-300 bg-white px-1 text-xs outline-none dark:bg-slate-800 dark:text-slate-200" autofocus />
 					</foreignObject>
 				{:else if e.label}
-					<text x={e.lx} y={e.ly} font-size="12" fill={isSel('edge', e.id) ? '#2563eb' : '#444'} class="cursor-move" onpointerdown={(ev) => labelDown(ev, e)} ondblclick={() => (editLabel = e.id)} role="presentation">{e.label}</text>
+					<text x={e.lx} y={e.ly} text-anchor="middle" font-size="12" fill={isSel('edge', e.id) ? '#2563eb' : '#444'} class="cursor-move" onpointerdown={(ev) => labelDown(ev, e)} ondblclick={() => (editLabel = e.id)} role="presentation">{e.label}</text>
 				{/if}
 				{#if isSel('edge', e.id)}
 					{#each e.points as p, i (i)}

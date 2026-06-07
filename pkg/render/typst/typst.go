@@ -83,8 +83,14 @@ func renderCanvas(d *diagram.Diagram) string {
 		}
 		fmt.Fprintf(&b, "  line(%s%s)\n", strings.Join(pts, ", "), mark)
 		if e.Label != "" && len(e.Points) >= 2 {
-			p := e.Points[0]
-			fmt.Fprintf(&b, "  content((%.1f, %.1f), text(%ssize: 12pt)[#%q])\n", p.X, fy(p.Y)+9, font, e.Label)
+			lx, ly, align := diagram.LabelAnchor(e.Points[0], e.Points[1])
+			anchor := "center"
+			if align == "start" {
+				anchor = "west"
+			} else if align == "end" {
+				anchor = "east"
+			}
+			fmt.Fprintf(&b, "  content((%.1f, %.1f), text(%ssize: 12pt)[#%q], anchor: %q)\n", lx, fy(ly), font, e.Label, anchor)
 		}
 	}
 	for _, s := range d.Shapes {
