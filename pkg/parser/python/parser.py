@@ -173,7 +173,14 @@ try:
     src  # у браузері Pyodide ставить цю глобальну заздалегідь
 except NameError:
     src = sys.stdin.read()
-mod = ast.parse(src)
+# Чисте україномовне повідомлення замість сирого трейсбека.
+try:
+    mod = ast.parse(src)
+except SyntaxError as e:
+    loc = f", рядок {e.lineno}" if e.lineno else ""
+    _error = f"Синтаксична помилка{loc}: {e.msg}"
+    print(_error, file=sys.stderr)  # CLI читає stderr
+    sys.exit(2)                     # ненульовий вихід; у Pyodide — SystemExit (фронт бере _error)
 def collect(body, acc):
     # функції рекурсивно (зокрема вкладені) -> кожна окремою схемою.
     # У класи не заходимо (методи-дандери — зайвий шум).

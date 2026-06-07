@@ -8,6 +8,7 @@ package python
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -33,9 +34,16 @@ func AST(code string) ([]byte, error) {
 	out, err := cmd.Output()
 	if err != nil {
 		if ee, ok := err.(*exec.ExitError); ok {
-			return nil, fmt.Errorf("python parse: %s", strings.TrimSpace(string(ee.Stderr)))
+			msg := strings.TrimSpace(string(ee.Stderr))
+			if i := strings.LastIndex(msg, "\n"); i >= 0 {
+				msg = strings.TrimSpace(msg[i+1:]) // лише останній (чистий) рядок, без трейсбека
+			}
+			if msg == "" {
+				msg = "не вдалося розібрати код"
+			}
+			return nil, errors.New(msg)
 		}
-		return nil, fmt.Errorf("python parse: %w (чи встановлено python3?)", err)
+		return nil, fmt.Errorf("не вдалося запустити python3: %w (чи встановлено?)", err)
 	}
 	return out, nil
 }

@@ -50,10 +50,18 @@ export async function generate(code, options = {}, onProgress) {
 	onProgress?.('Будую схему…');
 
 	pyodide.globals.set('src', code);
+	pyodide.globals.set('_error', ''); // скидаємо попередню помилку
 	try {
 		pyodide.runPython(parserSrc);
 	} catch (e) {
-		return { error: cleanPyError(String(e?.message ?? e)) };
+		// parser.py кладе чисте україномовне повідомлення у _error (синтакс. помилка).
+		let clean = '';
+		try {
+			clean = pyodide.globals.get('_error');
+		} catch (_) {
+			/* ignore */
+		}
+		return { error: clean || cleanPyError(String(e?.message ?? e)) };
 	}
 	const astJSON = pyodide.globals.get('_out');
 	try {
