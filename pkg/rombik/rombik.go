@@ -17,6 +17,7 @@ import (
 	"github.com/OlexiyOdarchuk/rombik/pkg/parser/astjson"
 	"github.com/OlexiyOdarchuk/rombik/pkg/parser/python"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
 )
 
 // Options — перемикачі рендера (див. layout.Options).
@@ -30,6 +31,9 @@ type Result struct {
 
 // SVG повертає схему у форматі SVG.
 func (r Result) SVG() string { return svg.Render(r.Diagram) }
+
+// Typst повертає самодостатній Typst-документ (компілюється у тісний PDF).
+func (r Result) Typst() string { return typst.Render(r.Diagram) }
 
 // FromPython: Python-код → схеми (потребує python3 у системі; не для WASM).
 func FromPython(code string, opts Options) ([]Result, error) {
@@ -56,7 +60,10 @@ func FromIR(funcs []ir.Func, opts Options) []Result { return build(funcs, opts) 
 func build(funcs []ir.Func, opts Options) []Result {
 	res := make([]Result, len(funcs))
 	for i, f := range funcs {
-		res[i] = Result{Name: f.Name, Diagram: layout.Build(f.Body, opts)}
+		d := layout.Build(f.Body, opts)
+		d.Caption = f.Name // підпис за замовч. — ім'я функції (редагований у фронті)
+		d.FigNum = i + 1    // «Рисунок N» за порядком у файлі
+		res[i] = Result{Name: f.Name, Diagram: d}
 	}
 	return res
 }

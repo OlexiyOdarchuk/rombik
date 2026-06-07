@@ -10,10 +10,32 @@ import (
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
 )
 
-// Render повертає самодостатній Typst-фрагмент (import + cetz.canvas).
+// Render повертає САМОДОСТАТНІЙ Typst-документ: сторінка авто-розміру (щільно
+// огортає схему — не A4 з обрізанням), за потреби — підпис «Рисунок N» через
+// figure. Береш цей код і одразу компілюєш у тісний PDF.
 func Render(d *diagram.Diagram) string {
 	var b strings.Builder
 	b.WriteString(`#import "@preview/cetz:0.3.4"` + "\n")
+	b.WriteString("#set page(width: auto, height: auto, margin: 14pt)\n")
+	b.WriteString("#set text(" + font + ")\n")
+	b.WriteString("#set figure.caption(separator: [ — ])\n") // ДСТУ: «Рисунок N — назва»
+	// Зручний помічник: підпис «Рисунок N» з авто-нумерацією (kind: flowchart).
+	b.WriteString(`#let flowchart(body, caption: none) = figure(` + "\n" +
+		"  body, caption: caption, supplement: [" + diagram.CaptionWord + `], kind: "flowchart", numbering: "1",` + "\n)\n")
+
+	canvas := renderCanvas(d)
+	if d.Caption != "" {
+		// #%q — рядкова форма, щоб спецсимволи Typst у підписі не ламали документ.
+		fmt.Fprintf(&b, "#flowchart(caption: [#%q])[\n%s]\n", d.Caption, canvas)
+	} else {
+		b.WriteString(canvas)
+	}
+	return b.String()
+}
+
+// renderCanvas — сам блок cetz.canvas зі схемою (без сторінки/підпису).
+func renderCanvas(d *diagram.Diagram) string {
+	var b strings.Builder
 	b.WriteString("#cetz.canvas(length: 1pt, {\n")
 	b.WriteString("  import cetz.draw: *\n")
 	b.WriteString("  set-style(stroke: 1.5pt, fill: none)\n")

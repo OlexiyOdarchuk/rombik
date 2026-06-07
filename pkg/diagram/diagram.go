@@ -3,6 +3,8 @@
 // структура даних, без логіки й залежностей.
 package diagram
 
+import "strconv"
+
 // Kind — тип фігури ДСТУ.
 type Kind int
 
@@ -62,9 +64,30 @@ type Edge struct {
 }
 
 // Diagram — повна розкладена схема.
+//
+// Caption — підпис схеми (за замовч. ім'я функції; редагований). FigNum — номер
+// «Рисунок N» для растрових форматів (SVG/PNG), де нема авто-нумерації; у Typst
+// нумерує сам figure. Порожній Caption — без підпису.
 type Diagram struct {
-	Shapes []Shape `json:"shapes"`
-	Edges  []Edge  `json:"edges"`
-	W      float64 `json:"w"`
-	H      float64 `json:"h"`
+	Shapes  []Shape `json:"shapes"`
+	Edges   []Edge  `json:"edges"`
+	W       float64 `json:"w"`
+	H       float64 `json:"h"`
+	Caption string  `json:"caption,omitempty"`
+	FigNum  int     `json:"figNum,omitempty"`
+}
+
+// CaptionWord — слово-supplement підпису (ДСТУ: «Рисунок»).
+const CaptionWord = "Рисунок"
+
+// CaptionLine — повний рядок підпису для растрових форматів: «Рисунок N — текст»
+// (або просто текст, якщо номера нема). Порожньо, якщо підпису нема.
+func (d *Diagram) CaptionLine() string {
+	if d.Caption == "" {
+		return ""
+	}
+	if d.FigNum > 0 {
+		return CaptionWord + " " + strconv.Itoa(d.FigNum) + " — " + d.Caption
+	}
+	return d.Caption
 }

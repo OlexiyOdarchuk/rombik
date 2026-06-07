@@ -19,12 +19,15 @@ import (
 	"syscall/js"
 
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
-	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
+	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
+	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
 )
 
 type outFunc struct {
 	Name    string           `json:"name"`
+	Caption string           `json:"caption"`
+	FigNum  int              `json:"figNum"`
 	SVG     string           `json:"svg"`
 	Typst   string           `json:"typst"`
 	Diagram *diagram.Diagram `json:"diagram"`
@@ -45,9 +48,31 @@ func generate(_ js.Value, args []js.Value) any {
 	}
 	res := make([]outFunc, 0, len(funcs))
 	for _, f := range funcs {
-		res = append(res, outFunc{Name: f.Name, SVG: f.SVG(), Typst: typst.Render(f.Diagram), Diagram: f.Diagram})
+		res = append(res, outFunc{
+			Name: f.Name, Caption: f.Diagram.Caption, FigNum: f.Diagram.FigNum,
+			SVG: f.SVG(), Typst: f.Typst(), Diagram: f.Diagram,
+		})
 	}
 	return result(map[string]any{"functions": res})
+}
+
+// renderOne(diagramJSON, caption?, figNum?) -> {svg, typst}. Дешевий ре-рендер
+// після редагування підпису у фронті — без повторного розбору коду.
+func renderOne(_ js.Value, args []js.Value) any {
+	if len(args) == 0 {
+		return result(map[string]any{"error": "немає diagram-JSON"})
+	}
+	var d diagram.Diagram
+	if err := json.Unmarshal([]byte(args[0].String()), &d); err != nil {
+		return result(map[string]any{"error": "розбір diagram: " + err.Error()})
+	}
+	if len(args) > 1 && !args[1].IsUndefined() && !args[1].IsNull() {
+		d.Caption = args[1].String()
+	}
+	if len(args) > 2 && !args[2].IsUndefined() && !args[2].IsNull() {
+		d.FigNum = args[2].Int()
+	}
+	return result(map[string]any{"svg": svg.Render(&d), "typst": typst.Render(&d)})
 }
 
 func result(v any) string {
@@ -60,5 +85,6 @@ func result(v any) string {
 
 func main() {
 	js.Global().Set("rombikGenerate", js.FuncOf(generate))
+	js.Global().Set("rombikRenderOne", js.FuncOf(renderOne))
 	select {} // тримаємо модуль живим
 }

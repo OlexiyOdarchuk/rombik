@@ -9,11 +9,19 @@ import (
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
 )
 
+// capGap — висота, що резервується під підпис «Рисунок N — …» знизу.
+const capGap = 30
+
 // Render повертає SVG-рядок для діаграми.
 func Render(d *diagram.Diagram) string {
 	var b strings.Builder
+	cap := d.CaptionLine()
+	totalH := d.H
+	if cap != "" {
+		totalH += capGap
+	}
 	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family="Arial, sans-serif" font-size="14">`,
-		d.W, d.H, d.W, d.H)
+		d.W, totalH, d.W, totalH)
 	// Маркер-стрілка.
 	b.WriteString(`<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">` +
 		`<path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>`)
@@ -45,6 +53,11 @@ func Render(d *diagram.Diagram) string {
 	}
 	for _, s := range d.Shapes {
 		renderShape(&b, s)
+	}
+	// Підпис схеми («Рисунок N — …») — по центру під схемою.
+	if cap != "" {
+		fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" text-anchor="middle" font-size="14" fill="#111">%s</text>`,
+			d.W/2, d.H+capGap*0.6, esc(cap))
 	}
 	b.WriteString(`</svg>`)
 	return b.String()
