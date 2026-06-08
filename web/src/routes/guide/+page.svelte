@@ -72,13 +72,69 @@
 		{/each}
 	</ul>
 
-	<div class="mt-14 rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900 dark:bg-blue-950/40">
-		<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Скоро: C++ та редактор</h3>
-		<p class="mt-2 text-slate-600 dark:text-slate-300">
-			Додаємо мову C++, ручне перетягування блоків і розбиття великої схеми на частини через
-			конектори. Опції рендера (наприклад, виклик звичайним блоком замість символу
-			підпрограми) — галочками просто в редакторі.
+	<h2 class="mt-14 text-2xl font-bold text-slate-900 dark:text-slate-100">Інтерактивний візуальний редактор</h2>
+	<div class="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900 dark:bg-blue-950/40">
+		<p class="text-slate-600 dark:text-slate-300">
+			Окрім автоматичної генерації, у rombik є повноцінний <strong>візуальний редактор</strong>. 
+			Ви можете:
 		</p>
+		<ul class="mt-3 list-inside list-disc space-y-1 text-slate-600 dark:text-slate-300">
+			<li>Вручну перетягувати блоки (воВони примагнічуються до сітки)</li>
+			<li>Змінювати маршрут стрілок або малювати власні з'єднання</li>
+			<li>Редагувати текст усередині фігур подвійним кліком</li>
+			<li><strong>Розбивати велику схему</strong> на сторінки за допомогою спеціальних конекторів (кружечки з літерами А, Б, В...)</li>
+		</ul>
+	</div>
+
+	<h2 class="mt-14 text-2xl font-bold text-slate-900 dark:text-slate-100">Експорт та формати</h2>
+	<p class="mt-4 text-slate-600 dark:text-slate-300">
+		Після побудови схеми, ви можете зберегти її у різних форматах:
+	</p>
+	<ul class="mt-4 grid gap-2 sm:grid-cols-2">
+		<li class="flex items-start gap-2 text-slate-700 dark:text-slate-300"><strong class="w-24 text-blue-600">SVG / PNG</strong> Ідеально для вставки в Word, Google Docs чи презентації</li>
+		<li class="flex items-start gap-2 text-slate-700 dark:text-slate-300"><strong class="w-24 text-blue-600">PDF</strong> Векторний формат для друку або курсових робіт</li>
+		<li class="flex items-start gap-2 text-slate-700 dark:text-slate-300"><strong class="w-24 text-blue-600">Typst</strong> Нативний код для сучасних систем верстки наукових робіт</li>
+		<li class="flex items-start gap-2 text-slate-700 dark:text-slate-300"><strong class="w-24 text-blue-600">Excalidraw</strong> Відкривайте схему в Excalidraw для подальшого рукописного редагування</li>
+	</ul>
+
+	<h2 class="mt-14 text-2xl font-bold text-slate-900 dark:text-slate-100">Найчастіші запитання (FAQ)</h2>
+	<div class="mt-6 space-y-4">
+		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
+			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+				Чи потрібне підключення до Інтернету?
+				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+			</summary>
+			<p class="mt-3 text-slate-600 dark:text-slate-300">
+				Тільки для завантаження самої сторінки (близько 2 МБ). Далі рушій працює 100% офлайн у вашому браузері за допомогою технології WebAssembly. Ваші вихідні коди нікуди не відправляються.
+			</p>
+		</details>
+		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
+			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+				Що робити, якщо схема занадто довга для формату А4?
+				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+			</summary>
+			<p class="mt-3 text-slate-600 dark:text-slate-300">
+				Є два варіанти. Перший — скористайтеся автоматичним розбиттям: натисніть кнопку «✂ Розбити» під згенерованою схемою. Другий — відкрийте візуальний редактор (кнопка «✎ Редагувати»), виділіть блок, з якого хочете перенести частину схеми, і оберіть «✂ Розділити». Система сама вставить конектори з літерами.
+			</p>
+		</details>
+		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
+			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+				Як скопіювати схему в Word або Google Docs без втрати якості?
+				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+			</summary>
+			<p class="mt-3 text-slate-600 dark:text-slate-300">
+				Натисніть кнопку "Копіювати ▾" і оберіть <strong>PNG</strong>. Також ви можете експортувати схему у форматі <strong>SVG</strong> (Вставка → Малюнок) для максимально чіткого векторного відображення без пікселів.
+			</p>
+		</details>
+		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
+			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+				Я хочу використовувати українські слова (Так/Ні, Ввід/Вивід). Як це зробити?
+				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+			</summary>
+			<p class="mt-3 text-slate-600 dark:text-slate-300">
+				Всі ці речі можна налаштувати! Відкрийте меню "Налаштування" в панелі інструментів. Перейдіть на вкладку "Текст та мітки", де ви можете змінити слова "Yes", "No", "Input", "Print", "True", "False" на будь-які свої, включно з українськими відповідниками.
+			</p>
+		</details>
 	</div>
 
 	<div class="mt-12 text-center">
