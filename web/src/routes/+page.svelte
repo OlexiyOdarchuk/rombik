@@ -74,29 +74,29 @@
 			<!-- Розмитий фоновий градієнт для свічення -->
 			<div class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-500 opacity-20 blur transition duration-1000 group-hover:opacity-30 dark:opacity-40"></div>
 			<div class="relative rounded-2xl border border-white/50 bg-white/80 p-8 shadow-2xl backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-900/80">
-				<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[400px]" font-family="Outfit, sans-serif" font-size="14">
-				<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>
-				<path d="M236.0 86.0 L236.0 130.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
-				<path d="M236.0 176.0 L236.0 220.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
-				<path d="M161.0 258.0 L121.8 258.0 L121.8 344.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
-				<text x="155.0" y="251.0" text-anchor="end" font-size="12" fill="#444">Так</text>
-				<path d="M311.0 258.0 L341.8 258.0 L341.8 344.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
-				<text x="317.0" y="251.0" text-anchor="start" font-size="12" fill="#444">Ні</text>
-				<path d="M121.8 390.0 L121.8 434.0 L236.0 434.0" fill="none" stroke="#222" stroke-width="1.5"/>
-				<path d="M341.8 390.0 L341.8 434.0 L236.0 434.0" fill="none" stroke="#222" stroke-width="1.5"/>
-				<path d="M236.0 434.0 L236.0 478.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
-				<rect x="171.0" y="44.0" width="130.0" height="42.0" rx="21.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
-				<text x="236.0" y="65.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Початок</text>
-				<polygon points="189.4,130.0 301.0,130.0 282.6,176.0 171.0,176.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
-				<text x="236.0" y="153.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Ввід n</text>
-				<polygon points="236.0,220.0 311.0,258.0 236.0,296.0 161.0,258.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
-				<text x="236.0" y="258.0" text-anchor="middle" dominant-baseline="middle" fill="#111">n &gt; 0</text>
-				<polygon points="62.4,344.0 199.5,344.0 181.1,390.0 44.0,390.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
-				<text x="121.8" y="367.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Вивід «Додатне»</text>
-				<polygon points="273.9,344.0 428.0,344.0 409.6,390.0 255.5,390.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
-				<text x="341.8" y="367.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Вивід «Недодатне»</text>
-				<rect x="171.0" y="478.0" width="130.0" height="42.0" rx="21.0" fill="#fdfdfd" stroke="#222" stroke-width="1.5"/>
-				<text x="236.0" y="499.0" text-anchor="middle" dominant-baseline="middle" fill="#111">Кінець</text>
+				<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[400px] text-slate-900 dark:text-slate-200" font-family="Outfit, sans-serif" font-size="14">
+				<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="currentColor"/></marker></defs>
+				<path d="M236.0 86.0 L236.0 130.0" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+				<path d="M236.0 176.0 L236.0 220.0" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+				<path d="M161.0 258.0 L121.8 258.0 L121.8 344.0" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+				<text x="155.0" y="251.0" text-anchor="end" font-size="12" fill="currentColor" class="opacity-70">Так</text>
+				<path d="M311.0 258.0 L341.8 258.0 L341.8 344.0" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+				<text x="317.0" y="251.0" text-anchor="start" font-size="12" fill="currentColor" class="opacity-70">Ні</text>
+				<path d="M121.8 390.0 L121.8 434.0 L236.0 434.0" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<path d="M341.8 390.0 L341.8 434.0 L236.0 434.0" fill="none" stroke="currentColor" stroke-width="1.5"/>
+				<path d="M236.0 434.0 L236.0 478.0" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+				<rect x="171.0" y="44.0" width="130.0" height="42.0" rx="21.0" class="fill-white dark:fill-slate-800" stroke="currentColor" stroke-width="1.5"/>
+				<text x="236.0" y="65.0" text-anchor="middle" dominant-baseline="middle" fill="currentColor">Початок</text>
+				<polygon points="189.4,130.0 301.0,130.0 282.6,176.0 171.0,176.0" class="fill-white dark:fill-slate-800" stroke="currentColor" stroke-width="1.5"/>
+				<text x="236.0" y="153.0" text-anchor="middle" dominant-baseline="middle" fill="currentColor">Ввід n</text>
+				<polygon points="236.0,220.0 311.0,258.0 236.0,296.0 161.0,258.0" class="fill-white dark:fill-slate-800" stroke="currentColor" stroke-width="1.5"/>
+				<text x="236.0" y="258.0" text-anchor="middle" dominant-baseline="middle" fill="currentColor">n > 0</text>
+				<polygon points="62.4,344.0 199.5,344.0 181.1,390.0 44.0,390.0" class="fill-white dark:fill-slate-800" stroke="currentColor" stroke-width="1.5"/>
+				<text x="121.8" y="367.0" text-anchor="middle" dominant-baseline="middle" fill="currentColor">Вивід «Додатне»</text>
+				<polygon points="273.9,344.0 428.0,344.0 409.6,390.0 255.5,390.0" class="fill-white dark:fill-slate-800" stroke="currentColor" stroke-width="1.5"/>
+				<text x="341.8" y="367.0" text-anchor="middle" dominant-baseline="middle" fill="currentColor">Вивід «Недодатне»</text>
+				<rect x="171.0" y="478.0" width="130.0" height="42.0" rx="21.0" class="fill-white dark:fill-slate-800" stroke="currentColor" stroke-width="1.5"/>
+				<text x="236.0" y="499.0" text-anchor="middle" dominant-baseline="middle" fill="currentColor">Кінець</text>
 			</svg>
 		</div>
 	</div>
