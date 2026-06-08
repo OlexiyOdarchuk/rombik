@@ -57,8 +57,15 @@
 		}
 	}
 
+	function trackEvent(action) {
+		if (typeof window !== 'undefined' && window.gtag) {
+			window.gtag('event', action);
+		}
+	}
+
 	function onEditorSave(dOrArray) {
 		if (!editingFn) return;
+		trackEvent('edit_diagram_save');
 		
 		if (Array.isArray(dOrArray) && dOrArray.length > 1) {
 			const idx = funcs.findIndex((f) => f === editingFn);
@@ -174,6 +181,7 @@
 
 	async function build() {
 		vibrate(40);
+		trackEvent('generate_diagram');
 		busy = true;
 		errored = false;
 		try {
@@ -206,6 +214,7 @@
 	}
 
 	function exportTypst(f) {
+		trackEvent('export_typst');
 		const typ = s.typstFragment ? renderTypst({ ...f.diagram, ...capOpts(f) }, true) : f.typst;
 		download(`${f.name}.typ`, typ, 'text/plain');
 		showToast(`Typst для "${f.name}" збережено.`, false, true);
@@ -213,6 +222,7 @@
 
 	// --- Експорт УСІХ схем одним документом/зображенням ---
 	function exportAllTypst() {
+		trackEvent('export_typst_all');
 		try {
 			download('схеми.typ', renderTypstAll(exportDiagrams(), s.typstFragment), 'text/plain');
 			showToast('Typst (усі схеми) збережено.', false, true);
@@ -223,6 +233,7 @@
 	}
 
 	function exportAllSvg() {
+		trackEvent('export_svg_all');
 		try {
 			download('схеми.svg', renderSvgAll(exportDiagrams()), 'image/svg+xml');
 			showToast('SVG (усі схеми) збережено.', false, true);
@@ -233,6 +244,7 @@
 	}
 
 	async function exportAllPng() {
+		trackEvent('export_png_all');
 		busy = true;
 		errored = false;
 		try {
@@ -248,6 +260,7 @@
 	}
 
 	async function exportAllPdf() {
+		trackEvent('export_pdf_all');
 		busy = true;
 		errored = false;
 		try {
@@ -263,6 +276,7 @@
 	}
 
 	async function exportPdf(f) {
+		trackEvent('export_pdf');
 		busy = true;
 		errored = false;
 		try {
@@ -279,6 +293,7 @@
 
 	// Розбити схему на зв'язані частини конекторами (для завеликих/складних).
 	function splitFn(f) {
+		trackEvent('split_diagram');
 		const res = splitSchema(f.name, 900, engineOpts());
 		if (res.error) {
 			errored = true;
@@ -294,16 +309,19 @@
 		status = `Розбито на ${res.parts.length} частин (конектори ○).`;
 	}
 
-	function exportSvg(f) { download(`${f.name}.svg`, f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`), 'image/svg+xml'); showToast(`SVG "${f.name}" збережено.`, false, true); }
+	function exportSvg(f) { trackEvent('export_svg'); download(`${f.name}.svg`, f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`), 'image/svg+xml'); showToast(`SVG "${f.name}" збережено.`, false, true); }
 	function exportExcal(f) {
+		trackEvent('export_excalidraw');
 		try { download(`${f.name}.excalidraw`, renderExcalidraw({ ...f.diagram, ...capOpts(f) }), 'application/json'); showToast(`Excalidraw "${f.name}" збережено.`, false, true); }
 		catch (e) { errored = true; status = 'Excalidraw: ' + (e?.message ?? e); }
 	}
 	function exportAllExcal() {
+		trackEvent('export_excalidraw_all');
 		try { download('схеми.excalidraw', renderExcalidrawAll(exportDiagrams()), 'application/json'); showToast('Excalidraw (усі) збережено.', false, true); }
 		catch (e) { errored = true; status = 'Excalidraw: ' + (e?.message ?? e); }
 	}
 	async function exportPng(f) {
+		trackEvent('export_png');
 		busy = true; errored = false;
 		try { const png = await renderPng(f.diagram, capOpts(f), s.pngScale, (st) => (status = st)); download(`${f.name}.png`, png, 'image/png'); showToast(`PNG "${f.name}" збережено.`, false, true); }
 		catch (e) { errored = true; status = 'PNG не вдався: ' + (e?.message ?? e); }
@@ -311,6 +329,7 @@
 	}
 
 	async function copyToClipboard(textOrBytes, type = 'text/plain', msg) {
+		trackEvent('copy_clipboard');
 		try {
 			vibrate(30);
 			if (type === 'image/png') {
