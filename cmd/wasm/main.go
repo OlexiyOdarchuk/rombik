@@ -192,14 +192,25 @@ func result(v any) string {
 	return string(b)
 }
 
+func wrap(f func(js.Value, []js.Value) any) func(js.Value, []js.Value) any {
+	return func(this js.Value, args []js.Value) (res any) {
+		defer func() {
+			if r := recover(); r != nil {
+				res = `{"error":"паніка у wasm модулі"}`
+			}
+		}()
+		return f(this, args)
+	}
+}
+
 func main() {
-	js.Global().Set("rombikGenerate", js.FuncOf(generate))
-	js.Global().Set("rombikRenderOne", js.FuncOf(renderOne))
-	js.Global().Set("rombikSplit", js.FuncOf(split))
-	js.Global().Set("rombikTypstOne", js.FuncOf(typstOne))
-	js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))
-	js.Global().Set("rombikSvgAll", js.FuncOf(svgAll))
-	js.Global().Set("rombikExcalidraw", js.FuncOf(excal))
-	js.Global().Set("rombikExcalidrawAll", js.FuncOf(excalAll))
+	js.Global().Set("rombikGenerate", js.FuncOf(wrap(generate)))
+	js.Global().Set("rombikRenderOne", js.FuncOf(wrap(renderOne)))
+	js.Global().Set("rombikSplit", js.FuncOf(wrap(split)))
+	js.Global().Set("rombikTypstOne", js.FuncOf(wrap(typstOne)))
+	js.Global().Set("rombikTypstAll", js.FuncOf(wrap(typstAll)))
+	js.Global().Set("rombikSvgAll", js.FuncOf(wrap(svgAll)))
+	js.Global().Set("rombikExcalidraw", js.FuncOf(wrap(excal)))
+	js.Global().Set("rombikExcalidrawAll", js.FuncOf(wrap(excalAll)))
 	select {} // тримаємо модуль живим
 }

@@ -20,6 +20,18 @@ function loadScript(src) {
 	});
 }
 
+async function instantiateWasm(resp, importObject) {
+	if (WebAssembly.instantiateStreaming) {
+		try {
+			return (await WebAssembly.instantiateStreaming(resp, importObject)).instance;
+		} catch (e) {
+			console.warn('WASM streaming failed, fallback to arrayBuffer', e);
+		}
+	}
+	const bytes = await (await resp).arrayBuffer();
+	return (await WebAssembly.instantiate(bytes, importObject)).instance;
+}
+
 // onProgress(stage) — для індикатора («Завантаження Python…» тощо).
 async function init(onProgress) {
 	onProgress?.('Завантаження середовища Python…');
@@ -30,8 +42,7 @@ async function init(onProgress) {
 	parserSrc = await (await fetch(`${base}/parser.py`)).text();
 	await loadScript(`${base}/wasm_exec.js`);
 	const go = new globalThis.Go();
-	const bytes = await (await fetch(`${base}/rombik.wasm`)).arrayBuffer();
-	const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+	const instance = await instantiateWasm(fetch(`${base}/rombik.wasm`), go.importObject);
 	go.run(instance); // НЕ await: main блокується на select{}, лишаючись живим
 }
 
@@ -108,8 +119,7 @@ function loadRaster(onProgress) {
 			onProgress?.('Завантаження рушія PNG/PDF…');
 			if (!globalThis.Go) await loadScript(`${base}/wasm_exec.js`);
 			const go = new globalThis.Go();
-			const bytes = await (await fetch(`${base}/rombik-raster.wasm`)).arrayBuffer();
-			const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+			const instance = await instantiateWasm(fetch(`${base}/rombik-raster.wasm`), go.importObject);
 			go.run(instance); // НЕ await: main блокується на select{}
 		})();
 	return rasterPromise;

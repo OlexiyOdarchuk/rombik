@@ -101,9 +101,10 @@ func renderCanvas(d *diagram.Diagram) string {
 		if e.Label != "" && len(e.Points) >= 2 {
 			lx, ly, align := diagram.LabelAnchor(e.Points[0], e.Points[1])
 			anchor := "center"
-			if align == "start" {
+			switch align {
+			case "start":
 				anchor = "west"
-			} else if align == "end" {
+			case "end":
 				anchor = "east"
 			}
 			fmt.Fprintf(&b, "  content((%.1f, %.1f), text(%ssize: 12pt)[#%q], anchor: %q)\n", lx, fy(ly), font, e.Label, anchor)

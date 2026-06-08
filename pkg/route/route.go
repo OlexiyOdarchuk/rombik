@@ -241,8 +241,8 @@ type node struct {
 }
 type pq []node
 
-func (q pq) Len() int            { return len(q) }
-func (q pq) Less(i, j int) bool  { return q[i].f < q[j].f }
-func (q pq) Swap(i, j int)       { q[i], q[j] = q[j], q[i] }
-func (q *pq) Push(x any)         { *q = append(*q, x.(node)) }
-func (q *pq) Pop() any           { old := *q; n := len(old); it := old[n-1]; *q = old[:n-1]; return it }
+func (q pq) Len() int           { return len(q) }
+func (q pq) Less(i, j int) bool { return q[i].f < q[j].f }
+func (q pq) Swap(i, j int)      { q[i], q[j] = q[j], q[i] }
+func (q *pq) Push(x any)        { *q = append(*q, x.(node)) }
+func (q *pq) Pop() any          { old := *q; n := len(old); it := old[n-1]; *q = old[:n-1]; return it }

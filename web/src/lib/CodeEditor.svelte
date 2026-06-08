@@ -13,17 +13,23 @@
 	const isDark = () => document.documentElement.classList.contains('dark');
 	const themeExt = () => (isDark() ? oneDark : []);
 
+	let isInternal = false;
+	
 	onMount(() => {
 		view = new EditorView({
 			parent: el,
 			state: EditorState.create({
 				doc: value,
 				extensions: [
-					basicSetup, // номери рядків, дужки, авто-відступ, підсвітка
-					python(), // мова Python: підсвітка + відступ після «:»
+					basicSetup,
+					python(),
 					themeC.of(themeExt()),
 					EditorView.updateListener.of((u) => {
-						if (u.docChanged) value = u.state.doc.toString();
+						if (u.docChanged) {
+							isInternal = true;
+							value = u.state.doc.toString();
+							setTimeout(() => { isInternal = false; }, 0);
+						}
 					}),
 					EditorView.theme({
 						'&': { height: '100%', fontSize: '13px' },
@@ -33,7 +39,6 @@
 				]
 			})
 		});
-		// Реагуємо на перемикання теми (клас .dark на <html>).
 		const obs = new MutationObserver(() => {
 			view.dispatch({ effects: themeC.reconfigure(themeExt()) });
 		});
@@ -44,9 +49,8 @@
 		};
 	});
 
-	// Віддзеркалити зовнішні зміни value (напр. скидання на зразок).
 	$effect(() => {
-		if (view && value !== view.state.doc.toString()) {
+		if (view && !isInternal && value !== view.state.doc.toString()) {
 			view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } });
 		}
 	});

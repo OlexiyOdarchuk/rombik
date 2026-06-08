@@ -188,7 +188,8 @@ func (b *builder) arrow(e diagram.Edge, ox, oy float64) {
 		m["endArrowhead"] = "arrow"
 	}
 	b.add(m)
-	if e.Label != "" {
-		b.text(e.Label, x0+10, y0-8, "", 14)
+	if e.Label != "" && len(e.Points) >= 2 {
+		lx, ly, _ := diagram.LabelAnchor(e.Points[0], e.Points[1])
+		b.text(e.Label, lx, ly, "", 14)
 	}
 }

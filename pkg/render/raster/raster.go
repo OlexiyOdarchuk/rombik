@@ -132,6 +132,9 @@ func PDFAll(ds []*diagram.Diagram) ([]byte, error) {
 	for i, d := range ds {
 		c, err := build(d)
 		if err != nil {
+			if doc != nil {
+				_ = doc.Close()
+			}
 			return nil, err
 		}
 		if i == 0 {

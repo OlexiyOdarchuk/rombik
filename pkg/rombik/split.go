@@ -22,14 +22,15 @@ func SplitFromAST(astJSON []byte, opts Options, name string, maxH float64) ([]Re
 	return nil, fmt.Errorf("функцію %q не знайдено", name)
 }
 
-// abc — літери для конекторів розриву (А, Б, В…).
-const abc = "АБВГДЕЖЗИКЛМНОПРСТУФ"
+// abcRunes — літери для конекторів розриву (А, Б, В…).
+var abcRunes = []rune("АБВГДЕЖЗИКЛМНОПРСТУФ")
 
 func letter(i int) string {
-	if i >= 0 && i < len(abc) {
-		return string([]rune(abc)[i])
+	if i >= 0 && i < len(abcRunes) {
+		return string(abcRunes[i])
 	}
-	return "А"
+	// Фолбек для дуже довгих схем (>20 частин), щоб уникнути паніки та дублікатів
+	return fmt.Sprintf("А%d", i-len(abcRunes)+1)
 }
 
 // SplitByHeight ріже схему функції на кілька зв'язаних частин так, щоб кожна

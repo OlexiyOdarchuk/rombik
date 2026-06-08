@@ -73,8 +73,8 @@ func build(funcs []ir.Func, opts Options) []Result {
 	res := make([]Result, len(funcs))
 	for i, f := range funcs {
 		d := layout.Build(f.Body, opts)
-		d.Caption = f.Name      // підпис за замовч. — ім'я функції (редагований у фронті)
-		d.FigNum = i + 1        // «Рисунок N» за порядком у файлі
+		d.Caption = f.Name       // підпис за замовч. — ім'я функції (редагований у фронті)
+		d.FigNum = i + 1         // «Рисунок N» за порядком у файлі
 		d.CapWord = opts.CapWord // слово підпису («Рисунок»/«Рис.»/своє)
 		res[i] = Result{Name: f.Name, Diagram: d}
 	}

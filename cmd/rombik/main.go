@@ -21,11 +21,11 @@ import (
 
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
 	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
-	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/excalidraw"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/raster"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/typst"
+	"github.com/OlexiyOdarchuk/rombik/pkg/rombik"
 )
 
 func main() {
@@ -102,11 +102,12 @@ func writeCombined(funcs []rombik.Result, out, ext string) {
 	for i, f := range funcs {
 		ds[i] = f.Diagram
 	}
-	if ext == ".typ" {
+	switch ext {
+	case ".typ":
 		writeFile(out, []byte(typst.RenderAll(ds)))
-	} else if ext == ".excalidraw" {
+	case ".excalidraw":
 		writeFile(out, []byte(excalidraw.RenderAll(ds)))
-	} else {
+	default:
 		b, err := raster.PDFAll(ds)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "pdf:", err)

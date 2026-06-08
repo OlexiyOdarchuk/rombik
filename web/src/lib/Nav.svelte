@@ -7,6 +7,7 @@
 		{ href: '/guide', label: 'Як це працює' },
 		{ href: '/app', label: 'Редактор' }
 	];
+	let menuOpen = $state(false);
 </script>
 
 <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-paper/80 backdrop-blur dark:border-slate-800/70">
@@ -21,7 +22,7 @@
 			<span>rombik<span class="text-blue-600">.</span></span>
 		</a>
 
-		<div class="flex items-center gap-1">
+		<div class="hidden items-center gap-1 md:flex">
 			{#each links as l (l.href)}
 				<a
 					href={l.href}
@@ -41,5 +42,40 @@
 				Спробувати
 			</a>
 		</div>
+
+		<div class="flex items-center gap-2 md:hidden">
+			<ThemeToggle />
+			<button onclick={() => (menuOpen = !menuOpen)} class="p-2 text-slate-600 dark:text-slate-300" aria-label="Відкрити меню">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d={menuOpen ? "M18 6L6 18M6 6l12 12" : "M3 12h18M3 6h18M3 18h18"} />
+				</svg>
+			</button>
+		</div>
 	</nav>
+
+	{#if menuOpen}
+		<div class="border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 md:hidden">
+			<div class="flex flex-col gap-2">
+				{#each links as l (l.href)}
+					<a
+						href={l.href}
+						onclick={() => (menuOpen = false)}
+						class="rounded-lg px-4 py-3 text-base font-medium transition hover:bg-slate-100 dark:hover:bg-slate-800
+							{page.url.pathname === l.href
+							? 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+							: 'text-slate-600 dark:text-slate-300'}"
+					>
+						{l.label}
+					</a>
+				{/each}
+				<a
+					href="/app"
+					onclick={() => (menuOpen = false)}
+					class="mt-2 rounded-lg bg-blue-600 px-4 py-3 text-center text-base font-semibold text-white shadow-sm transition hover:bg-blue-700"
+				>
+					Спробувати
+				</a>
+			</div>
+		</div>
+	{/if}
 </header>

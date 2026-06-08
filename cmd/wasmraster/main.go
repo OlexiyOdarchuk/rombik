@@ -125,10 +125,21 @@ func out(v any) string {
 	return string(b)
 }
 
+func wrap(f func(js.Value, []js.Value) any) func(js.Value, []js.Value) any {
+	return func(this js.Value, args []js.Value) (res any) {
+		defer func() {
+			if r := recover(); r != nil {
+				res = `{"error":"паніка у wasmraster модулі"}`
+			}
+		}()
+		return f(this, args)
+	}
+}
+
 func main() {
-	js.Global().Set("rombikPng", js.FuncOf(png))
-	js.Global().Set("rombikPdf", js.FuncOf(pdf))
-	js.Global().Set("rombikPdfAll", js.FuncOf(pdfAll))
-	js.Global().Set("rombikPngAll", js.FuncOf(pngAll))
+	js.Global().Set("rombikPng", js.FuncOf(wrap(png)))
+	js.Global().Set("rombikPdf", js.FuncOf(wrap(pdf)))
+	js.Global().Set("rombikPdfAll", js.FuncOf(wrap(pdfAll)))
+	js.Global().Set("rombikPngAll", js.FuncOf(wrap(pngAll)))
 	select {}
 }

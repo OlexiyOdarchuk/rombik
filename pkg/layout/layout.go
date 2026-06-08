@@ -282,6 +282,10 @@ func mapCalls(b *ir.Block) {
 			mapCalls(x.Body)
 		case *ir.DoWhile:
 			mapCalls(x.Body)
+		case *ir.InfLoop:
+			mapCalls(x.Body)
+		case *ir.Block:
+			mapCalls(x)
 		}
 	}
 }
@@ -867,6 +871,9 @@ func (b *build) shiftX(dx float64) {
 		for j := range b.d.Edges[i].Points {
 			b.d.Edges[i].Points[j].X += dx
 		}
+	}
+	for i := range b.ends {
+		b.ends[i].X += dx
 	}
 }
 

@@ -441,7 +441,7 @@
 			</div>
 			<div class="min-h-0 flex-1 space-y-4 overflow-auto grid-bg p-4">
 				{#if funcs.length}
-					{#each funcs as f (f.name)}
+					{#each funcs as f, i (f.name + i)}
 						<div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-700">
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>

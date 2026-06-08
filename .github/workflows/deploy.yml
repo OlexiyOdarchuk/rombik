@@ -24,7 +24,10 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache: false # модуль без зовнішніх залежностей — go.sum немає, кеш зайвий
+          cache: true
+
+      - name: Run tests
+        run: go test ./...
 
       - uses: actions/setup-node@v4
         with:
