@@ -619,6 +619,13 @@
 		</g>
 	</svg>
 
+	<!-- Плаваючі кнопки зуму для мобільного -->
+	<div class="fixed bottom-12 right-4 flex flex-col gap-2 sm:hidden">
+		<button onclick={() => zoom(1.2)} class="grid h-10 w-10 place-items-center rounded-full bg-white shadow-lg border border-slate-200 text-lg font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">+</button>
+		<button onclick={() => zoom(1 / 1.2)} class="grid h-10 w-10 place-items-center rounded-full bg-white shadow-lg border border-slate-200 text-lg font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">−</button>
+		<button onclick={fit} class="grid h-10 w-10 place-items-center rounded-full bg-white shadow-lg border border-slate-200 text-[10px] font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">Фіт</button>
+	</div>
+
 	<p class="border-t border-slate-200 bg-white px-4 py-1.5 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-900">
 		Тягни фон — рух полотна · колесо — масштаб · клік по стрілці — редагувати її вузли · сині порти — тягни нову стрілку · подвійний клік — текст · ✂ — розділити схему
 	</p>

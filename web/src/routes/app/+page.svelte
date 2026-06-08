@@ -41,6 +41,14 @@
 	let editingFn = $state(null); // схема, відкрита у візуальному редакторі
 	let fullscreenFn = $state(null); // схема, відкрита на весь екран
 	let mobileTab = $state('code'); // code | schema (для мобільного вигляду)
+	
+	let toast = $state(null); // { msg, isErr }
+	let toastTimer;
+	function showToast(msg, isErr = false) {
+		toast = { msg, isErr };
+		clearTimeout(toastTimer);
+		toastTimer = setTimeout(() => (toast = null), 3000);
+	}
 
 	function onEditorSave(d) {
 		if (!editingFn) return;
@@ -171,13 +179,14 @@
 	function exportTypst(f) {
 		const typ = s.typstFragment ? renderTypst({ ...f.diagram, ...capOpts(f) }, true) : f.typst;
 		download(`${f.name}.typ`, typ, 'text/plain');
+		showToast(`Typst для "${f.name}" збережено.`);
 	}
 
 	// --- Експорт УСІХ схем одним документом/зображенням ---
 	function exportAllTypst() {
 		try {
 			download('схеми.typ', renderTypstAll(exportDiagrams(), s.typstFragment), 'text/plain');
-			status = 'Typst (усі схеми) готовий.';
+			showToast('Typst (усі схеми) збережено.');
 		} catch (e) {
 			errored = true;
 			status = 'Typst: ' + (e?.message ?? e);
@@ -187,7 +196,7 @@
 	function exportAllSvg() {
 		try {
 			download('схеми.svg', renderSvgAll(exportDiagrams()), 'image/svg+xml');
-			status = 'SVG (усі схеми) готовий.';
+			showToast('SVG (усі схеми) збережено.');
 		} catch (e) {
 			errored = true;
 			status = 'SVG: ' + (e?.message ?? e);
@@ -200,7 +209,7 @@
 		try {
 			const png = await renderPngAll(exportDiagrams(), s.pngScale, (st) => (status = st));
 			download('схеми.png', png, 'image/png');
-			status = 'PNG (усі схеми) готовий.';
+			showToast('PNG (усі схеми) збережено.');
 		} catch (e) {
 			errored = true;
 			status = 'PNG: ' + (e?.message ?? e);
@@ -215,7 +224,7 @@
 		try {
 			const pdf = await renderPdfAll(exportDiagrams(), (st) => (status = st));
 			download('схеми.pdf', pdf, 'application/pdf');
-			status = 'PDF (усі схеми) готовий.';
+			showToast('PDF (усі схеми) збережено.');
 		} catch (e) {
 			errored = true;
 			status = 'PDF: ' + (e?.message ?? e);
@@ -230,7 +239,7 @@
 		try {
 			const pdf = await renderPdf(f.diagram, capOpts(f), (st) => (status = st));
 			download(`${f.name}.pdf`, pdf, 'application/pdf');
-			status = 'PDF готовий.';
+			showToast(`PDF для "${f.name}" збережено.`);
 		} catch (e) {
 			errored = true;
 			status = 'PDF не вдався: ' + (e?.message ?? e);
@@ -256,23 +265,23 @@
 		status = `Розбито на ${res.parts.length} частин (конектори ○).`;
 	}
 
-	function exportSvg(f) { download(`${f.name}.svg`, f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`), 'image/svg+xml'); }
+	function exportSvg(f) { download(`${f.name}.svg`, f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`), 'image/svg+xml'); showToast(`SVG "${f.name}" збережено.`); }
 	function exportExcal(f) {
-		try { download(`${f.name}.excalidraw`, renderExcalidraw({ ...f.diagram, ...capOpts(f) }), 'application/json'); status = 'Excalidraw готовий.'; }
+		try { download(`${f.name}.excalidraw`, renderExcalidraw({ ...f.diagram, ...capOpts(f) }), 'application/json'); showToast(`Excalidraw "${f.name}" збережено.`); }
 		catch (e) { errored = true; status = 'Excalidraw: ' + (e?.message ?? e); }
 	}
 	function exportAllExcal() {
-		try { download('схеми.excalidraw', renderExcalidrawAll(exportDiagrams()), 'application/json'); status = 'Excalidraw (усі) готовий.'; }
+		try { download('схеми.excalidraw', renderExcalidrawAll(exportDiagrams()), 'application/json'); showToast('Excalidraw (усі) збережено.'); }
 		catch (e) { errored = true; status = 'Excalidraw: ' + (e?.message ?? e); }
 	}
 	async function exportPng(f) {
 		busy = true; errored = false;
-		try { const png = await renderPng(f.diagram, capOpts(f), s.pngScale, (st) => (status = st)); download(`${f.name}.png`, png, 'image/png'); status = 'PNG готовий.'; }
+		try { const png = await renderPng(f.diagram, capOpts(f), s.pngScale, (st) => (status = st)); download(`${f.name}.png`, png, 'image/png'); showToast(`PNG "${f.name}" збережено.`); }
 		catch (e) { errored = true; status = 'PNG не вдався: ' + (e?.message ?? e); }
 		finally { busy = false; }
 	}
 
-	async function copyToClipboard(textOrBytes, type = 'text/plain') {
+	async function copyToClipboard(textOrBytes, type = 'text/plain', msg) {
 		try {
 			if (type === 'image/png') {
 				const blob = new Blob([textOrBytes], { type });
@@ -613,5 +622,16 @@
 				{@html fullscreenFn.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`)}
 			</div>
 		</div>
+	</div>
+{/if}
+
+{#if toast}
+	<div class="fixed bottom-6 right-6 z-[110] flex items-center gap-3 rounded-lg px-4 py-3 shadow-xl transition-all {toast.isErr ? 'bg-red-600 text-white' : 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900'}">
+		{#if toast.isErr}
+			<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+		{:else}
+			<svg class="h-5 w-5 text-emerald-400 dark:text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+		{/if}
+		<span class="text-sm font-medium">{toast.msg}</span>
 	</div>
 {/if}
