@@ -34,29 +34,30 @@
 </svelte:head>
 
 <!-- HERO -->
-<section class="relative overflow-hidden border-b border-slate-200 grid-bg dark:border-slate-800">
+<section class="relative overflow-hidden border-b border-slate-200 grid-bg dark:border-slate-800 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
 	<div class="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 lg:grid-cols-2 lg:py-28">
 		<div class="rise">
-			<span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
-				ДСТУ 19.701-90 · без реєстрації
+			<span class="inline-flex items-center gap-2 rounded-full border border-blue-200/60 bg-blue-50/80 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-700 backdrop-blur-sm dark:border-blue-800/50 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm">
+				ДСТУ 19.701-90 · Локально у браузері
 			</span>
-			<h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">
-				Блок-схеми з коду <span class="text-blue-600">за лічені секунди</span>
+			<h1 class="mt-6 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
+				Блок-схеми з коду <br/><span class="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">за лічені секунди</span>
 			</h1>
-			<p class="mt-5 max-w-md text-lg text-slate-600 dark:text-slate-300">
+			<p class="mt-6 max-w-lg text-lg text-slate-600 leading-relaxed dark:text-slate-300">
 				Встав код на Python — отримай готову блок-схему за державним стандартом. Підправ
-				у візуальному редакторі й додай у будь-який документ.
+				у візуальному редакторі й додай у будь-який документ. Усе безкоштовно.
 			</p>
-			<div class="mt-8 flex flex-wrap gap-3">
+			<div class="mt-10 flex flex-wrap gap-4">
 				<a
 					href="/app"
-					class="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-700"
+					class="group relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5"
 				>
-					Побудувати схему →
+					<span class="mr-2">Побудувати схему</span>
+					<svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
 				</a>
 				<a
 					href="/guide"
-					class="rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
+					class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/50 px-8 py-3.5 font-semibold text-slate-700 backdrop-blur-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800 hover:-translate-y-0.5"
 				>
 					Як це працює
 				</a>
@@ -64,8 +65,11 @@
 		</div>
 
 		<!-- міні-схема: справжній вивід двигуна -->
-		<div class="rise rounded-2xl border border-slate-200 dark:border-slate-800 bg-white p-6 shadow-xl shadow-slate-200/50">
-			<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[400px]" font-family="Inter, sans-serif" font-size="14">
+		<div class="rise relative group">
+			<!-- Розмитий фоновий градієнт для свічення -->
+			<div class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-500 opacity-20 blur transition duration-1000 group-hover:opacity-30 dark:opacity-40"></div>
+			<div class="relative rounded-2xl border border-white/50 bg-white/80 p-8 shadow-2xl backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-900/80">
+				<svg viewBox="0 0 472 564" class="mx-auto h-auto w-full max-w-[400px]" font-family="Outfit, sans-serif" font-size="14">
 				<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>
 				<path d="M236.0 86.0 L236.0 130.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
 				<path d="M236.0 176.0 L236.0 220.0" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arr)"/>
@@ -108,14 +112,14 @@
 	<div class="mx-auto max-w-6xl px-5 py-20">
 		<div class="grid gap-6 sm:grid-cols-2">
 			{#each features as f (f.title)}
-				<div class="rounded-2xl border border-slate-200 dark:border-slate-800 p-6 transition hover:border-blue-300 hover:shadow-md dark:hover:border-blue-700">
-					<div class="grid h-11 w-11 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+				<div class="group rounded-2xl border border-slate-200 bg-white/50 p-8 backdrop-blur-sm transition-all hover:border-blue-300 hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-blue-700/50 dark:hover:bg-slate-800 hover:-translate-y-1">
+					<div class="grid h-14 w-14 place-items-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-900/40 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white">
+						<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d={f.icon} />
 						</svg>
 					</div>
-					<h3 class="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">{f.title}</h3>
-					<p class="mt-2 text-slate-600 dark:text-slate-300">{f.body}</p>
+					<h3 class="mt-6 text-xl font-bold text-slate-900 dark:text-white">{f.title}</h3>
+					<p class="mt-3 leading-relaxed text-slate-600 dark:text-slate-400">{f.body}</p>
 				</div>
 			{/each}
 		</div>
