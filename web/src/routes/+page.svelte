@@ -147,6 +147,61 @@
 	</div>
 </section>
 
+<!-- FAQ -->
+<section class="border-t border-slate-200 bg-slate-50 py-20 dark:border-slate-800 dark:bg-slate-900/50">
+	<div class="mx-auto max-w-4xl px-5">
+		<h2 class="text-center text-3xl font-bold text-slate-900 dark:text-slate-100">Часті запитання</h2>
+		<div class="mt-10 space-y-4">
+			<details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:open:border-blue-500">
+				<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+					Які мови підтримуються?
+					<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+				</summary>
+				<p class="mt-4 text-slate-600 dark:text-slate-300">
+					Зараз повністю підтримується Python. Усі базові конструкції (умови, цикли, винятки, функції) автоматично розпізнаються і будуються за ДСТУ. Підтримку інших мов (C++, Go) можна додати в майбутньому завдяки гнучкій архітектурі.
+				</p>
+			</details>
+			<details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:open:border-blue-500">
+				<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+					Як скопіювати схему у Word/Google Docs?
+					<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+				</summary>
+				<p class="mt-4 text-slate-600 dark:text-slate-300">
+					Найпростіше — натиснути «Копіювати ▾» і вибрати PNG, а потім просто вставити у документ (Ctrl+V). Також можна завантажити SVG для векторної якості.
+				</p>
+			</details>
+			<details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:open:border-blue-500">
+				<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+					Чи працює це офлайн?
+					<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+				</summary>
+				<p class="mt-4 text-slate-600 dark:text-slate-300">
+					Так! Після першого завантаження сторінки всі обчислення відбуваються безпосередньо у вашому браузері (за допомогою WebAssembly). Ваші коди та схеми нікуди не відправляються.
+				</p>
+			</details>
+		</div>
+	</div>
+</section>
+
+<!-- OPEN SOURCE -->
+<section class="border-t border-slate-200 bg-white py-20 dark:border-slate-800 dark:bg-slate-900">
+	<div class="mx-auto max-w-4xl px-5 text-center">
+		<div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+			<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+		</div>
+		<h2 class="mt-6 text-3xl font-bold text-slate-900 dark:text-slate-100">100% Відкритий код</h2>
+		<p class="mt-4 text-lg text-slate-600 dark:text-slate-400">
+			rombik розробляється відкрито на GitHub. Рушій написаний на Go, фронтенд — на Svelte 5.
+			Ви можете долучитися до розробки, повідомити про баг або запропонувати нову функцію.
+		</p>
+		<div class="mt-8">
+			<a href="https://github.com/OlexiyOdarchuk/rombik" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+				Зірочка на GitHub
+			</a>
+		</div>
+	</div>
+</section>
+
 <!-- CTA -->
 <section class="bg-slate-900">
 	<div class="mx-auto max-w-4xl px-5 py-16 text-center">
