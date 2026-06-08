@@ -43,12 +43,18 @@
 	let mobileTab = $state('code'); // code | schema (для мобільного вигляду)
 	let activeMenu = $state(null); // ID відкритого випадаючого меню (для мобільних)
 	
-	let toast = $state(null); // { msg, isErr }
+	let toast = $state(null); // { msg, isErr, showDonate }
 	let toastTimer;
-	function showToast(msg, isErr = false) {
-		toast = { msg, isErr };
+	function showToast(msg, isErr = false, showDonate = false) {
+		toast = { msg, isErr, showDonate };
 		clearTimeout(toastTimer);
-		toastTimer = setTimeout(() => (toast = null), 3000);
+		toastTimer = setTimeout(() => (toast = null), showDonate ? 5000 : 3000);
+	}
+
+	function vibrate(ms = 30) {
+		if (typeof navigator !== 'undefined' && navigator.vibrate) {
+			navigator.vibrate(ms);
+		}
 	}
 
 	function onEditorSave(dOrArray) {
@@ -167,6 +173,7 @@
 	});
 
 	async function build() {
+		vibrate(40);
 		busy = true;
 		errored = false;
 		try {
@@ -189,6 +196,7 @@
 	}
 
 	function download(name, text, type) {
+		vibrate(30);
 		const url = URL.createObjectURL(new Blob([text], { type }));
 		const a = document.createElement('a');
 		a.href = url;
@@ -200,14 +208,14 @@
 	function exportTypst(f) {
 		const typ = s.typstFragment ? renderTypst({ ...f.diagram, ...capOpts(f) }, true) : f.typst;
 		download(`${f.name}.typ`, typ, 'text/plain');
-		showToast(`Typst для "${f.name}" збережено.`);
+		showToast(`Typst для "${f.name}" збережено.`, false, true);
 	}
 
 	// --- Експорт УСІХ схем одним документом/зображенням ---
 	function exportAllTypst() {
 		try {
 			download('схеми.typ', renderTypstAll(exportDiagrams(), s.typstFragment), 'text/plain');
-			showToast('Typst (усі схеми) збережено.');
+			showToast('Typst (усі схеми) збережено.', false, true);
 		} catch (e) {
 			errored = true;
 			status = 'Typst: ' + (e?.message ?? e);
@@ -217,7 +225,7 @@
 	function exportAllSvg() {
 		try {
 			download('схеми.svg', renderSvgAll(exportDiagrams()), 'image/svg+xml');
-			showToast('SVG (усі схеми) збережено.');
+			showToast('SVG (усі схеми) збережено.', false, true);
 		} catch (e) {
 			errored = true;
 			status = 'SVG: ' + (e?.message ?? e);
@@ -230,7 +238,7 @@
 		try {
 			const png = await renderPngAll(exportDiagrams(), s.pngScale, (st) => (status = st));
 			download('схеми.png', png, 'image/png');
-			showToast('PNG (усі схеми) збережено.');
+			showToast('PNG (усі схеми) збережено.', false, true);
 		} catch (e) {
 			errored = true;
 			status = 'PNG: ' + (e?.message ?? e);
@@ -245,7 +253,7 @@
 		try {
 			const pdf = await renderPdfAll(exportDiagrams(), (st) => (status = st));
 			download('схеми.pdf', pdf, 'application/pdf');
-			showToast('PDF (усі схеми) збережено.');
+			showToast('PDF (усі схеми) збережено.', false, true);
 		} catch (e) {
 			errored = true;
 			status = 'PDF: ' + (e?.message ?? e);
@@ -260,7 +268,7 @@
 		try {
 			const pdf = await renderPdf(f.diagram, capOpts(f), (st) => (status = st));
 			download(`${f.name}.pdf`, pdf, 'application/pdf');
-			showToast(`PDF для "${f.name}" збережено.`);
+			showToast(`PDF для "${f.name}" збережено.`, false, true);
 		} catch (e) {
 			errored = true;
 			status = 'PDF не вдався: ' + (e?.message ?? e);
@@ -286,24 +294,25 @@
 		status = `Розбито на ${res.parts.length} частин (конектори ○).`;
 	}
 
-	function exportSvg(f) { download(`${f.name}.svg`, f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`), 'image/svg+xml'); showToast(`SVG "${f.name}" збережено.`); }
+	function exportSvg(f) { download(`${f.name}.svg`, f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`), 'image/svg+xml'); showToast(`SVG "${f.name}" збережено.`, false, true); }
 	function exportExcal(f) {
-		try { download(`${f.name}.excalidraw`, renderExcalidraw({ ...f.diagram, ...capOpts(f) }), 'application/json'); showToast(`Excalidraw "${f.name}" збережено.`); }
+		try { download(`${f.name}.excalidraw`, renderExcalidraw({ ...f.diagram, ...capOpts(f) }), 'application/json'); showToast(`Excalidraw "${f.name}" збережено.`, false, true); }
 		catch (e) { errored = true; status = 'Excalidraw: ' + (e?.message ?? e); }
 	}
 	function exportAllExcal() {
-		try { download('схеми.excalidraw', renderExcalidrawAll(exportDiagrams()), 'application/json'); showToast('Excalidraw (усі) збережено.'); }
+		try { download('схеми.excalidraw', renderExcalidrawAll(exportDiagrams()), 'application/json'); showToast('Excalidraw (усі) збережено.', false, true); }
 		catch (e) { errored = true; status = 'Excalidraw: ' + (e?.message ?? e); }
 	}
 	async function exportPng(f) {
 		busy = true; errored = false;
-		try { const png = await renderPng(f.diagram, capOpts(f), s.pngScale, (st) => (status = st)); download(`${f.name}.png`, png, 'image/png'); showToast(`PNG "${f.name}" збережено.`); }
+		try { const png = await renderPng(f.diagram, capOpts(f), s.pngScale, (st) => (status = st)); download(`${f.name}.png`, png, 'image/png'); showToast(`PNG "${f.name}" збережено.`, false, true); }
 		catch (e) { errored = true; status = 'PNG не вдався: ' + (e?.message ?? e); }
 		finally { busy = false; }
 	}
 
 	async function copyToClipboard(textOrBytes, type = 'text/plain', msg) {
 		try {
+			vibrate(30);
 			if (type === 'image/png') {
 				const blob = new Blob([textOrBytes], { type });
 				await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
@@ -312,6 +321,7 @@
 			}
 			errored = false;
 			status = 'Скопійовано в буфер обміну!';
+			showToast('Скопійовано', false, true);
 			setTimeout(() => { if (status === 'Скопійовано в буфер обміну!') status = ''; }, 3000);
 		} catch (e) {
 			errored = true;
@@ -545,9 +555,9 @@
 							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-700">
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
 								<div class="flex flex-wrap gap-2">
-									<button onclick={() => (fullscreenFn = f)} class="rounded border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" title="На весь екран">⛶</button>
-									<button onclick={() => (editingFn = f)} class="rounded border border-blue-300 bg-blue-50/50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/50">✎ Редагувати</button>
-									<button onclick={() => splitFn(f)} class="rounded border border-amber-300 bg-amber-50/50 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/50">✂ Розбити</button>
+									<button onclick={() => { vibrate(20); fullscreenFn = f; }} class="rounded border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" title="На весь екран">⛶</button>
+									<button onclick={() => { vibrate(20); editingFn = f; }} class="rounded border border-blue-300 bg-blue-50/50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/50">✎ Редагувати</button>
+									<button onclick={() => { vibrate(20); splitFn(f); }} class="rounded border border-amber-300 bg-amber-50/50 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/50">✂ Розбити</button>
 									<div class="h-4 w-px bg-slate-200 dark:bg-slate-600 self-center"></div>
 									
 									<div class="group relative">
@@ -649,12 +659,23 @@
 {/if}
 
 {#if toast}
-	<div class="fixed bottom-6 right-6 z-[110] flex items-center gap-3 rounded-lg px-4 py-3 shadow-xl transition-all {toast.isErr ? 'bg-red-600 text-white' : 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900'}">
-		{#if toast.isErr}
-			<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-		{:else}
-			<svg class="h-5 w-5 text-emerald-400 dark:text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+	<div class="fixed bottom-6 right-6 z-[110] flex flex-col gap-2 rounded-lg px-4 py-3 shadow-xl transition-all {toast.isErr ? 'bg-red-600 text-white' : 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900'}">
+		<div class="flex items-center gap-3">
+			{#if toast.isErr}
+				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+			{:else}
+				<svg class="h-5 w-5 text-emerald-400 dark:text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+			{/if}
+			<span class="text-sm font-medium">{toast.msg}</span>
+		</div>
+		{#if toast.showDonate}
+			<div class="mt-1 flex flex-col pt-1 border-t border-slate-600/30 dark:border-slate-300/30">
+				<span class="text-xs text-slate-300 dark:text-slate-600 mb-0.5">Допомогло зекономити час?</span>
+				<a href="https://send.monobank.ua/jar/23E3WYNesG" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 dark:text-amber-600 dark:hover:text-amber-500">
+					<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+					Підтримати розробника
+				</a>
+			</div>
 		{/if}
-		<span class="text-sm font-medium">{toast.msg}</span>
 	</div>
 {/if}
