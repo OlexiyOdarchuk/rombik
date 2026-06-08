@@ -13,8 +13,7 @@
 	const isDark = () => document.documentElement.classList.contains('dark');
 	const themeExt = () => (isDark() ? oneDark : []);
 
-	let isInternal = false;
-	
+
 	onMount(() => {
 		view = new EditorView({
 			parent: el,
@@ -26,9 +25,7 @@
 					themeC.of(themeExt()),
 					EditorView.updateListener.of((u) => {
 						if (u.docChanged) {
-							isInternal = true;
 							value = u.state.doc.toString();
-							setTimeout(() => { isInternal = false; }, 0);
 						}
 					}),
 					EditorView.theme({
@@ -50,7 +47,7 @@
 	});
 
 	$effect(() => {
-		if (view && !isInternal && value !== view.state.doc.toString()) {
+		if (view && value !== view.state.doc.toString()) {
 			view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } });
 		}
 	});

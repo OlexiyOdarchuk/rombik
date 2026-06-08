@@ -509,11 +509,11 @@
 	<!-- безмежне полотно -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<!-- полотно ЗАВЖДИ світле (схема — чорне-по-білому; темна лише обгортка) -->
-	<svg class="min-h-0 flex-1 touch-none bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-300" style="font-family: 'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif" onpointerdown={bgDown} onwheel={onWheel} role="presentation">
+	<svg class="min-h-0 flex-1 touch-none bg-white text-slate-900" style="font-family: 'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif" onpointerdown={bgDown} onwheel={onWheel} role="presentation">
 		<defs>
 			<marker id="ed-arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="currentColor" /></marker>
 			<pattern id="ed-grid" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="translate({view.x},{view.y}) scale({view.scale})">
-				<path d="M28 0H0V28" fill="none" class="stroke-slate-200 dark:stroke-slate-700" stroke-width="1" />
+				<path d="M28 0H0V28" fill="none" class="stroke-slate-200" stroke-width="1" />
 			</pattern>
 		</defs>
 		<rect width="100%" height="100%" fill="url(#ed-grid)" />
@@ -525,7 +525,7 @@
 				<path d={pathD(e.points)} fill="none" stroke={isSel('edge', e.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('edge', e.id) ? 2.5 : 1.5} marker-end={e.arrowless ? '' : 'url(#ed-arr)'} pointer-events="none" />
 				{#if editLabel === e.id}
 					<foreignObject x={e.lx - 6} y={e.ly - 16} width="90" height="22">
-						<input value={e.label} oninput={(ev) => { e.label = ev.currentTarget.value; edges = [...edges]; }} onblur={() => (editLabel = null)} onkeydown={(ev) => ev.key === 'Enter' && (editLabel = null)} onpointerdown={(ev) => ev.stopPropagation()} class="w-full rounded border border-blue-300 bg-white dark:bg-slate-800 px-1 text-xs text-slate-900 dark:text-slate-100 outline-none" autofocus />
+						<input value={e.label} oninput={(ev) => { e.label = ev.currentTarget.value; edges = [...edges]; }} onblur={() => (editLabel = null)} onkeydown={(ev) => ev.key === 'Enter' && (editLabel = null)} onpointerdown={(ev) => ev.stopPropagation()} class="w-full rounded border border-blue-300 bg-white px-1 text-xs text-slate-900 outline-none" autofocus />
 					</foreignObject>
 				{:else if e.label}
 					<text x={e.lx} y={e.ly} text-anchor="middle" font-size="12" fill={isSel('edge', e.id) ? '#2563eb' : 'currentColor'} class="cursor-move" onpointerdown={(ev) => labelDown(ev, e)} ondblclick={() => (editLabel = e.id)} role="presentation">{e.label}</text>
@@ -556,22 +556,22 @@
 			{#each nodes as n (n.id)}
 				<g class="cursor-move" onpointerdown={(ev) => nodeDown(ev, n)} ondblclick={() => { remember(); editId = n.id; }} role="presentation">
 					{#if n.kind === 'process' || n.kind === 'subprogram'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} class="fill-white dark:fill-slate-800" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 						{#if n.kind === 'subprogram'}
 							<line x1={n.x + 9} y1={n.y} x2={n.x + 9} y2={n.y + n.h} stroke="currentColor" stroke-width="1.5" />
 							<line x1={n.x + n.w - 9} y1={n.y} x2={n.x + n.w - 9} y2={n.y + n.h} stroke="currentColor" stroke-width="1.5" />
 						{/if}
 					{:else if n.kind === 'terminator'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} class="fill-white dark:fill-slate-800" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 					{:else if n.kind === 'connector'}
-						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} class="fill-white dark:fill-slate-800" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 					{:else}
-						<polygon points={poly(n)} class="fill-white dark:fill-slate-800" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<polygon points={poly(n)} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
 					{/if}
 
 					{#if editId === n.id}
 						<foreignObject x={n.x} y={n.y + n.h / 2 - 12} width={n.w} height="24">
-							<input value={n.text} oninput={(ev) => setText(n, ev.currentTarget.value)} onblur={() => (editId = null)} onkeydown={(ev) => ev.key === 'Enter' && (editId = null)} onpointerdown={(ev) => ev.stopPropagation()} class="h-full w-full border-0 bg-transparent text-center text-sm text-slate-900 dark:text-slate-100 outline-none" autofocus />
+							<input value={n.text} oninput={(ev) => setText(n, ev.currentTarget.value)} onblur={() => (editId = null)} onkeydown={(ev) => ev.key === 'Enter' && (editId = null)} onpointerdown={(ev) => ev.stopPropagation()} class="h-full w-full border-0 bg-transparent text-center text-sm text-slate-900 outline-none" autofocus />
 						</foreignObject>
 					{:else}
 						<text x={n.x + n.w / 2} y={n.y + n.h / 2} text-anchor="middle" dominant-baseline="middle" fill="currentColor" pointer-events="none">{n.text}</text>
