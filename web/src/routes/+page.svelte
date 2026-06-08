@@ -493,7 +493,7 @@
             фронтенд — на Svelte 5. Ви можете долучитися до розробки, повідомити
             про баг або запропонувати нову функцію.
         </p>
-        <div class="mt-8">
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
             <a
                 href="https://github.com/OlexiyOdarchuk/rombik"
                 target="_blank"
@@ -501,6 +501,14 @@
                 class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
                 Зірочка на GitHub
+            </a>
+            <a
+                href="https://ishawyha.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 rounded-xl border border-transparent px-6 py-3 font-semibold text-blue-600 transition hover:underline dark:text-blue-400"
+            >
+                Більше проєктів від ishawyha →
             </a>
         </div>
     </div>

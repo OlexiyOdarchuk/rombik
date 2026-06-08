@@ -8,7 +8,7 @@
 		<div class="flex flex-col gap-1">
 			<p>
 				© {new Date().getFullYear()} rombik — блок-схеми за ДСТУ 19.701-90. Зробив
-				<a href="https://ishawyha.dev" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Олексій Одарчук</a>.
+				<a href="https://ishawyha.dev" class="font-medium text-blue-600 hover:underline dark:text-blue-400" target="_blank" rel="noopener">Олексій Одарчук (ishawyha)</a>.
 			</p>
 			<p class="text-xs text-slate-400 dark:text-slate-500">
 				Останнє оновлення: {date} (commit <a href="https://github.com/OlexiyOdarchuk/rombik/commit/{hash}" target="_blank" rel="noopener" class="font-mono hover:text-slate-600 hover:underline dark:hover:text-slate-300">{hash}</a>)
