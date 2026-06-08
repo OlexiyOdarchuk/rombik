@@ -185,17 +185,19 @@
 
 	function bgDown(ev) {
 		// фон: пан полотна + зняти виділення
+		if (act) return;
 		sel = null;
 		editId = null;
-		act = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, vx: view.x, vy: view.y };
+		act = { kind: 'pan', pid: ev.pointerId, sx: ev.clientX, sy: ev.clientY, vx: view.x, vy: view.y };
 	}
 
 	function nodeDown(ev, n) {
 		ev.stopPropagation();
+		if (act) return;
 		if (editId && editId !== n.id) editId = null;
 		sel = { type: 'node', id: n.id };
 		const w = toWorld(ev.clientX, ev.clientY);
-		act = { kind: 'node', id: n.id, ox: n.x, oy: n.y, wx: w.x, wy: w.y };
+		act = { kind: 'node', pid: ev.pointerId, id: n.id, ox: n.x, oy: n.y, wx: w.x, wy: w.y };
 	}
 
 	function edgeDown(ev, e) {
@@ -205,26 +207,29 @@
 
 	function labelDown(ev, e) {
 		ev.stopPropagation();
+		if (act) return;
 		sel = { type: 'edge', id: e.id };
 		const w = toWorld(ev.clientX, ev.clientY);
-		act = { kind: 'label', id: e.id, ox: e.lx, oy: e.ly, wx: w.x, wy: w.y };
+		act = { kind: 'label', pid: ev.pointerId, id: e.id, ox: e.lx, oy: e.ly, wx: w.x, wy: w.y };
 	}
 
 	function vertexDown(ev, e, i) {
 		ev.stopPropagation();
+		if (act) return;
 		sel = { type: 'edge', id: e.id };
-		act = { kind: 'vertex', id: e.id, i, end: i === 0 || i === e.points.length - 1 };
+		act = { kind: 'vertex', pid: ev.pointerId, id: e.id, i, end: i === 0 || i === e.points.length - 1 };
 		e.manual = true;
 	}
 
 	function portDown(ev, n, side) {
 		ev.stopPropagation();
+		if (act) return;
 		const w = toWorld(ev.clientX, ev.clientY);
-		act = { kind: 'draw', from: n.id, side, x: w.x, y: w.y };
+		act = { kind: 'draw', pid: ev.pointerId, from: n.id, side, x: w.x, y: w.y };
 	}
 
 	function onMove(ev) {
-		if (!act) return;
+		if (!act || (act.pid !== undefined && ev.pointerId !== act.pid)) return;
 		// Знімок в історію — лише при ПЕРШОМУ русі (не на простий клік-вибір).
 		if (!act.saved && (act.kind === 'node' || act.kind === 'vertex' || act.kind === 'label')) {
 			remember();
@@ -291,7 +296,7 @@
 	}
 
 	function onUp(ev) {
-		if (!act) return;
+		if (!act || (act.pid !== undefined && ev.pointerId !== act.pid)) return;
 		const w = toWorld(ev.clientX, ev.clientY);
 		if (act.kind === 'vertex' && act.end) {
 			// відпустили кінець ребра над фігурою → переприв'язка

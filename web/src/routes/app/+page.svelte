@@ -41,6 +41,7 @@
 	let editingFn = $state(null); // схема, відкрита у візуальному редакторі
 	let fullscreenFn = $state(null); // схема, відкрита на весь екран
 	let mobileTab = $state('code'); // code | schema (для мобільного вигляду)
+	let activeMenu = $state(null); // ID відкритого випадаючого меню (для мобільних)
 	
 	let toast = $state(null); // { msg, isErr }
 	let toastTimer;
@@ -322,6 +323,8 @@
 	<title>Редактор — rombik</title>
 </svelte:head>
 
+<svelte:window onclick={() => (activeMenu = null)} />
+
 <div class="mx-auto flex h-[100dvh] max-w-7xl flex-col p-3 md:p-4">
 	<!-- toolbar -->
 	<div class="mb-3 flex flex-wrap items-center gap-2 md:gap-3">
@@ -463,11 +466,11 @@
 			<div class="ml-auto flex w-full flex-wrap items-center gap-2 border-t border-slate-200 pt-2 dark:border-slate-700 sm:w-auto sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
 				<span class="text-xs font-semibold text-slate-500 dark:text-slate-400">УСІ СХЕМИ ({funcs.length}):</span>
 				<div class="group relative">
-					<button class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+					<button onclick={(e) => { e.stopPropagation(); activeMenu = activeMenu === 'dl-all' ? null : 'dl-all'; }} class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
 						<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
 						Завантажити
 					</button>
-					<div class="absolute right-0 top-full z-10 hidden w-32 pt-2 group-hover:block">
+					<div class="absolute right-0 top-full z-10 w-32 pt-2 {activeMenu === 'dl-all' ? 'block' : 'hidden lg:group-hover:block'}">
 						<div class="flex flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800">
 							{#each [['SVG', exportAllSvg], ['PNG', exportAllPng], ['Typst', exportAllTypst], ['PDF', exportAllPdf], ['Excalidraw', exportAllExcal]] as [label, fn] (label)}
 								<button onclick={fn} disabled={busy} class="px-4 py-2 text-left text-xs font-medium transition hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-700">{label}</button>
@@ -476,11 +479,11 @@
 					</div>
 				</div>
 				<div class="group relative">
-					<button class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+					<button onclick={(e) => { e.stopPropagation(); activeMenu = activeMenu === 'cp-all' ? null : 'cp-all'; }} class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
 						<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
 						Копіювати
 					</button>
-					<div class="absolute right-0 top-full z-10 hidden w-32 pt-2 group-hover:block">
+					<div class="absolute right-0 top-full z-10 w-32 pt-2 {activeMenu === 'cp-all' ? 'block' : 'hidden lg:group-hover:block'}">
 						<div class="flex flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800">
 							{#each [['SVG', copyAllSvg], ['PNG', copyAllPng], ['Typst', copyAllTypst], ['Excalidraw', copyAllExcal]] as [label, fn] (label)}
 								<button onclick={fn} disabled={busy} class="px-4 py-2 text-left text-xs font-medium transition hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-700">{label}</button>
@@ -528,10 +531,10 @@
 									<div class="h-4 w-px bg-slate-200 dark:bg-slate-600 self-center"></div>
 									
 									<div class="group relative">
-										<button class="flex items-center gap-1 rounded border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+										<button onclick={(e) => { e.stopPropagation(); activeMenu = activeMenu === 'dl-' + i ? null : 'dl-' + i; }} class="flex items-center gap-1 rounded border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
 											Завантажити ▾
 										</button>
-										<div class="absolute right-0 top-full z-10 hidden w-28 pt-1 group-hover:block">
+										<div class="absolute right-0 top-full z-10 w-28 pt-1 {activeMenu === 'dl-' + i ? 'block' : 'hidden lg:group-hover:block'}">
 											<div class="flex flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
 												{#each [['SVG', () => exportSvg(f)], ['PNG', () => exportPng(f)], ['Typst', () => exportTypst(f)], ['PDF', () => exportPdf(f)], ['Excalidraw', () => exportExcal(f)]] as [label, fn] (label)}
 													<button onclick={fn} disabled={busy} class="px-3 py-1.5 text-left text-xs font-medium transition hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-700">{label}</button>
@@ -541,10 +544,10 @@
 									</div>
 
 									<div class="group relative">
-										<button class="flex items-center gap-1 rounded border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+										<button onclick={(e) => { e.stopPropagation(); activeMenu = activeMenu === 'cp-' + i ? null : 'cp-' + i; }} class="flex items-center gap-1 rounded border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
 											Копіювати ▾
 										</button>
-										<div class="absolute right-0 top-full z-10 hidden w-28 pt-1 group-hover:block">
+										<div class="absolute right-0 top-full z-10 w-28 pt-1 {activeMenu === 'cp-' + i ? 'block' : 'hidden lg:group-hover:block'}">
 											<div class="flex flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
 												{#each [['SVG', () => copySvg(f)], ['PNG', () => copyPng(f)], ['Typst', () => copyTypst(f)], ['Excalidraw', () => copyExcal(f)]] as [label, fn] (label)}
 													<button onclick={fn} disabled={busy} class="px-3 py-1.5 text-left text-xs font-medium transition hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-700">{label}</button>
