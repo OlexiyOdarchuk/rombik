@@ -13,7 +13,7 @@ tags: [web, frontend]
   будь-де (GitHub Pages, CDN).
 - **Tailwind v4** (`@tailwindcss/vite`) — стилі, з підтримкою темної теми.
 - **CodeMirror 6** — редактор коду Python (підсвітка, нумерація, дужки).
-- Рантайм-двигун — **Pyodide + два WASM** ([[Браузерний-двигун]]).
+- Рантайм-рушій — **Pyodide + два WASM** ([[Браузерний-рушій]]).
 
 ## Структура
 
@@ -21,7 +21,7 @@ tags: [web, frontend]
 web/src/
 ├── app.html, app.css        Tailwind + токени теми (--color-paper тощо)
 ├── lib/
-│   ├── engine.js            клей Pyodide + два WASM-двигуни
+│   ├── engine.js            клей Pyodide + два WASM-рушійи
 │   ├── CodeEditor.svelte    CodeMirror 6 (Python); тема через Compartment
 │   ├── ThemeToggle.svelte   перемикач світла/темна
 │   ├── Nav.svelte           шапка: лого-ромбік, навігація, ThemeToggle
@@ -63,7 +63,7 @@ web/src/
 ## Потік у редакторі
 
 1. Код + опції → `engine.generate` → Pyodide парсить, легкий WASM розкладає й рендерить
-   ([[Браузерний-двигун]]).
+   ([[Браузерний-рушій]]).
 2. Результат `{functions:[{name, svg, typst, diagram}]}` → `svg` у DOM.
 3. Правка підпису → `renderCaption` (дешевий ре-рендер, без парсингу).
 4. Експорт: SVG/Typst — напряму з легкого модуля; **PNG/PDF — ліниво** через
@@ -71,5 +71,5 @@ web/src/
 
 ## Пов'язане
 
-- [[Браузерний-двигун]] · [[WASM-міст]]
+- [[Браузерний-рушій]] · [[WASM-міст]]
 - [[Опції-рендера]] · [[Збірка-і-запуск]]

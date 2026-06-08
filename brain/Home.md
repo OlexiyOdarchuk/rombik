@@ -52,7 +52,7 @@ tags: [moc, home]
 
 ### 04 — Веб
 
-- [[Браузерний-двигун]] — Pyodide + два WASM, нуль серверного коду
+- [[Браузерний-рушій]] — Pyodide + два WASM, нуль серверного коду
 - [[WASM-міст]] — `cmd/wasm` (легкий) + `cmd/wasmraster` (важкий)
 - [[Фронтенд-SvelteKit]] — CodeMirror-редактор, темна тема, експорт SVG/PNG/PDF/Typst
 

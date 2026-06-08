@@ -41,7 +41,7 @@ type Func struct { Name string; Block Node }
 - **CLI:** `parser/python` сам кличе `python3` і віддає AST-JSON.
 - **Браузер:** Pyodide виконує `parser.py`, JS передає AST-JSON у `rombikGenerate`.
 
-Обидва шляхи сходяться у `FromJSON`. → [[WASM-міст]], [[Браузерний-двигун]].
+Обидва шляхи сходяться у `FromJSON`. → [[WASM-міст]], [[Браузерний-рушій]].
 
 ### 3. Один парсер на два середовища
 
