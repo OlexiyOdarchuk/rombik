@@ -1,4 +1,4 @@
-// Двигун у браузері, без сервера:
+// Рушій у браузері, без сервера:
 //   Pyodide (CPython у WASM) виконує parser.py -> AST-JSON
 //   rombik.wasm (Go) бере AST-JSON + опції -> {functions:[{name, svg, diagram}]}
 import { base } from '$app/paths';
@@ -38,7 +38,7 @@ async function init(onProgress) {
 	await loadScript(PYODIDE_CDN + 'pyodide.js');
 	pyodide = await globalThis.loadPyodide({ indexURL: PYODIDE_CDN });
 
-	onProgress?.('Завантаження двигуна…');
+	onProgress?.('Завантаження рушія…');
 	parserSrc = await (await fetch(`${base}/parser.py`)).text();
 	await loadScript(`${base}/wasm_exec.js`);
 	const go = new globalThis.Go();
@@ -79,7 +79,7 @@ export async function generate(code, options = {}, onProgress) {
 	try {
 		return JSON.parse(globalThis.rombikGenerate(astJSON, JSON.stringify(options)));
 	} catch (e) {
-		return { error: 'двигун: ' + (e?.message ?? e) };
+		return { error: 'рушій: ' + (e?.message ?? e) };
 	}
 }
 

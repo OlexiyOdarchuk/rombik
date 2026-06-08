@@ -15,12 +15,12 @@ npm run dev            # http://localhost:5173
 npm run build          # статика у build/
 ```
 
-## Двигун у браузері (без сервера)
+## Рушій у браузері (без сервера)
 
 Усе працює клієнтсько:
 
 - **Pyodide** (CPython у WASM) виконує `parser.py` → AST-JSON;
-- **rombik.wasm** (легкий Go-двигун) бере AST-JSON + опції → `{functions:[{name, svg,
+- **rombik.wasm** (легкий Go-рушій) бере AST-JSON + опції → `{functions:[{name, svg,
   typst, diagram}]}` (`rombikGenerate`); має ще `rombikRenderOne` (живий ре-рендер
   підпису) і `rombikTypstAll`;
 - **rombik-raster.wasm** (важкий, ~16 МБ) — нативні PNG/PDF (`rombikPng`/`rombikPdf`/
@@ -37,4 +37,4 @@ cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
 cp pkg/parser/python/parser.py web/static/
 ```
 
-Деталі — у `brain/04-Веб/` ([[Браузерний-двигун]], [[WASM-міст]], [[Фронтенд-SvelteKit]]).
+Деталі — у `brain/04-Веб/` ([[Браузерний-рушій]], [[WASM-міст]], [[Фронтенд-SvelteKit]]).

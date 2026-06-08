@@ -35,7 +35,7 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      # Збираємо двигун у WASM + копіюємо parser.py і wasm_exec.js у static/.
+      # Збираємо рушій у WASM + копіюємо parser.py і wasm_exec.js у static/.
       - name: Build WASM engine
         run: ./web/build-wasm.sh
 
