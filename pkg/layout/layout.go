@@ -556,7 +556,8 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 	thenEmpty := nstmts(n.Then) == 0
 	elseEmpty := nstmts(n.Else) == 0
 
-	// Guard (одна гілка порожня): дія прямо вниз, порожня гілка обходить збоку.
+	// Guard (лише одна гілка непорожня): дія прямо вниз, порожня обходить збоку.
+	// Якщо обидві порожні (if pass else pass), малюємо симетрично.
 	if elseEmpty && !thenEmpty {
 		return b.guard(n.Then, b.yes, b.no, +1, cx, dw, midY, branchTop)
 	}
@@ -564,12 +565,12 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 		return b.guard(n.Else, b.no, b.yes, -1, cx, dw, midY, branchTop)
 	}
 
-	// Обидві гілки — симетрично.
+	// Обидві гілки (або обидві порожні) — розносимо по боках.
 	tw, th := b.branchSize(n.Then)
 	ew, eh := b.branchSize(n.Else)
-	total := tw + hGap + ew
-	thenCx := cx - total/2 + tw/2
-	elseCx := cx + total/2 - ew/2
+	// Гарантуємо, що стрілки виходять з ромба назовні, а гілки не накладаються.
+	thenCx := cx - max(dw/2+24, tw/2+hGap/2)
+	elseCx := cx + max(dw/2+24, ew/2+hGap/2)
 	mergeY := branchTop + max(th, eh) + mergeGap
 
 	thenEnded := b.branch(n.Then, b.yes, cx, cx-dw/2, midY, thenCx, branchTop, mergeY)
@@ -588,7 +589,7 @@ func (b *build) guard(body *ir.Block, downLabel, sideLabel string, side, cx, dw,
 	mergeY := branchTop + bh + mergeGap
 
 	vx := cx + side*dw/2
-	sideX := cx + side*(bw/2+hGap)
+	sideX := cx + side*max(dw/2+24, bw/2+hGap)
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: sideLabel, Points: []diagram.Point{
 		{X: vx, Y: midY}, {X: sideX, Y: midY}, {X: sideX, Y: mergeY}, {X: cx, Y: mergeY},
 	}})
