@@ -39,6 +39,7 @@
 	let showSettings = $state(false);
 	let sTab = $state('struct'); // struct | text | export
 	let editingFn = $state(null); // схема, відкрита у візуальному редакторі
+	let fullscreenFn = $state(null); // схема, відкрита на весь екран
 	let mobileTab = $state('code'); // code | schema (для мобільного вигляду)
 
 	function onEditorSave(d) {
@@ -512,6 +513,7 @@
 							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-700">
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
 								<div class="flex flex-wrap gap-2">
+									<button onclick={() => (fullscreenFn = f)} class="rounded border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" title="На весь екран">⛶</button>
 									<button onclick={() => (editingFn = f)} class="rounded border border-blue-300 bg-blue-50/50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/50">✎ Редагувати</button>
 									<button onclick={() => splitFn(f)} class="rounded border border-amber-300 bg-amber-50/50 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/50">✂ Розбити</button>
 									<div class="h-4 w-px bg-slate-200 dark:bg-slate-600 self-center"></div>
@@ -595,4 +597,21 @@
 
 {#if editingFn}
 	<DiagramEditor diagram={editingFn.diagram} onsave={onEditorSave} oncancel={() => (editingFn = null)} />
+{/if}
+
+{#if fullscreenFn}
+	<div class="fixed inset-0 z-[100] flex flex-col bg-slate-50 dark:bg-slate-950">
+		<div class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+			<span class="font-bold text-slate-800 dark:text-slate-200">Перегляд: {fullscreenFn.name}</span>
+			<button onclick={() => (fullscreenFn = null)} class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+				<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+			</button>
+		</div>
+		<div class="flex-1 overflow-auto p-4 grid place-items-center">
+			<div class="schema rounded-xl bg-white p-6 shadow-xl dark:ring-1 dark:ring-slate-700 [&>svg]:max-w-none [&>svg]:block [&>svg]:mx-auto">
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+				{@html fullscreenFn.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`)}
+			</div>
+		</div>
+	</div>
 {/if}
