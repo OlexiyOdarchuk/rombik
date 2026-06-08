@@ -476,9 +476,9 @@
 	</div>
 
 	<!-- split -->
-	<div class="grid min-h-0 flex-1 gap-3 lg:grid-cols-2">
+	<div class="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row p-3">
 		<!-- code -->
-		<div class="flex min-h-0 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+		<div class="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
 				Код Python
 			</div>
@@ -488,7 +488,7 @@
 		</div>
 
 		<!-- preview: усі схеми списком -->
-		<div class="flex min-h-0 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+		<div class="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
 				{funcs.length ? `Схеми (${funcs.length})` : 'Схема'}
 			</div>

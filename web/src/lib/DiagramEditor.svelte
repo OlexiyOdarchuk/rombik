@@ -256,7 +256,27 @@
 			edges = [...edges];
 		} else if (act.kind === 'vertex') {
 			const e = edges.find((x) => x.id === act.id);
-			e.points[act.i] = { x: w.x, y: w.y };
+			let nx = w.x, ny = w.y;
+			const T = 10 / view.scale;
+			guides = [];
+			// 1) 90 degree snap with prev/next point
+			if (act.i > 0) {
+				const p = e.points[act.i - 1];
+				if (Math.abs(nx - p.x) < T) { nx = p.x; guides.push({ t: 'v', v: nx }); }
+				if (Math.abs(ny - p.y) < T) { ny = p.y; guides.push({ t: 'h', v: ny }); }
+			}
+			if (act.i < e.points.length - 1) {
+				const p = e.points[act.i + 1];
+				if (Math.abs(nx - p.x) < T) { nx = p.x; guides.push({ t: 'v', v: nx }); }
+				if (Math.abs(ny - p.y) < T) { ny = p.y; guides.push({ t: 'h', v: ny }); }
+			}
+			// 2) Snap to node centers
+			for (const o of nodes) {
+				const cX = o.x + o.w / 2, cY = o.y + o.h / 2;
+				if (Math.abs(nx - cX) < T) { nx = cX; guides.push({ t: 'v', v: nx }); }
+				if (Math.abs(ny - cY) < T) { ny = cY; guides.push({ t: 'h', v: ny }); }
+			}
+			e.points[act.i] = { x: nx, y: ny };
 			edges = [...edges];
 		} else if (act.kind === 'draw') {
 			act.x = w.x;
@@ -481,21 +501,32 @@
 
 <div class="fixed inset-0 z-50 flex flex-col bg-slate-900/70 backdrop-blur-sm">
 	<!-- тулбар -->
-	<div class="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-2 dark:border-slate-700 dark:bg-slate-900">
-		<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Редактор</span>
-		<div class="flex flex-wrap gap-1">
-			{#each PALETTE as [kind, label, w, h] (kind)}
-				<button onclick={() => addNode(kind, w, h)} class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">+ {label}</button>
-			{/each}
+	<div class="flex flex-col gap-2 border-b border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-center">
+		<!-- Верхній ряд на мобілці: назва та головні кнопки -->
+		<div class="flex items-center justify-between sm:w-auto">
+			<span class="text-sm font-bold text-slate-700 dark:text-slate-200">Редактор схеми</span>
+			<div class="flex items-center gap-1.5 sm:hidden">
+				<button onclick={() => oncancel?.()} class="rounded-lg border border-slate-300 px-3 py-1 text-xs text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">Скас</button>
+				<button onclick={save} class="rounded-lg bg-blue-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-blue-700">Збер</button>
+			</div>
 		</div>
-		<div class="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700"></div>
-		{#if sel?.type === 'node' && nodeById(sel.id)?.kind !== 'connector'}
-			<button onclick={() => splitAt(sel.id)} class="rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розділити тут</button>
-		{/if}
-		<button onclick={delSel} disabled={!sel} class="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
-		<button onclick={undo} title="Скасувати (Ctrl+Z)" class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↶</button>
-		<button onclick={redo} title="Повторити (Ctrl+Shift+Z)" class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↷</button>
-		<div class="ml-auto flex items-center gap-1.5">
+
+		<!-- Прокручуваний ряд кнопок для фігур -->
+		<div class="flex flex-1 items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
+			{#each PALETTE as [kind, label, w, h] (kind)}
+				<button onclick={() => addNode(kind, w, h)} class="shrink-0 rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">+ {label}</button>
+			{/each}
+			<div class="mx-1 h-5 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></div>
+			{#if sel?.type === 'node' && nodeById(sel.id)?.kind !== 'connector'}
+				<button onclick={() => splitAt(sel.id)} class="shrink-0 rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розділити</button>
+			{/if}
+			<button onclick={delSel} disabled={!sel} class="shrink-0 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
+			<button onclick={undo} title="Скасувати" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↶</button>
+			<button onclick={redo} title="Повторити" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↷</button>
+		</div>
+
+		<!-- Зум і зберегти (тільки для десктопа) -->
+		<div class="hidden shrink-0 items-center gap-1.5 sm:flex">
 			<button onclick={() => zoom(1 / 1.2)} class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300">−</button>
 			<span class="w-10 text-center text-xs text-slate-400">{Math.round(view.scale * 100)}%</span>
 			<button onclick={() => zoom(1.2)} class="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300">+</button>
