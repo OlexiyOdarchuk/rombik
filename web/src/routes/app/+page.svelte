@@ -39,6 +39,7 @@
 	let showSettings = $state(false);
 	let sTab = $state('struct'); // struct | text | export
 	let editingFn = $state(null); // схема, відкрита у візуальному редакторі
+	let mobileTab = $state('code'); // code | schema (для мобільного вигляду)
 
 	function onEditorSave(d) {
 		if (!editingFn) return;
@@ -148,6 +149,7 @@
 			funcs = res.functions ?? [];
 			if (funcs.length && s.figStart !== 1) renumber(); // глобальний старт нумерації
 			status = funcs.length ? `Готово: ${funcs.length} схем.` : 'Порожньо: нема що малювати.';
+			if (funcs.length) mobileTab = 'schema'; // автоматично показувати схему після побудови на мобільному
 		} catch (e) {
 			errored = true;
 			status = 'Помилка: ' + (e?.message ?? e);
@@ -480,10 +482,16 @@
 		{/if}
 	</div>
 
+	<!-- Модуль вкладок для мобільного -->
+	<div class="mb-3 flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800 lg:hidden shrink-0">
+		<button onclick={() => (mobileTab = 'code')} class="flex-1 rounded-md py-1.5 text-sm font-medium transition-colors {mobileTab === 'code' ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}">Код</button>
+		<button onclick={() => (mobileTab = 'schema')} class="flex-1 rounded-md py-1.5 text-sm font-medium transition-colors {mobileTab === 'schema' ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}">Схема</button>
+	</div>
+
 	<!-- split -->
-	<div class="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row p-3">
+	<div class="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
 		<!-- code -->
-		<div class="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+		<div class="{mobileTab === 'code' ? 'flex' : 'hidden'} lg:flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
 				Код Python
 			</div>
@@ -493,7 +501,7 @@
 		</div>
 
 		<!-- preview: усі схеми списком -->
-		<div class="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+		<div class="{mobileTab === 'schema' ? 'flex' : 'hidden'} lg:flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
 				{funcs.length ? `Схеми (${funcs.length})` : 'Схема'}
 			</div>
