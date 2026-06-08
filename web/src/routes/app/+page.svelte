@@ -310,9 +310,9 @@
 	<title>Редактор — rombik</title>
 </svelte:head>
 
-<div class="mx-auto flex h-[calc(100vh-4rem)] max-w-7xl flex-col px-4 py-4">
+<div class="mx-auto flex h-[100dvh] max-w-7xl flex-col p-3 md:p-4">
 	<!-- toolbar -->
-	<div class="mb-3 flex items-center gap-3">
+	<div class="mb-3 flex flex-wrap items-center gap-2 md:gap-3">
 		<a href="/" class="flex h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800" title="На головну">
 			<svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
 			Головна
@@ -448,7 +448,7 @@
 			</div>
 		{/if}
 		{#if funcs.length}
-			<div class="ml-auto flex items-center gap-3 border-l border-slate-200 pl-4 dark:border-slate-700">
+			<div class="ml-auto flex w-full flex-wrap items-center gap-2 border-t border-slate-200 pt-2 dark:border-slate-700 sm:w-auto sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
 				<span class="text-xs font-semibold text-slate-500 dark:text-slate-400">УСІ СХЕМИ ({funcs.length}):</span>
 				<div class="group relative">
 					<button class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
@@ -503,7 +503,7 @@
 						<div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 							<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 dark:border-slate-700">
 								<span class="font-mono text-xs text-slate-400 dark:text-slate-500">{f.name}</span>
-								<div class="flex shrink-0 gap-2">
+								<div class="flex flex-wrap gap-2">
 									<button onclick={() => (editingFn = f)} class="rounded border border-blue-300 bg-blue-50/50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/50">✎ Редагувати</button>
 									<button onclick={() => splitFn(f)} class="rounded border border-amber-300 bg-amber-50/50 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/50">✂ Розбити</button>
 									<div class="h-4 w-px bg-slate-200 dark:bg-slate-600 self-center"></div>
@@ -557,7 +557,7 @@
 							</div>
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							<!-- схема — чорне-по-білому, тримаємо світлий «аркуш» навіть у темній темі -->
-							<div class="schema m-3 grid place-items-center overflow-auto rounded-md bg-white p-3 dark:ring-1 dark:ring-slate-700">{@html f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`)}</div>
+							<div class="schema m-3 overflow-auto rounded-md bg-white p-3 dark:ring-1 dark:ring-slate-700 [&>svg]:max-w-none [&>svg]:block [&>svg]:mx-auto">{@html f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`)}</div>
 						</div>
 					{/each}
 				{:else}
