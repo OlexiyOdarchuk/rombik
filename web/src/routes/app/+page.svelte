@@ -62,7 +62,8 @@
 		capFormat: '{word} {num} — {text}', // шаблон підпису
 		figStart: 1, // з якого номера нумерувати схеми
 		pngScale: 3, // якість PNG (пікселів на одиницю)
-		typstFragment: false // Typst лише фрагмент (без преамбули) — для вставки у свій .typ
+		typstFragment: false, // Typst лише фрагмент (без преамбули) — для вставки у свій .typ
+		font: "'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif" // шрифт для SVG
 	});
 	const BRANCH = { так: ['Так', 'Ні'], yes: ['Yes', 'No'], pm: ['+', '−'] };
 	const IO = { short: ['Ввід', 'Вивід'], verbose: ['Введення', 'Виведення'], imperative: ['Ввести', 'Вивести'] };
@@ -393,6 +394,16 @@
 							Typst: лише фрагмент (без преамбули)
 						</label>
 						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+							Шрифт схеми
+							<select bind:value={s.font} onchange={() => (funcs = [...funcs])} class="w-40 rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+								<option value="'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif">Times New Roman</option>
+								<option value="Arial, Helvetica, sans-serif">Arial</option>
+								<option value="'Courier New', Courier, monospace">Courier New</option>
+								<option value="'Outfit', sans-serif">Outfit (Інтерфейс)</option>
+								<option value="'JetBrains Mono', monospace">JetBrains Mono (Код)</option>
+							</select>
+						</label>
+						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
 							Якість PNG
 							<select bind:value={s.pngScale} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
 								<option value={2}>2× (екран)</option>
@@ -475,7 +486,7 @@
 							</div>
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							<!-- схема — чорне-по-білому, тримаємо світлий «аркуш» навіть у темній темі -->
-							<div class="schema m-3 grid place-items-center overflow-auto rounded-md bg-white p-3 dark:ring-1 dark:ring-slate-700">{@html f.svg}</div>
+							<div class="schema m-3 grid place-items-center overflow-auto rounded-md bg-white p-3 dark:ring-1 dark:ring-slate-700">{@html f.svg.replace(/font-family="[^"]+"/, `font-family="${s.font}"`)}</div>
 						</div>
 					{/each}
 				{:else}
@@ -486,8 +497,21 @@
 			</div>
 		</div>
 	</div>
-
-	<p class="mt-3 text-xs {errored ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}">{status}</p>
+	{#if errored}
+		<div class="mt-4 rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm dark:border-red-600 dark:bg-red-950/30">
+			<div class="flex gap-3">
+				<svg class="mt-0.5 h-5 w-5 shrink-0 text-red-500 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+				</svg>
+				<div class="overflow-hidden">
+					<h3 class="text-sm font-bold text-red-800 dark:text-red-300">Помилка</h3>
+					<pre class="mt-1 max-h-40 overflow-y-auto break-words whitespace-pre-wrap font-mono text-xs text-red-700 dark:text-red-400">{status}</pre>
+				</div>
+			</div>
+		</div>
+	{:else}
+		<p class="mt-4 flex items-center gap-2 px-1 text-sm text-slate-500 dark:text-slate-400">{status}</p>
+	{/if}
 </div>
 
 {#if editingFn}
