@@ -34,6 +34,15 @@
 					{l.label}
 				</a>
 			{/each}
+			<a
+				href="https://send.monobank.ua/jar/23E3WYNesG"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="mx-1 flex items-center gap-1.5 rounded-lg border border-pink-200 bg-pink-50 px-3 py-1.5 text-sm font-semibold text-pink-700 transition hover:bg-pink-100 dark:border-pink-900/50 dark:bg-pink-900/20 dark:text-pink-300 dark:hover:bg-pink-900/40"
+			>
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+				Підтримати
+			</a>
 			<ThemeToggle />
 			<a
 				href="/app"
@@ -68,6 +77,16 @@
 						{l.label}
 					</a>
 				{/each}
+				<a
+					href="https://send.monobank.ua/jar/23E3WYNesG"
+					target="_blank"
+					rel="noopener noreferrer"
+					onclick={() => (menuOpen = false)}
+					class="mt-1 flex items-center justify-center gap-2 rounded-lg border border-pink-200 bg-pink-50 px-4 py-3 text-base font-semibold text-pink-700 transition hover:bg-pink-100 dark:border-pink-900/50 dark:bg-pink-900/20 dark:text-pink-300 dark:hover:bg-pink-900/40"
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+					Підтримати
+				</a>
 				<a
 					href="/app"
 					onclick={() => (menuOpen = false)}
