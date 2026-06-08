@@ -51,14 +51,34 @@
 		toastTimer = setTimeout(() => (toast = null), 3000);
 	}
 
-	function onEditorSave(d) {
+	function onEditorSave(dOrArray) {
 		if (!editingFn) return;
-		// Замінюємо геометрію, зберігаючи поля підпису.
-		editingFn.diagram = { ...editingFn.diagram, shapes: d.shapes, edges: d.edges, w: d.w, h: d.h };
-		reCaption(editingFn); // ре-рендер svg/typst з відредагованої схеми
-		funcs = [...funcs];
+		
+		if (Array.isArray(dOrArray) && dOrArray.length > 1) {
+			const idx = funcs.findIndex((f) => f === editingFn);
+			if (idx !== -1) {
+				const newFuncs = dOrArray.map((diag, i) => {
+					const newFn = { 
+						...editingFn, 
+						name: editingFn.name + (i > 0 ? ` (ч.${i+1})` : ''), 
+						diagram: { ...editingFn.diagram, shapes: diag.shapes, edges: diag.edges, w: diag.w, h: diag.h }
+					};
+					reCaption(newFn);
+					return newFn;
+				});
+				funcs.splice(idx, 1, ...newFuncs);
+				funcs = [...funcs];
+				showToast(`Схему розбито на ${dOrArray.length} частин`);
+			}
+		} else {
+			const d = Array.isArray(dOrArray) ? dOrArray[0] : dOrArray;
+			editingFn.diagram = { ...editingFn.diagram, shapes: d.shapes, edges: d.edges, w: d.w, h: d.h };
+			reCaption(editingFn);
+			funcs = [...funcs];
+		}
+		
 		editingFn = null;
-		status = 'Схему відредаговано.';
+		mobileTab = 'schema';
 	}
 
 	// Налаштування (галочки/списки) -> опції рушія.

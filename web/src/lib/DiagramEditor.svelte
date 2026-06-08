@@ -461,33 +461,73 @@
 	}
 
 	function save() {
-		let minX = Infinity,
-			minY = Infinity,
-			maxX = -Infinity,
-			maxY = -Infinity;
-		const acc = (x, y) => {
-			minX = Math.min(minX, x);
-			minY = Math.min(minY, y);
-			maxX = Math.max(maxX, x);
-			maxY = Math.max(maxY, y);
-		};
+		// Знаходимо зв'язані компоненти
+		const adj = {};
+		for (const n of nodes) adj[n.id] = [];
+		for (const e of edges) {
+			if (e.fromId && e.toId) {
+				adj[e.fromId].push(e.toId);
+				adj[e.toId].push(e.fromId);
+			}
+		}
+		
+		const visited = new Set();
+		const components = [];
 		for (const n of nodes) {
-			acc(n.x, n.y);
-			acc(n.x + n.w, n.y + n.h);
+			if (!visited.has(n.id)) {
+				const compNodes = new Set();
+				const q = [n.id];
+				visited.add(n.id);
+				compNodes.add(n.id);
+				
+				while (q.length) {
+					const cur = q.shift();
+					for (const neighbor of adj[cur] || []) {
+						if (!visited.has(neighbor)) {
+							visited.add(neighbor);
+							compNodes.add(neighbor);
+							q.push(neighbor);
+						}
+					}
+				}
+				components.push(compNodes);
+			}
 		}
-		for (const e of edges) for (const p of e.points) acc(p.x, p.y);
-		if (!isFinite(minX)) {
-			minX = minY = 0;
-			maxX = maxY = 100;
-		}
-		const dx = MARGIN - minX,
-			dy = MARGIN - minY;
-		onsave?.({
-			shapes: nodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
-			edges: edges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
-			w: maxX - minX + 2 * MARGIN,
-			h: maxY - minY + 2 * MARGIN
+
+		// Сортуємо компоненти за позицією X (зліва направо), щоб зберегти порядок частин
+		components.sort((a, b) => {
+			let minXa = Infinity, minXb = Infinity;
+			for (const n of nodes) {
+				if (a.has(n.id)) minXa = Math.min(minXa, n.x);
+				if (b.has(n.id)) minXb = Math.min(minXb, n.x);
+			}
+			return minXa - minXb;
 		});
+
+		const out = components.map(comp => {
+			const compNodes = nodes.filter(n => comp.has(n.id));
+			const compEdges = edges.filter(e => comp.has(e.fromId) && comp.has(e.toId));
+			
+			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+			const acc = (x, y) => { 
+				minX = Math.min(minX, x); minY = Math.min(minY, y); 
+				maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); 
+			};
+			for (const n of compNodes) { acc(n.x, n.y); acc(n.x + n.w, n.y + n.h); }
+			for (const e of compEdges) for (const p of e.points) acc(p.x, p.y);
+			
+			if (!isFinite(minX)) { minX = minY = 0; maxX = maxY = 100; }
+			const dx = MARGIN - minX, dy = MARGIN - minY;
+			
+			return {
+				shapes: compNodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
+				edges: compEdges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
+				w: maxX - minX + 2 * MARGIN,
+				h: maxY - minY + 2 * MARGIN
+			};
+		});
+
+		onsave?.(out.length === 1 ? out[0] : out);
 	}
 
 	// --- геометрія фігур ---
