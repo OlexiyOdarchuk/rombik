@@ -30,7 +30,12 @@
 </script>
 
 <svelte:head>
-	<title>rombik — блок-схеми за ДСТУ з коду Python</title>
+	<title>rombik — автоматичні блок-схеми за ДСТУ з коду Python</title>
+	<meta name="description" content="Генератор блок-схем онлайн. Встав код на Python — отримай готову блок-схему за ДСТУ 19.701-90. Експорт у SVG, PNG, PDF, Typst та Excalidraw." />
+	<meta name="keywords" content="блок-схема, алгоритм, ДСТУ 19.701-90, python блок-схема, генератор блок-схем, візуалізація алгоритмів, курсова, диплом" />
+	<meta property="og:title" content="rombik — блок-схеми за секунду" />
+	<meta property="og:description" content="Безкоштовний генератор правильних блок-схем з коду Python прямо у вашому браузері." />
+	<meta property="og:type" content="website" />
 </svelte:head>
 
 <!-- HERO -->
@@ -45,7 +50,7 @@
 			</h1>
 			<p class="mt-6 max-w-lg text-lg text-slate-600 leading-relaxed dark:text-slate-300">
 				Встав код на Python — отримай готову блок-схему за державним стандартом. Підправ
-				у візуальному редакторі й додай у будь-який документ. Усе безкоштовно.
+				у візуальному редакторі й додай у будь-який документ. Усе безкоштовно та надійно.
 			</p>
 			<div class="mt-10 flex flex-wrap gap-4">
 				<a
@@ -110,16 +115,16 @@
 <!-- МОЖЛИВОСТІ -->
 <section class="border-y border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 	<div class="mx-auto max-w-6xl px-5 py-20">
-		<div class="grid gap-6 sm:grid-cols-2">
+		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 			{#each features as f (f.title)}
-				<div class="group rounded-2xl border border-slate-200 bg-white/50 p-8 backdrop-blur-sm transition-all hover:border-blue-300 hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-blue-700/50 dark:hover:bg-slate-800 hover:-translate-y-1">
-					<div class="grid h-14 w-14 place-items-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-900/40 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white">
-						<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<div class="group rounded-2xl border border-slate-200 bg-white/50 p-6 backdrop-blur-sm transition-all hover:border-blue-300 hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-blue-700/50 dark:hover:bg-slate-800 hover:-translate-y-1">
+					<div class="grid h-12 w-12 place-items-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-900/40 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d={f.icon} />
 						</svg>
 					</div>
-					<h3 class="mt-6 text-xl font-bold text-slate-900 dark:text-white">{f.title}</h3>
-					<p class="mt-3 leading-relaxed text-slate-600 dark:text-slate-400">{f.body}</p>
+					<h3 class="mt-5 text-lg font-bold text-slate-900 dark:text-white">{f.title}</h3>
+					<p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{f.body}</p>
 				</div>
 			{/each}
 		</div>
@@ -128,11 +133,11 @@
 
 <!-- ЯК ПРАЦЮЄ -->
 <section class="mx-auto max-w-6xl px-5 py-20">
-	<h2 class="text-center text-3xl font-bold text-slate-900 dark:text-slate-100">Три кроки</h2>
+	<h2 class="text-center text-3xl font-bold text-slate-900 dark:text-slate-100">Як це працює?</h2>
 	<div class="mt-12 grid gap-8 md:grid-cols-3">
 		{#each steps as s (s.n)}
-			<div class="relative rounded-2xl border border-slate-200 dark:border-slate-800 bg-white p-6 dark:bg-slate-800">
-				<div class="grid h-10 w-10 place-items-center rounded-full bg-blue-600 font-bold text-white">
+			<div class="relative rounded-2xl border border-slate-200 dark:border-slate-800 bg-white p-6 shadow-sm dark:bg-slate-800">
+				<div class="absolute -top-5 left-6 grid h-10 w-10 place-items-center rounded-xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-500/30">
 					{s.n}
 				</div>
 				<h3 class="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">{s.t}</h3>
