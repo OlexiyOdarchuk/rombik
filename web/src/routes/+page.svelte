@@ -432,24 +432,33 @@
                     SVG для векторної якості.
                 </p>
             </details>
-            <details
-                class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:open:border-blue-500"
-            >
-                <summary
-                    class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100"
-                >
-                    Чи працює це офлайн?
-                    <span
-                        class="text-blue-500 transition-transform group-open:rotate-45"
-                        >+</span
-                    >
-                </summary>
-                <p class="mt-4 text-slate-600 dark:text-slate-300">
-                    Так! Після першого завантаження сторінки всі обчислення
-                    відбуваються безпосередньо у вашому браузері (за допомогою
-                    WebAssembly). Ваш код та схеми нікуди не відправляються.
-                </p>
-            </details>
+            <details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:open:border-blue-500">
+				<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+					Чи працює це офлайн?
+					<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+				</summary>
+				<p class="mt-4 text-slate-600 dark:text-slate-300">
+					Так! Після першого завантаження сторінки всі обчислення відбуваються безпосередньо у вашому браузері (за допомогою WebAssembly). Ваші коди та схеми нікуди не відправляються.
+				</p>
+			</details>
+			<details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:open:border-blue-500">
+				<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+					Що робити, якщо схема вийшла занадто довгою чи широкою?
+					<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+				</summary>
+				<p class="mt-4 text-slate-600 dark:text-slate-300">
+					Великі алгоритми можна розбити на сторінки. Натисніть кнопку «✂ Розбити» під схемою або в самому редакторі (обравши конкретний блок). Система автоматично розірве зв'язки та вставить конектори (наприклад, гурток «А» і «Б»).
+				</p>
+			</details>
+			<details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:open:border-blue-500">
+				<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
+					Як змінити текст усередині блоку або його форму?
+					<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
+				</summary>
+				<p class="mt-4 text-slate-600 dark:text-slate-300">
+					Натисніть «✎ Редагувати» під згенерованою схемою. Відкриється візуальний редактор, де ви зможете двічі клікнути на текст, щоб змінити його, додати нові блоки, провести стрілки чи змінити їх маршрут.
+				</p>
+			</details>
         </div>
     </div>
 </section>
@@ -498,7 +507,7 @@
 </section>
 
 <!-- CTA -->
-<section class="bg-slate-900">
+<section class="bg-slate-900 dark:border-t dark:border-slate-800 dark:bg-slate-950">
     <div class="mx-auto max-w-4xl px-5 py-16 text-center">
         <h2 class="text-3xl font-bold text-white">Спробуй просто зараз</h2>
         <p class="mt-3 text-slate-300">

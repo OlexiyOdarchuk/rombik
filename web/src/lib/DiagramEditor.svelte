@@ -506,8 +506,8 @@
 		<div class="flex items-center justify-between sm:w-auto">
 			<span class="text-sm font-bold text-slate-700 dark:text-slate-200">Редактор схеми</span>
 			<div class="flex items-center gap-1.5 sm:hidden">
-				<button onclick={() => oncancel?.()} class="rounded-lg border border-slate-300 px-3 py-1 text-xs text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">Скас</button>
-				<button onclick={save} class="rounded-lg bg-blue-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-blue-700">Збер</button>
+				<button onclick={() => oncancel?.()} class="rounded-lg border border-slate-300 px-3 py-1 text-xs text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">✕ Вийти</button>
+				<button onclick={save} class="rounded-lg bg-blue-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-blue-700">Зберегти</button>
 			</div>
 		</div>
 

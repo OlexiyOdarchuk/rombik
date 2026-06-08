@@ -19,12 +19,14 @@ Go-рушій у браузері поділено на **два WASM-модул
 js.Global().Set("rombikGenerate", js.FuncOf(generate))   // AST-JSON → схеми (svg+typst+diagram)
 js.Global().Set("rombikRenderOne", js.FuncOf(renderOne)) // дешевий ре-рендер однієї схеми
 js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))   // експорт усіх схем одним .typ
+js.Global().Set("rombikSplit", js.FuncOf(split))         // розбиття довгої схеми на частини
 select {}                                                 // тримаємо модуль живим
 ```
 
 | Функція | Вхід | Вихід (JSON) |
 |---------|------|--------------|
-| `rombikGenerate(astJSON, optionsJSON?)` | AST-JSON + опції | `{functions:[{name, svg, typst, diagram, ...}]}` |
+| `rombikGenerate(astJSON, optionsJSON?)` | AST-JSON + опції | `{functions:[{name, svg, typst, diagram, ...}]}` (з `diagram` на клієнті генерується формат **Excalidraw**) |
+| `rombikSplit(astJSON, optionsJSON, name, maxH)` | AST-JSON + опції, ім'я функції, макс. висота | масив `{svg, typst, diagram}` для кожної частини з'єднаної через конектори |
 | `rombikRenderOne(diagramJSON, captionJSON?)` | один `Diagram` + правки підпису | `{svg, typst}` |
 | `rombikTypstAll(diagramsJSON)` | масив `Diagram` | `{typst}` |
 

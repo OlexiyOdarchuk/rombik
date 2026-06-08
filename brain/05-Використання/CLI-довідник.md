@@ -14,7 +14,7 @@ tags: [usage, cli]
 | Прапорець | Тип | Типово | Призначення |
 |-----------|-----|--------|-------------|
 | `-py FILE` | string | `""` | Python-файл (без нього — демо). |
-| `-o FILE` | string | `out.svg` | Вихід. Розширення → формат: `.svg`/`.png`/`.pdf`/`.typ`/`.json`. |
+| `-o FILE` | string | `out.svg` | Вихід. Розширення → формат: `.svg`/`.png`/`.pdf`/`.typ`/`.json`/`.excalidraw`. |
 | `-fn NAME` | string | `""` | Малювати лише функцію з цим іменем. |
 | `-calls-plain` | bool | `false` | Виклики підпрограм → звичайний прямокутник (`CallAsProcess`). |
 | `-single-end` | bool | `false` | Один спільний «Кінець» (`SingleEnd`). |
@@ -35,6 +35,7 @@ tags: [usage, cli]
 .png  → raster.PNG(d, scale)          — НАТИВНИЙ растр (tdewolff/canvas, без rsvg)
 .pdf  → raster.PDF / raster.PDFAll    — НАТИВНИЙ PDF (без typst-бінарника)
 .typ  → typst.Render / RenderAll      — вихідний код Typst (CeTZ)
+.excalidraw → excalidraw.Render / All — формат Excalidraw (JSON)
 інше  → svg.Render                    — SVG-текст
 ```
 
@@ -46,7 +47,7 @@ tags: [usage, cli]
 
 - **Одна** функція (або відфільтрована `-fn`) → точно у `-o`.
 - **Кілька** функцій:
-  - `.pdf` і `.typ` → **один спільний документ** (`PDFAll`/`RenderAll`, наскрізна нумерація);
+  - `.pdf`, `.typ` і `.excalidraw` → **один спільний документ** (`PDFAll`/`RenderAll`, наскрізна нумерація);
   - інші формати → файли `<основа>_<функція>.<ext>`.
 
 ## Приклади
@@ -57,6 +58,7 @@ go run ./cmd/rombik -py examples/grade.py -o grade.svg
 go run ./cmd/rombik -py examples/grade.py -o grade.png -scale 3
 go run ./cmd/rombik -py examples/course.py -o course.pdf   # усі функції → один PDF
 go run ./cmd/rombik -py examples/course.py -o course.typ   # Typst для вставки в курсову
+go run ./cmd/rombik -py examples/course.py -o course.excalidraw # Excalidraw-формат
 go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o m.svg
 go run ./cmd/rombik -py f.py -figword "Рис." -capformat "{word} {num}. {text}" -o s.pdf
 ```

@@ -26,6 +26,7 @@ type Result struct {
 ```go
 func FromPython(code string, opts Options) ([]Result, error) // потребує python3 (не WASM)
 func FromAST(astJSON []byte, opts Options) ([]Result, error) // AST дає Pyodide — працює в WASM
+func SplitFromAST(astJSON []byte, opts Options, name string, maxH float64) ([]Result, error) // розбиття довгої схеми на частини через конектори
 func FromIR(funcs []ir.Func, opts Options) []Result          // для тих, хто будує ir сам
 ```
 
@@ -40,9 +41,10 @@ func (r Result) SVG() string                       // → svg.Render
 func (r Result) Typst() string                     // → typst.Render
 func (r Result) PDF() ([]byte, error)              // → raster.PDF (нативно)
 func (r Result) PNG(scale float64) ([]byte, error) // → raster.PNG (нативно)
+func (r Result) Excalidraw() string                // → excalidraw.Render (нативно)
 ```
 
-Один `Result` → будь-який із чотирьох форматів. Жодного зовнішнього бінарника.
+Один `Result` → будь-який із п'яти форматів. Жодного зовнішнього бінарника.
 
 ## Приклад
 
