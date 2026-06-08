@@ -37,6 +37,7 @@
 	let busy = $state(false);
 	let errored = $state(false);
 	let showSettings = $state(false);
+	let sTab = $state('struct'); // struct | text | export
 	let editingFn = $state(null); // схема, відкрита у візуальному редакторі
 
 	function onEditorSave(d) {
@@ -320,115 +321,127 @@
 			{busy ? 'Будую…' : 'Побудувати схему'}
 		</button>
 
-		<!-- Налаштування (випадайна панель) -->
-		<div class="relative">
-			<button
-				onclick={() => (showSettings = !showSettings)}
-				class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
-			>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-					<circle cx="12" cy="12" r="3" />
-					<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-				</svg>
-				Налаштування
-			</button>
+		<!-- Налаштування -->
+		<button
+			onclick={() => (showSettings = true)}
+			class="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
+		>
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+				<circle cx="12" cy="12" r="3" />
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+			</svg>
+			Налаштування
+		</button>
 
-			{#if showSettings}
-				<button class="fixed inset-0 z-10 cursor-default" onclick={() => (showSettings = false)} aria-label="Закрити"></button>
-				<div class="absolute left-0 top-full z-20 mt-2 w-72 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-					<div class="space-y-2.5">
-						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Структура</p>
-						{#each [['singleEnd', 'Один Кінець на всю схему'], ['callAsProcess', 'Виклик — звичайним блоком'], ['stripTypes', 'Без тип-анотацій'], ['returnAsIO', 'return — паралелограмом']] as [key, label] (key)}
-							<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-								<input type="checkbox" bind:checked={s[key]} onchange={reapply} class="rounded border-slate-300" />
-								{label}
-							</label>
-						{/each}
+		{#if showSettings}
+			<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
+				<!-- svelte-ignore a11y_consider_explicit_label -->
+				<button class="absolute inset-0 cursor-default" onclick={() => (showSettings = false)}></button>
+				<!-- Modal Content -->
+				<div class="rise relative flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:border dark:border-slate-800 dark:bg-slate-900">
+					<!-- Header -->
+					<div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+						<h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Налаштування генерації</h2>
+						<button onclick={() => (showSettings = false)} class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300">
+							<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+						</button>
 					</div>
-					<div class="space-y-2.5 border-t border-slate-100 pt-3 dark:border-slate-700">
-						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Підписи</p>
-						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-							Гілки
-							<select bind:value={s.branch} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
-								<option value="так">Так / Ні</option>
-								<option value="yes">Yes / No</option>
-								<option value="pm">+ / −</option>
-							</select>
-						</label>
-						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-							Ввід/вивід
-							<select bind:value={s.io} onchange={reapply} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
-								<option value="short">Ввід / Вивід</option>
-								<option value="verbose">Введення / Виведення</option>
-								<option value="imperative">Ввести / Вивести</option>
-							</select>
-						</label>
-					</div>
-					<div class="space-y-2.5 border-t border-slate-100 pt-3 dark:border-slate-700">
-						<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Підпис схеми</p>
-						<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-							<input type="checkbox" bind:checked={s.showCaption} onchange={() => funcs.length && reCaptionAll()} class="rounded border-slate-300" />
-							Показувати підпис «Рисунок N»
-						</label>
-						<label class="flex items-center justify-between gap-2 text-sm text-slate-700 dark:text-slate-300">
-							Слово підпису
-							<input
-								type="text"
-								bind:value={s.capWord}
-								oninput={() => funcs.length && reCaptionAll()}
-								placeholder="Рисунок"
-								class="w-28 rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-							/>
-						</label>
-						<p class="text-xs text-slate-400">Напр. «Рисунок», «Рис.», «Figure». Номер і текст — під кожною схемою.</p>
-						<label class="flex items-center justify-between gap-2 text-sm text-slate-700 dark:text-slate-300">
-							Шаблон
-							<input
-								type="text"
-								bind:value={s.capFormat}
-								oninput={() => funcs.length && reCaptionAll()}
-								placeholder="{'{word} {num} — {text}'}"
-								class="w-40 rounded-md border-slate-300 py-1 font-mono text-xs dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-							/>
-						</label>
-						<p class="text-xs text-slate-400">Плейсхолдери: <code>{'{word}'}</code> <code>{'{num}'}</code> <code>{'{text}'}</code>. Напр. <code>{'{num}. {text}'}</code>.</p>
-						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-							Нумерувати з
-							<input
-								type="number"
-								min="1"
-								bind:value={s.figStart}
-								oninput={() => funcs.length && renumber()}
-								class="w-20 rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-							/>
-						</label>
-						<label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-							<input type="checkbox" bind:checked={s.typstFragment} class="rounded border-slate-300" />
-							Typst: лише фрагмент (без преамбули)
-						</label>
-						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-							Шрифт схеми
-							<select bind:value={s.font} onchange={() => (funcs = [...funcs])} class="w-40 rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
-								<option value="'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif">Times New Roman</option>
-								<option value="Arial, Helvetica, sans-serif">Arial</option>
-								<option value="'Courier New', Courier, monospace">Courier New</option>
-								<option value="'Outfit', sans-serif">Outfit (Інтерфейс)</option>
-								<option value="'JetBrains Mono', monospace">JetBrains Mono (Код)</option>
-							</select>
-						</label>
-						<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-							Якість PNG
-							<select bind:value={s.pngScale} class="rounded-md border-slate-300 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
-								<option value={2}>2× (екран)</option>
-								<option value={3}>3× (друк)</option>
-								<option value={4}>4× (макс.)</option>
-							</select>
-						</label>
+					<!-- Body -->
+					<div class="flex min-h-[350px] flex-col sm:flex-row">
+						<!-- Tabs Sidebar -->
+						<div class="flex shrink-0 flex-row overflow-x-auto border-b border-slate-100 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/50 sm:w-48 sm:flex-col sm:border-b-0 sm:border-r sm:space-x-0 sm:space-y-1 space-x-2">
+							<button onclick={() => (sTab = 'struct')} class="rounded-lg px-4 py-2.5 text-left text-sm font-semibold transition-colors {sTab === 'struct' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'}">Структура</button>
+							<button onclick={() => (sTab = 'text')} class="rounded-lg px-4 py-2.5 text-left text-sm font-semibold transition-colors {sTab === 'text' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'}">Текст і підписи</button>
+							<button onclick={() => (sTab = 'export')} class="rounded-lg px-4 py-2.5 text-left text-sm font-semibold transition-colors {sTab === 'export' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'}">Експорт</button>
+						</div>
+						<!-- Tab Content -->
+						<div class="flex-1 overflow-y-auto p-6 space-y-6">
+							{#if sTab === 'struct'}
+								<div class="space-y-3">
+									<h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Алгоритмічні блоки</h3>
+									{#each [['singleEnd', 'Один Кінець на всю схему'], ['callAsProcess', 'Виклик — звичайним блоком'], ['stripTypes', 'Без тип-анотацій'], ['returnAsIO', 'return — паралелограмом']] as [key, label] (key)}
+										<label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+											<input type="checkbox" bind:checked={s[key]} onchange={reapply} class="rounded border-slate-300 h-4 w-4" />
+											{label}
+										</label>
+									{/each}
+								</div>
+							{:else if sTab === 'text'}
+								<div class="space-y-4">
+									<h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Формулювання всередині</h3>
+									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+										Текст гілок (if/while)
+										<select bind:value={s.branch} onchange={reapply} class="w-40 rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+											<option value="так">Так / Ні</option>
+											<option value="yes">Yes / No</option>
+											<option value="pm">+ / −</option>
+										</select>
+									</label>
+									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+										Текст вводу/виводу
+										<select bind:value={s.io} onchange={reapply} class="w-40 rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+											<option value="short">Ввід / Вивід</option>
+											<option value="verbose">Введення / Виведення</option>
+											<option value="imperative">Ввести / Вивести</option>
+										</select>
+									</label>
+
+									<h3 class="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">Підписи діаграм</h3>
+									<label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+										<input type="checkbox" bind:checked={s.showCaption} onchange={() => funcs.length && reCaptionAll()} class="rounded border-slate-300 h-4 w-4" />
+										Генерувати підпис («Рисунок N...»)
+									</label>
+									<div class="grid grid-cols-2 gap-4">
+										<div>
+											<label class="block text-xs text-slate-500 mb-1">Слово підпису</label>
+											<input type="text" bind:value={s.capWord} oninput={() => funcs.length && reCaptionAll()} placeholder="Рисунок" class="w-full rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</div>
+										<div>
+											<label class="block text-xs text-slate-500 mb-1">Нумерувати з</label>
+											<input type="number" min="1" bind:value={s.figStart} oninput={() => funcs.length && renumber()} class="w-full rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</div>
+									</div>
+									<div>
+										<label class="block text-xs text-slate-500 mb-1">Шаблон</label>
+										<input type="text" bind:value={s.capFormat} oninput={() => funcs.length && reCaptionAll()} placeholder="{'{word} {num} — {text}'}" class="w-full rounded-md border-slate-300 py-1.5 font-mono text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										<p class="text-[10px] text-slate-400 mt-1">Доступно: <code>{'{word}'}</code> <code>{'{num}'}</code> <code>{'{text}'}</code></p>
+									</div>
+								</div>
+							{:else if sTab === 'export'}
+								<div class="space-y-4">
+									<h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Параметри файлів</h3>
+									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+										Шрифт схеми (SVG)
+										<select bind:value={s.font} onchange={() => (funcs = [...funcs])} class="w-48 rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+											<option value="'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif">Times New Roman</option>
+											<option value="Arial, Helvetica, sans-serif">Arial</option>
+											<option value="'Courier New', Courier, monospace">Courier New</option>
+											<option value="'Outfit', sans-serif">Outfit (Інтерфейс)</option>
+											<option value="'JetBrains Mono', monospace">JetBrains Mono (Код)</option>
+										</select>
+									</label>
+									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+										Якість PNG
+										<select bind:value={s.pngScale} class="w-48 rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+											<option value={2}>2× (Екранна якість)</option>
+											<option value={3}>3× (Для друку)</option>
+											<option value={4}>4× (Максимальна)</option>
+										</select>
+									</label>
+									<label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700 dark:text-slate-300 mt-4">
+										<input type="checkbox" bind:checked={s.typstFragment} class="rounded border-slate-300 h-4 w-4" />
+										<div>
+											<p>Typst: фрагмент без преамбули</p>
+											<p class="text-xs text-slate-500 dark:text-slate-400">Зручно для вставки в існуючі .typ документи</p>
+										</div>
+									</label>
+								</div>
+							{/if}
+						</div>
 					</div>
 				</div>
-			{/if}
-		</div>
-
+			</div>
+		{/if}
 		{#if funcs.length}
 			<div class="ml-auto flex items-center gap-3 border-l border-slate-200 pl-4 dark:border-slate-700">
 				<span class="text-xs font-semibold text-slate-500 dark:text-slate-400">УСІ СХЕМИ ({funcs.length}):</span>
