@@ -97,45 +97,7 @@
 		<li class="flex items-start gap-2 text-slate-700 dark:text-slate-300"><strong class="w-24 text-blue-600">Excalidraw</strong> Відкривайте схему в Excalidraw для подальшого рукописного редагування</li>
 	</ul>
 
-	<h2 class="mt-14 text-2xl font-bold text-slate-900 dark:text-slate-100">Найчастіші запитання (FAQ)</h2>
-	<div class="mt-6 space-y-4">
-		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
-			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
-				Чи потрібне підключення до Інтернету?
-				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
-			</summary>
-			<p class="mt-3 text-slate-600 dark:text-slate-300">
-				Тільки для завантаження самої сторінки (близько 2 МБ). Далі рушій працює 100% офлайн у вашому браузері за допомогою технології WebAssembly. Ваші вихідні коди нікуди не відправляються.
-			</p>
-		</details>
-		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
-			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
-				Що робити, якщо схема занадто довга для формату А4?
-				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
-			</summary>
-			<p class="mt-3 text-slate-600 dark:text-slate-300">
-				Є два варіанти. Перший — скористайтеся автоматичним розбиттям: натисніть кнопку «✂ Розбити» під згенерованою схемою. Другий — відкрийте візуальний редактор (кнопка «✎ Редагувати»), виділіть блок, з якого хочете перенести частину схеми, і оберіть «✂ Розділити». Система сама вставить конектори з літерами.
-			</p>
-		</details>
-		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
-			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
-				Як скопіювати схему в Word або Google Docs без втрати якості?
-				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
-			</summary>
-			<p class="mt-3 text-slate-600 dark:text-slate-300">
-				Натисніть кнопку "Копіювати ▾" і оберіть <strong>PNG</strong>. Також ви можете експортувати схему у форматі <strong>SVG</strong> (Вставка → Малюнок) для максимально чіткого векторного відображення без пікселів.
-			</p>
-		</details>
-		<details class="group rounded-xl border border-slate-200 bg-white p-5 open:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:open:border-blue-500">
-			<summary class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100">
-				Я хочу використовувати українські слова (Так/Ні, Ввід/Вивід). Як це зробити?
-				<span class="text-blue-500 transition-transform group-open:rotate-45">+</span>
-			</summary>
-			<p class="mt-3 text-slate-600 dark:text-slate-300">
-				Всі ці речі можна налаштувати! Відкрийте меню "Налаштування" в панелі інструментів. Перейдіть на вкладку "Текст та мітки", де ви можете змінити слова "Yes", "No", "Input", "Print", "True", "False" на будь-які свої, включно з українськими відповідниками.
-			</p>
-		</details>
-	</div>
+
 
 	<div class="mt-12 text-center">
 		<a href="/app" class="inline-block rounded-xl bg-blue-600 px-7 py-3 font-semibold text-white transition hover:bg-blue-700">

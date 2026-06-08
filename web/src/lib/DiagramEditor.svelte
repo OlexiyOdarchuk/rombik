@@ -403,12 +403,26 @@
 		if (!node) return;
 		remember();
 		const letter = nextLetter();
-		// нащадки вперед (BFS по вихідних ребрах), разом із блоком
+		// нащадки вперед: додаємо тільки ті блоки, в які можна потрапити ЛИШЕ через цей вузол (strict descendants)
 		const set = new Set([nodeId]);
-		const q = [nodeId];
-		while (q.length) {
-			const cur = q.shift();
-			for (const e of edges) if (e.fromId === cur && e.toId && !set.has(e.toId)) { set.add(e.toId); q.push(e.toId); }
+		let changed = true;
+		while (changed) {
+			changed = false;
+			for (const e of edges) {
+				if (e.fromId && e.toId && set.has(e.fromId) && !set.has(e.toId)) {
+					let hasOutsideIncoming = false;
+					for (const inE of edges) {
+						if (inE.toId === e.toId && !set.has(inE.fromId)) {
+							hasOutsideIncoming = true;
+							break;
+						}
+					}
+					if (!hasOutsideIncoming) {
+						set.add(e.toId);
+						changed = true;
+					}
+				}
+			}
 		}
 		// зсув частини-2 у чисту колонку праворуч
 		let maxX = -Infinity,
