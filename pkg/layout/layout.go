@@ -140,25 +140,30 @@ func (b *build) recordContinue(p diagram.Point) {
 	}
 }
 
-// routeBreaks зводить точки break до виходу циклу (contY) шинною маршрутизацією:
-// кожен break падає вниз до безпечного рівня (відразу над contY), йде вправо
-// до магістралі (busX), і по ній спускається до cx. Це гарантує $O(N)$ і відсутність
-// перетинів із блоками тіла (які вже всі вище contY).
+// routeBreaks зводить точки break до виходу циклу (contY): кожен break спускається
+// ВЛАСНОЮ колонкою прямо до рівня виходу циклу, тоді горизонтально в центр (cx).
+// Спуск до самого contY (а не до рівня над дугою повернення) — принципово: інакше
+// вертикаль break лягає на колонку дуги повернення (обидві на осі cx трохи вище
+// contY) і візуально «вливається» в петлю циклу, хоча має йти на вихід. Спускаючись
+// нижче дуги, break лише ПЕРЕТИНАЄ її горизонталь чистим прямим кутом. O(N), без
+// перетинів із фігурами тіла (всі вище). Кілька break-ів фанняться по рівню.
 func (b *build) routeBreaks(cx, contY float64, pts []diagram.Point) {
 	if len(pts) == 0 {
 		return
 	}
 	for i, p := range pts {
-		safeY := contY - vGap*0.8 + float64(i)*6 
-		if p.X > cx-1 && p.X < cx+1 {
+		if p.X > cx-1 && p.X < cx+1 { // вже на осі — прямо вниз
 			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
 				p, {X: cx, Y: contY},
 			}})
-		} else {
-			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
-				p, {X: p.X, Y: safeY}, {X: cx, Y: safeY}, {X: cx, Y: contY},
-			}})
+			continue
 		}
+		safeY := contY - float64(len(pts)-1-i)*7 // i=останній → рівно contY
+		pts4 := []diagram.Point{p, {X: p.X, Y: safeY}, {X: cx, Y: safeY}}
+		if safeY < contY-0.5 {
+			pts4 = append(pts4, diagram.Point{X: cx, Y: contY})
+		}
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Points: pts4})
 	}
 }
 
