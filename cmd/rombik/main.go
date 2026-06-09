@@ -7,14 +7,23 @@
 //	go run ./cmd/rombik -py file.py -o схема.png -scale 3
 //	go run ./cmd/rombik -py file.py -fn matrix_gen      → лише одна функція
 //
-// Формат вихідного файлу — за розширенням -o: .svg, .png (через rsvg-convert),
-// .json (дані для фронтенду).
+// UNIX-style пайпи:
+//
+//	cat file.py | go run ./cmd/rombik -py -            → читати код зі stdin
+//	go run ./cmd/rombik -py file.py -o -               → писати SVG у stdout
+//	go run ./cmd/rombik -py file.py -o - -t typ        → формат для stdout (-t)
+//	cat f.py | go run ./cmd/rombik -py - -o - > out.svg
+//
+// Формат вихідного файлу — за розширенням -o: .svg, .png, .pdf, .typ,
+// .excalidraw, .json. Для stdout (-o -) формат задає -t (замовч. svg).
+// Повідомлення про статус ідуть у stderr — stdout лишається чистим для пайпів.
 package main
 
 import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,14 +48,22 @@ func main() {
 	figNum := flag.Int("fignum", 0, "номер «Рисунок N» (0 — за порядком функцій)")
 	figWord := flag.String("figword", "", "слово підпису: Рисунок (замовч.), Рис. тощо")
 	figFmt := flag.String("capformat", "", "шаблон підпису, напр. «{num}. {text}» (замовч. «{word} {num} — {text}»)")
+	stdoutFmt := flag.String("t", "svg", "формат для stdout (-o -): svg|png|pdf|typ|excalidraw|json")
 	flag.Parse()
 	opts := rombik.Options{CallAsProcess: *callPlain, SingleEnd: *singleEnd, CapWord: *figWord}
 
 	var funcs []rombik.Result
-	if *pyFile == "" {
+	switch {
+	case *pyFile == "":
 		funcs = rombik.FromIR([]ir.Func{{Name: "main", Body: demo()}}, opts)
-	} else {
-		code, err := os.ReadFile(*pyFile)
+	default:
+		var code []byte
+		var err error
+		if *pyFile == "-" { // читати код зі stdin
+			code, err = io.ReadAll(os.Stdin)
+		} else {
+			code, err = os.ReadFile(*pyFile)
+		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "читання:", err)
 			os.Exit(1)
@@ -80,10 +97,21 @@ func main() {
 		f.Diagram.CapFormat = *figFmt
 	}
 
+	// Формат: для stdout (-o -) — за -t; інакше за розширенням -o.
+	format := "." + strings.TrimPrefix(strings.ToLower(*stdoutFmt), ".")
+
 	// Одна схема → точно в -o; кілька → <основа>_<функція>.<ext>.
 	if len(funcs) == 1 {
-		write(funcs[0].Diagram, *outFile, *scale)
+		write(funcs[0].Diagram, *outFile, format, *scale)
 		return
+	}
+	if *outFile == "-" { // кілька функцій у stdout — лише як один комбінований документ
+		if format == ".typ" || format == ".pdf" || format == ".excalidraw" {
+			writeCombined(funcs, "-", format)
+			return
+		}
+		fmt.Fprintln(os.Stderr, "у stdout кілька функцій можна лише як -t typ|pdf|excalidraw (один документ); інакше задайте файл -o")
+		os.Exit(1)
 	}
 	base, ext := splitExt(*outFile)
 	// .typ/.pdf/.excalidraw для кількох функцій → ОДИН документ з усіма схемами.
@@ -92,7 +120,7 @@ func main() {
 		return
 	}
 	for _, f := range funcs {
-		write(f.Diagram, fmt.Sprintf("%s_%s%s", base, f.Name, ext), *scale)
+		write(f.Diagram, fmt.Sprintf("%s_%s%s", base, f.Name, ext), "", *scale)
 	}
 }
 
@@ -115,13 +143,18 @@ func writeCombined(funcs []rombik.Result, out, ext string) {
 		}
 		writeFile(out, b)
 	}
-	fmt.Printf("Готово: %s (%d схем одним документом)\n", out, len(funcs))
+	fmt.Fprintf(os.Stderr, "Готово: %s (%d схем одним документом)\n", outName(out), len(funcs))
 }
 
 // write серіалізує діаграму у файл за розширенням: .json → дані, .png/.pdf →
 // нативний растр/вектор (raster, без зовнішніх бінарників), .typ → Typst, інакше → SVG.
-func write(d *diagram.Diagram, out string, scale float64) {
-	switch strings.ToLower(filepath.Ext(out)) {
+// format != "" перекриває розширення (для stdout -o -).
+func write(d *diagram.Diagram, out, format string, scale float64) {
+	ext := format
+	if ext == "" {
+		ext = strings.ToLower(filepath.Ext(out))
+	}
+	switch ext {
 	case ".json":
 		b, err := json.MarshalIndent(d, "", "  ")
 		if err != nil {
@@ -150,14 +183,29 @@ func write(d *diagram.Diagram, out string, scale float64) {
 	default:
 		writeFile(out, []byte(svg.Render(d)))
 	}
-	fmt.Printf("Готово: %s (%.0f×%.0f, фігур: %d, ребер: %d)\n", out, d.W, d.H, len(d.Shapes), len(d.Edges))
+	fmt.Fprintf(os.Stderr, "Готово: %s (%.0f×%.0f, фігур: %d, ребер: %d)\n", outName(out), d.W, d.H, len(d.Shapes), len(d.Edges))
 }
 
 func writeFile(out string, data []byte) {
+	if out == "-" { // stdout — для пайпів
+		if _, err := os.Stdout.Write(data); err != nil {
+			fmt.Fprintln(os.Stderr, "запис:", err)
+			os.Exit(1)
+		}
+		return
+	}
 	if err := os.WriteFile(out, data, 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "запис:", err)
 		os.Exit(1)
 	}
+}
+
+// outName — людиночитна назва призначення для статус-рядка.
+func outName(out string) string {
+	if out == "-" {
+		return "stdout"
+	}
+	return out
 }
 
 func filterByName(fns []rombik.Result, name string) []rombik.Result {
