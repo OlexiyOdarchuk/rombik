@@ -3,15 +3,18 @@
 	import { EditorView, basicSetup } from 'codemirror';
 	import { EditorState, Compartment } from '@codemirror/state';
 	import { python } from '@codemirror/lang-python';
+	import { cpp } from '@codemirror/lang-cpp';
 	import { oneDark } from '@codemirror/theme-one-dark';
 
-	let { value = $bindable('') } = $props();
+	let { value = $bindable(''), lang = 'python' } = $props();
 	let el;
 	let view;
-	const themeC = new Compartment(); // окремий слот під тему — перемикаємо на льоту
+	const themeC = new Compartment(); // окремий слот під тему
+	const langC = new Compartment(); // слот під мову
 
 	const isDark = () => document.documentElement.classList.contains('dark');
 	const themeExt = () => (isDark() ? oneDark : []);
+	const langExt = () => (lang === 'cpp' ? cpp() : python());
 
 
 	onMount(() => {
@@ -21,7 +24,7 @@
 				doc: value,
 				extensions: [
 					basicSetup,
-					python(),
+					langC.of(langExt()),
 					themeC.of(themeExt()),
 					EditorView.updateListener.of((u) => {
 						if (u.docChanged) {
@@ -49,6 +52,12 @@
 	$effect(() => {
 		if (view && value !== view.state.doc.toString()) {
 			view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } });
+		}
+	});
+
+	$effect(() => {
+		if (view) {
+			view.dispatch({ effects: langC.reconfigure(langExt()) });
 		}
 	});
 </script>

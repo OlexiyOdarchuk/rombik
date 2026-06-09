@@ -39,14 +39,14 @@ type Func struct { Name string; Block Node }
 браузерна збірка була б неможлива. Натомість:
 
 - **CLI:** `parser/python` сам кличе `python3` і віддає AST-JSON.
-- **Браузер:** Pyodide виконує `parser.py`, JS передає AST-JSON у `rombikGenerate`.
+- **Браузер:** Tree-sitter (разом з `parser.js`), JS передає AST-JSON у `rombikGenerate`.
 
 Обидва шляхи сходяться у `FromJSON`. → [[WASM-міст]], [[Браузерний-рушій]].
 
 ### 3. Один парсер на два середовища
 
 `parser.py` написаний так, щоб працювати **і** через stdin (CLI), **і** через
-глобальну `src`/`_out` (Pyodide) — один файл, одне джерело правди. У python.go він
+глобальну js-змінні (Tree-sitter) — один файл, одне джерело правди. У python.go він
 вшитий через `//go:embed`, а build-скрипт копіює його ж у `web/static/`.
 
 ### 4. JSON — зрозумілий шов

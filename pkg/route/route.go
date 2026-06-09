@@ -79,10 +79,19 @@ func absf(x float64) float64 {
 // Route прокладає ортогональний шлях a→b, огинаючи obstacles. Фігури, що
 // містять a або b (джерело/ціль), у перешкоди не йдуть.
 func Route(a, b Pt, obstacles []Rect) []Pt {
+	// Обмежуємо перешкоди локальною зоною (bbox a..b + щедрий буфер). Інакше сітка
+	// Ганана будується по ВСІХ фігурах програми — і A* вішає браузер на великих
+	// схемах. У зону потрапляють лише 3-5 локальних перешкод, незалежно від розміру.
+	const buf = 340.0 // ~2 типові ширини блоку — місце обійти фігуру по дузі
+	loX, hiX := min(a.X, b.X)-buf, max(a.X, b.X)+buf
+	loY, hiY := min(a.Y, b.Y)-buf, max(a.Y, b.Y)+buf
 	var obs []Rect
 	for _, r := range obstacles {
 		if r.contains(a) || r.contains(b) {
 			continue
+		}
+		if r.X+r.W < loX || r.X > hiX || r.Y+r.H < loY || r.Y > hiY {
+			continue // повністю поза зоною — не перешкода
 		}
 		obs = append(obs, r.inflate(pad))
 	}

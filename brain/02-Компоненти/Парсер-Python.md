@@ -14,7 +14,7 @@ tags: [component, parser]
 Три експортовані функції:
 
 ```go
-func Script() string              // текст parser.py (для віддачі Pyodide)
+func Script() string              // текст parser.py (тільки для CLI)
 func AST(code string) ([]byte, error)      // код → сирий AST-JSON
 func ParseAll(code string) ([]ir.Func, error) // код → AST-JSON → ir
 ```
@@ -31,14 +31,14 @@ func ParseAll(code string) ([]ir.Func, error) // код → AST-JSON → ir
 Один файл, що працює у двох середовищах:
 
 - **CLI:** читає `sys.stdin`, друкує JSON у stdout.
-- **Браузер (Pyodide):** фронтенд заздалегідь ставить глобальну `src`, результат
+- **Браузер:** Pyodide замінено на Tree-sitter, тому цей код там не використовується.
   бере з глобальної `_out`.
 
 Розпізнавання середовища — у кінці файлу:
 
 ```python
 try:
-    src                      # Pyodide ставить це заздалегідь
+    src                      # (Legacy/CLI fallback)
 except NameError:
     src = sys.stdin.read()   # CLI
 ```

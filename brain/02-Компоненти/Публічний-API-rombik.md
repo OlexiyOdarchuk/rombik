@@ -25,7 +25,7 @@ type Result struct {
 
 ```go
 func FromPython(code string, opts Options) ([]Result, error) // потребує python3 (не WASM)
-func FromAST(astJSON []byte, opts Options) ([]Result, error) // AST дає Pyodide — працює в WASM
+func FromAST(astJSON []byte, opts Options) ([]Result, error) // AST дає Tree-sitter — працює в WASM
 func SplitFromAST(astJSON []byte, opts Options, name string, maxH float64) ([]Result, error) // розбиття довгої схеми на частини через конектори
 func FromIR(funcs []ir.Func, opts Options) []Result          // для тих, хто будує ir сам
 ```

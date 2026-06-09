@@ -1,14 +1,12 @@
 // Рушій у браузері, без сервера:
-//   Pyodide (CPython у WASM) виконує parser.py -> AST-JSON
+//   web-tree-sitter парсить код і формує AST-JSON
 //   rombik.wasm (Go) бере AST-JSON + опції -> {functions:[{name, svg, diagram}]}
 import { base } from '$app/paths';
-
-const PYODIDE_VER = '0.27.2';
-const PYODIDE_CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VER}/full/`;
+import { parseTreeToAstJson } from './parser.js';
 
 let initPromise = null; // ініціалізація один раз
-let pyodide = null;
-let parserSrc = '';
+let parser = null;
+let langs = {}; // 'python' -> Language, 'cpp' -> Language
 
 function loadScript(src) {
 	return new Promise((resolve, reject) => {
@@ -32,14 +30,19 @@ async function instantiateWasm(resp, importObject) {
 	return (await WebAssembly.instantiate(bytes, importObject)).instance;
 }
 
-// onProgress(stage) — для індикатора («Завантаження Python…» тощо).
+// onProgress(stage) — для індикатора.
 async function init(onProgress) {
-	onProgress?.('Завантаження середовища Python…');
-	await loadScript(PYODIDE_CDN + 'pyodide.js');
-	pyodide = await globalThis.loadPyodide({ indexURL: PYODIDE_CDN });
+	onProgress?.('Завантаження Tree-sitter…');
+	const modulePath = `${base}/tree-sitter.js`;
+	const { Parser, Language } = await import(/* @vite-ignore */ modulePath);
+	await Parser.init({
+		locateFile: () => `${base}/tree-sitter.wasm`
+	});
+	parser = new Parser();
+	langs.python = await Language.load(`${base}/tree-sitter-python.wasm`);
+	langs.cpp = await Language.load(`${base}/tree-sitter-cpp.wasm`);
 
 	onProgress?.('Завантаження рушія…');
-	parserSrc = await (await fetch(`${base}/parser.py`)).text();
 	await loadScript(`${base}/wasm_exec.js`);
 	const go = new globalThis.Go();
 	const instance = await instantiateWasm(fetch(`${base}/rombik.wasm`), go.importObject);
@@ -54,30 +57,25 @@ export function warmup(onProgress) {
 
 /**
  * generate(code, options) -> { functions:[{name, svg, diagram}] } або { error }.
- * Розбір Python робить Pyodide (ast.parse, код НЕ виконується).
  */
 export async function generate(code, options = {}, onProgress) {
 	await warmup(onProgress);
 	onProgress?.('Будую схему…');
 
-	pyodide.globals.set('src', code);
-	pyodide.globals.set('_error', ''); // скидаємо попередню помилку
 	try {
-		pyodide.runPython(parserSrc);
-	} catch (e) {
-		// parser.py кладе чисте україномовне повідомлення у _error (синтакс. помилка).
-		let clean = '';
-		try {
-			clean = pyodide.globals.get('_error');
-		} catch (_) {
-			/* ignore */
+		const langStr = options.lang === 'cpp' ? 'cpp' : 'python';
+		parser.setLanguage(langs[langStr]);
+		const tree = parser.parse(code);
+		
+		const astJSON = parseTreeToAstJson(tree, langStr);
+		lastAst = astJSON; // тримаємо для розбивки (потрібен AST, не лише diagram)
+		const res = JSON.parse(globalThis.rombikGenerate(astJSON, JSON.stringify(options)));
+		
+		if (tree.rootNode.hasError) {
+			res.warning = "У коді є синтаксичні помилки. Деякі блоки можуть бути згенеровані неправильно.";
 		}
-		return { error: clean || cleanPyError(String(e?.message ?? e)) };
-	}
-	const astJSON = pyodide.globals.get('_out');
-	lastAst = astJSON; // тримаємо для розбивки (потрібен AST, не лише diagram)
-	try {
-		return JSON.parse(globalThis.rombikGenerate(astJSON, JSON.stringify(options)));
+		
+		return res;
 	} catch (e) {
 		return { error: 'рушій: ' + (e?.message ?? e) };
 	}

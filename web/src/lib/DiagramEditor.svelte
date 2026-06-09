@@ -615,7 +615,8 @@
 				<path d={pathD(e.points)} fill="none" stroke={isSel('edge', e.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('edge', e.id) ? 2.5 : 1.5} marker-end={e.arrowless ? '' : 'url(#ed-arr)'} pointer-events="none" />
 				{#if editLabel === e.id}
 					<foreignObject x={e.lx - 6} y={e.ly - 16} width="90" height="22">
-						<input value={e.label} oninput={(ev) => { e.label = ev.currentTarget.value; edges = [...edges]; }} onblur={() => (editLabel = null)} onkeydown={(ev) => ev.key === 'Enter' && (editLabel = null)} onpointerdown={(ev) => ev.stopPropagation()} class="w-full rounded border border-blue-300 bg-white px-1 text-xs text-slate-900 outline-none" autofocus />
+				<!-- svelte-ignore a11y_autofocus -->
+				<input value={e.label} oninput={(ev) => { e.label = ev.currentTarget.value; edges = [...edges]; }} onblur={() => (editLabel = null)} onkeydown={(ev) => ev.key === 'Enter' && (editLabel = null)} onpointerdown={(ev) => ev.stopPropagation()} class="w-full rounded border border-blue-300 bg-white px-1 text-xs text-slate-900 outline-none" autofocus />
 					</foreignObject>
 				{:else if e.label}
 					<text x={e.lx} y={e.ly} text-anchor="middle" font-size="12" fill={isSel('edge', e.id) ? '#2563eb' : 'currentColor'} class="cursor-move" onpointerdown={(ev) => labelDown(ev, e)} ondblclick={() => (editLabel = e.id)} role="presentation">{e.label}</text>
@@ -661,6 +662,7 @@
 
 					{#if editId === n.id}
 						<foreignObject x={n.x} y={n.y + n.h / 2 - 12} width={n.w} height="24">
+							<!-- svelte-ignore a11y_autofocus -->
 							<input value={n.text} oninput={(ev) => setText(n, ev.currentTarget.value)} onblur={() => (editId = null)} onkeydown={(ev) => ev.key === 'Enter' && (editId = null)} onpointerdown={(ev) => ev.stopPropagation()} class="h-full w-full border-0 bg-transparent text-center text-sm text-slate-900 outline-none" autofocus />
 						</foreignObject>
 					{:else}

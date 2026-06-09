@@ -18,7 +18,7 @@
 	import DiagramEditor from '$lib/DiagramEditor.svelte';
 	import { onMount } from 'svelte';
 
-	const SAMPLE = `def grade(score):
+	const SAMPLE_PYTHON = `def grade(score):
     name = input("Ваше ім'я: ")
     print("Привіт,", name)
     total = score + 5
@@ -31,7 +31,35 @@
             print("Незадовільно")
     print("Готово")`;
 
-	let code = $state(SAMPLE);
+	const SAMPLE_CPP = `void grade(int score) {
+    string name;
+    cout << "Ваше ім'я: ";
+    cin >> name;
+    cout << "Привіт, " << name << endl;
+    
+    int total = score + 5;
+    if (total >= 90) {
+        cout << "Відмінно" << endl;
+    } else {
+        if (total >= 60) {
+            cout << "Задовільно" << endl;
+        } else {
+            cout << "Незадовільно" << endl;
+        }
+    }
+    cout << "Готово" << endl;
+}`;
+
+	let code = $state(SAMPLE_PYTHON);
+	let language = $state('python'); // 'python' або 'cpp'
+
+	let lastLanguage = language;
+	$effect(() => {
+		if (language !== lastLanguage) {
+			code = language === 'cpp' ? SAMPLE_CPP : SAMPLE_PYTHON;
+			lastLanguage = language;
+		}
+	});
 	let funcs = $state([]); // [{name, svg, diagram}]
 	let status = $state('Готовий. Натисни «Побудувати».');
 	let busy = $state(false);
@@ -48,7 +76,7 @@
 	function showToast(msg, isErr = false, showDonate = false) {
 		toast = { msg, isErr, showDonate };
 		clearTimeout(toastTimer);
-		toastTimer = setTimeout(() => (toast = null), showDonate ? 5000 : 3000);
+		toastTimer = setTimeout(() => (toast = null), isErr ? 8000 : (showDonate ? 5000 : 3000));
 	}
 
 	function vibrate(ms = 30) {
@@ -125,7 +153,8 @@
 			no,
 			inWord,
 			outWord,
-			capWord: s.capWord
+			capWord: s.capWord,
+			lang: language
 		};
 	}
 	// Перебудувати при зміні налаштування, якщо схеми вже є.
@@ -189,15 +218,25 @@
 			if (res.error) {
 				errored = true;
 				status = res.error;
+				showToast(res.error, true, true);
 				return;
 			}
 			funcs = res.functions ?? [];
 			if (funcs.length && s.figStart !== 1) renumber(); // глобальний старт нумерації
-			status = funcs.length ? `Готово: ${funcs.length} схем.` : 'Порожньо: нема що малювати.';
+			
+			if (res.warning) {
+				errored = true;
+				status = res.warning;
+				showToast(res.warning, true, true);
+			} else {
+				status = funcs.length ? `Готово: ${funcs.length} схем.` : 'Порожньо: нема що малювати.';
+			}
+			
 			if (funcs.length) mobileTab = 'schema'; // автоматично показувати схему після побудови на мобільному
 		} catch (e) {
 			errored = true;
 			status = 'Помилка: ' + (e?.message ?? e);
+			showToast(status, true, true);
 		} finally {
 			busy = false;
 		}
@@ -466,13 +505,13 @@
 											<input type="text" bind:value={s.capWord} oninput={() => funcs.length && reCaptionAll()} placeholder="Рисунок" class="w-full rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
 										</div>
 										<div>
-											<label class="block text-xs text-slate-500 mb-1">Нумерувати з</label>
-											<input type="number" min="1" bind:value={s.figStart} oninput={() => funcs.length && renumber()} class="w-full rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+											<label for="figStart" class="block text-xs text-slate-500 mb-1">Нумерувати з</label>
+											<input id="figStart" type="number" min="1" bind:value={s.figStart} oninput={() => funcs.length && renumber()} class="w-full rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
 										</div>
 									</div>
 									<div>
-										<label class="block text-xs text-slate-500 mb-1">Шаблон</label>
-										<input type="text" bind:value={s.capFormat} oninput={() => funcs.length && reCaptionAll()} placeholder="{'{word} {num} — {text}'}" class="w-full rounded-md border-slate-300 py-1.5 font-mono text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										<label for="capFormat" class="block text-xs text-slate-500 mb-1">Шаблон</label>
+										<input id="capFormat" type="text" bind:value={s.capFormat} oninput={() => funcs.length && reCaptionAll()} placeholder="{'{word} {num} — {text}'}" class="w-full rounded-md border-slate-300 py-1.5 font-mono text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
 										<p class="text-[10px] text-slate-400 mt-1">Доступно: <code>{'{word}'}</code> <code>{'{num}'}</code> <code>{'{text}'}</code></p>
 									</div>
 								</div>
@@ -554,11 +593,15 @@
 	<div class="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
 		<!-- code -->
 		<div class="{mobileTab === 'code' ? 'flex' : 'hidden'} lg:flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-			<div class="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-				Код Python
+			<div class="flex items-center justify-between border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
+				<span>Код</span>
+				<select bind:value={language} class="cursor-pointer bg-transparent uppercase font-bold text-slate-600 outline-none dark:text-slate-300">
+					<option value="python">Python</option>
+					<option value="cpp">C++</option>
+				</select>
 			</div>
 			<div class="min-h-0 flex-1 overflow-hidden rounded-b-xl">
-				<CodeEditor bind:value={code} />
+				<CodeEditor bind:value={code} lang={language} />
 			</div>
 		</div>
 
@@ -639,21 +682,9 @@
 			</div>
 		</div>
 	</div>
-	{#if errored}
-		<div class="mt-4 rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm dark:border-red-600 dark:bg-red-950/30">
-			<div class="flex gap-3">
-				<svg class="mt-0.5 h-5 w-5 shrink-0 text-red-500 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-				</svg>
-				<div class="overflow-hidden">
-					<h3 class="text-sm font-bold text-red-800 dark:text-red-300">Помилка</h3>
-					<pre class="mt-1 max-h-40 overflow-y-auto break-words whitespace-pre-wrap font-mono text-xs text-red-700 dark:text-red-400">{status}</pre>
-				</div>
-			</div>
-		</div>
-	{:else}
-		<p class="mt-4 flex items-center gap-2 px-1 text-sm text-slate-500 dark:text-slate-400">{status}</p>
-	{/if}
+	<p class="mt-4 flex items-center gap-2 px-1 text-sm text-slate-500 dark:text-slate-400">
+		{status}
+	</p>
 </div>
 
 {#if editingFn}
@@ -664,7 +695,7 @@
 	<div class="fixed inset-0 z-[100] flex flex-col bg-slate-50 dark:bg-slate-950">
 		<div class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
 			<span class="font-bold text-slate-800 dark:text-slate-200">Перегляд: {fullscreenFn.name}</span>
-			<button onclick={() => (fullscreenFn = null)} class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+			<button onclick={() => (fullscreenFn = null)} aria-label="Закрити" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
 				<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
 			</button>
 		</div>

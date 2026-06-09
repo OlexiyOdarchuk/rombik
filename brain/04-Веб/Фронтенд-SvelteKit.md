@@ -12,8 +12,8 @@ tags: [web, frontend]
 - **SvelteKit 2 / Svelte 5** з `adapter-static` — чиста статика (`build/`), хоститься
   будь-де (GitHub Pages). Широко використовуються руни Svelte 5: `$state` (для коду та опцій), `$derived` (для отримання результатів генерації), `$effect` (для синхронізації тем та CodeMirror).
 - **Tailwind v4** (`@tailwindcss/vite`) — стилі, з підтримкою темної теми.
-- **CodeMirror 6** — редактор коду Python (підсвітка, нумерація, дужки).
-- Рантайм-рушій — **Pyodide + два WASM** ([[Браузерний-рушій]]).
+- **CodeMirror 6** — редактор коду Python/C++ (підсвітка, нумерація, дужки).
+- Рантайм-рушій — **Tree-sitter + два WASM** ([[Браузерний-рушій]]).
 
 ## Структура
 
@@ -21,8 +21,9 @@ tags: [web, frontend]
 web/src/
 ├── app.html, app.css        Tailwind + токени теми (--color-paper тощо)
 ├── lib/
-│   ├── engine.js            клей Pyodide + два WASM-рушії
-│   ├── CodeEditor.svelte    CodeMirror 6 (Python); тема через Compartment
+│   ├── engine.js            клей Tree-sitter + два WASM-рушії
+│   ├── parser.js            JS-реалізація парсера синтаксичних дерев для Python/C++
+│   ├── CodeEditor.svelte    CodeMirror 6 (Python та C++); тема через Compartment
 │   ├── ThemeToggle.svelte   перемикач світла/темна
 │   ├── Nav.svelte           шапка: лого-ромбік, навігація, ThemeToggle
 │   └── Footer.svelte
@@ -32,7 +33,7 @@ web/src/
     └── app/+page.svelte     редактор
 ```
 
-Артефакти `rombik.wasm`, `rombik-raster.wasm`, `wasm_exec.js`, `parser.py` —
+Артефакти `rombik.wasm`, `rombik-raster.wasm`, `wasm_exec.js`, модулі `tree-sitter` —
 **генеровані** (`build-wasm.sh`), у `.gitignore` `*.wasm`. Збірка автоматизована та розгортається через **GitHub Actions**. → [[Збірка-і-запуск]].
 
 ## Темна тема
@@ -62,7 +63,7 @@ web/src/
 
 ## Потік у редакторі
 
-1. Код + опції → `engine.generate` → Pyodide парсить, легкий WASM розкладає й рендерить
+1. Вибір мови та код + опції → `engine.generate` → Tree-sitter парсить, `parser.js` конвертує, а легкий WASM розкладає й рендерить
    ([[Браузерний-рушій]]).
 2. Результат `{functions:[{name, svg, typst, diagram}]}` → `svg` у DOM.
 3. Правка підпису → `renderCaption` (дешевий ре-рендер, без парсингу).

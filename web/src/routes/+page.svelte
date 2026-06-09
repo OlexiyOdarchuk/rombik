@@ -6,8 +6,8 @@
             icon: "M3 7h18M3 12h18M3 17h18",
         },
         {
-            title: "Прямо з коду Python",
-            body: "Встав код — отримай схему. if/elif/else, for, while, while True/break, функції, ввід-вивід. Вкладеність будь-якої глибини.",
+            title: "Прямо з коду Python та C++",
+            body: "Встав код — отримай схему. if/else, for, while, функції, ввід-вивід. Вкладеність будь-якої глибини.",
             icon: "M8 9l-4 3 4 3M16 9l4 3-4 3",
         },
         {
@@ -26,7 +26,7 @@
         {
             n: "1",
             t: "Встав код",
-            d: "Свою функцію або цілу програму на Python.",
+            d: "Свою функцію або цілу програму на Python чи C++.",
         },
         {
             n: "2",
@@ -42,19 +42,19 @@
 </script>
 
 <svelte:head>
-    <title>rombik — автоматичні блок-схеми за ДСТУ з коду Python</title>
+    <title>rombik — автоматичні блок-схеми за ДСТУ з коду Python та C++</title>
     <meta
         name="description"
-        content="Генератор блок-схем онлайн. Встав код на Python — отримай готову блок-схему за ДСТУ 19.701-90. Експорт у SVG, PNG, PDF, Typst та Excalidraw."
+        content="Генератор блок-схем онлайн. Встав код на Python або C++ — отримай готову блок-схему за ДСТУ 19.701-90. Експорт у SVG, PNG, PDF, Typst та Excalidraw."
     />
     <meta
         name="keywords"
-        content="блок-схема, алгоритм, ДСТУ 19.701-90, python блок-схема, генератор блок-схем, візуалізація алгоритмів, курсова, диплом"
+        content="блок-схема, алгоритм, ДСТУ 19.701-90, python блок-схема, c++ блок-схема, генератор блок-схем, візуалізація алгоритмів, курсова, диплом"
     />
     <meta property="og:title" content="rombik — блок-схеми за секунду" />
     <meta
         property="og:description"
-        content="Безкоштовний генератор правильних блок-схем з коду Python прямо у вашому браузері."
+        content="Безкоштовний генератор правильних блок-схем з коду Python та C++ прямо у вашому браузері."
     />
     <meta property="og:type" content="website" />
 </svelte:head>
@@ -83,7 +83,7 @@
             <p
                 class="mt-6 max-w-lg text-lg text-slate-600 leading-relaxed dark:text-slate-300"
             >
-                Встав код на Python — отримай готову блок-схему за державним
+                Встав код на Python або C++ — отримай готову блок-схему за державним
                 стандартом. Підправ у візуальному редакторі й додай у будь-який
                 документ. Усе безкоштовно та надійно.
             </p>
@@ -408,10 +408,10 @@
                     >
                 </summary>
                 <p class="mt-4 text-slate-600 dark:text-slate-300">
-                    Зараз повністю підтримується Python. Усі базові конструкції
+                    Зараз повністю підтримуються <strong>Python</strong> та <strong>C++</strong>. Усі базові конструкції
                     (умови, цикли, винятки, функції) автоматично розпізнаються і
-                    будуються за ДСТУ. Підтримку інших мов (C++, Go, Pascal) можна
-                    додати в майбутньому завдяки гнучкій архітектурі.
+                    будуються за ДСТУ. Підтримку інших мов (C, Pascal, JS)
+                    можна додати в майбутньому завдяки гнучкій Tree-sitter архітектурі.
                 </p>
             </details>
             <details
@@ -494,14 +494,19 @@
                 <summary
                     class="flex cursor-pointer items-center justify-between font-semibold text-slate-900 dark:text-slate-100"
                 >
-                    Я хочу використовувати українські слова (Так/Ні, Ввід/Вивід). Як це зробити?
+                    Я хочу використовувати українські слова (Так/Ні,
+                    Ввід/Вивід). Як це зробити?
                     <span
                         class="text-blue-500 transition-transform group-open:rotate-45"
                         >+</span
                     >
                 </summary>
                 <p class="mt-4 text-slate-600 dark:text-slate-300">
-                    Усі слова можна налаштувати! Відкрийте меню "Налаштування" в панелі інструментів (значок шестерні). Перейдіть на вкладку "Текст та мітки", де ви можете змінити слова "Yes", "No", "Input", "Print", "True", "False" на будь-які свої, включно з українськими відповідниками.
+                    Усі слова можна налаштувати! Відкрийте меню "Налаштування" в
+                    панелі інструментів (значок шестерні). Перейдіть на вкладку
+                    "Текст та мітки", де ви можете змінити слова "Yes", "No",
+                    "Input", "Print", "True", "False" на будь-які свої, включно
+                    з українськими відповідниками.
                 </p>
             </details>
         </div>
@@ -548,7 +553,7 @@
                 Зірочка на GitHub
             </a>
             <a
-                href="https://ishawyha.dev/#projects"
+                href="https://ishawyha.dev/projects"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="inline-flex items-center gap-2 rounded-xl border border-transparent px-6 py-3 font-semibold text-blue-600 transition hover:underline dark:text-blue-400"

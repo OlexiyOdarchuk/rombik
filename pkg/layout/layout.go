@@ -141,23 +141,33 @@ func (b *build) recordContinue(p diagram.Point) {
 	}
 }
 
-// routeBreaks зводить точки break до виходу циклу (contY). Без вістря — голову
-// дасть наступне ребро (вхід у фігуру/Кінець).
+// routeBreaks зводить точки break до виходу циклу (contY) маршрутизатором —
+// break лежить глибоко у вкладених гілках, тож пряме «падіння вниз» різало б
+// сусідні блоки. A* (з ОБМЕЖЕНИМ масивом перешкод) обходить фігури тіла циклу.
 func (b *build) routeBreaks(cx, contY float64, pts []diagram.Point) {
+	if len(pts) == 0 {
+		return
+	}
+	obs := b.rects()
 	for _, p := range pts {
-		if p.X > cx-1 && p.X < cx+1 {
-			b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(cx, contY)}})
-		} else {
-			b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(p.X, contY), P(cx, contY)}})
-		}
+		// Connect виходить стабом УНИЗ (з-під блока над точкою, який inflate робить
+		// перешкодою), тоді A* веде до виходу циклу, огинаючи фігури тіла.
+		path := route.Connect(toPt(p), route.Pt{X: cx, Y: contY}, route.Down, route.None, obs)
+		b.d.Edges = append(b.d.Edges, routed(path, true))
 	}
 }
 
-// routeContinues заводить точки continue у колонку дуги повернення (backX): звідти
-// наявна дуга несе потік угору в заголовок (наступна ітерація). Без вістря.
+// routeContinues заводить точки continue у колонку дуги повернення (backX) теж
+// маршрутизатором — горизонталь «наосліп» різала б правий обхід вкладеного if.
+// Звідти наявна дуга несе потік угору в заголовок (наступна ітерація).
 func (b *build) routeContinues(backX float64, pts []diagram.Point) {
+	if len(pts) == 0 {
+		return
+	}
+	obs := b.rects()
 	for _, p := range pts {
-		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{p, P(backX, p.Y)}})
+		path := route.Connect(toPt(p), route.Pt{X: backX, Y: p.Y}, route.Down, route.None, obs)
+		b.d.Edges = append(b.d.Edges, routed(path, true))
 	}
 }
 
@@ -226,25 +236,45 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 	return b.d
 }
 
-// routeEnds зводить усі точки-виходи у Кінець маршрутизатором (обхід фігур).
+// routeEnds зводить усі точки-виходи (return/raise/exit у single-end) в один
+// Кінець ШИНОЮ: магістраль — вертикальна колонка праворуч від усього, прокладена
+// в гарантовано вільному просторі. Жодного пошуку шляху (A*) — детермінована
+// геометрія O(n): кожен вихід вниз з-під блоку → вправо до шини, усі по шині вниз
+// → у центр над Кінцем → у Кінець. Саме так роблять у методичках (магістраль збоку).
 func (b *build) routeEnds(cx, kY float64) {
 	if len(b.ends) == 0 {
 		return
 	}
-	obs := b.rects()
-	if len(b.ends) == 1 { // одне ребро прямо в Кінець (зі стрілкою)
-		b.d.Edges = append(b.d.Edges, routed(route.Route(toPt(b.ends[0]), route.Pt{X: cx, Y: kY}, obs), false))
+	if len(b.ends) == 1 { // один вихід — прямо в Кінець (з невеликим вигином, якщо не по осі)
+		e := b.ends[0]
+		if e.X > cx-1 && e.X < cx+1 {
+			b.d.Edges = append(b.d.Edges, edge(e, P(cx, kY)))
+		} else {
+			my := e.Y + mergeGap/2
+			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{e, {X: e.X, Y: my}, {X: cx, Y: my}, {X: cx, Y: kY}}})
+		}
 		return
 	}
-	// Кілька: кожен — у точку збору над Кінцем (без вістря), тоді одна стрілка.
-	jy := kY - vGap
+	right, _ := b.bodyExtent(0, 0, cx) // найправіша точка всього графа
+	busX := right + mergeGap           // коридор шини — гарантовано вільний
+	jy := kY - vGap                    // точка збору над Кінцем
+	minDrop := jy
 	for _, e := range b.ends {
-		b.d.Edges = append(b.d.Edges, routed(route.Route(toPt(e), route.Pt{X: cx, Y: jy}, obs), true))
+		drop := e.Y + mergeGap/2
+		if drop < minDrop {
+			minDrop = drop
+		}
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
+			e, {X: e.X, Y: drop}, {X: busX, Y: drop}, // вниз з-під блоку, тоді вправо до шини
+		}})
 	}
-	b.d.Edges = append(b.d.Edges, edge(P(cx, jy), P(cx, kY)))
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
+		{X: busX, Y: minDrop}, {X: busX, Y: jy}, {X: cx, Y: jy}, // шина вниз → у центр
+	}})
+	b.d.Edges = append(b.d.Edges, edge(P(cx, jy), P(cx, kY))) // → у Кінець (зі стрілкою)
 }
 
-// rects — фігури як перешкоди для маршрутизатора.
+// rects — фігури як перешкоди для маршрутизатора (для break/continue через A*).
 func (b *build) rects() []route.Rect {
 	rs := make([]route.Rect, len(b.d.Shapes))
 	for i, s := range b.d.Shapes {
