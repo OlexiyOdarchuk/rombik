@@ -133,7 +133,7 @@ AST-JSON  (мова-агностик контракт; той самий фор�
    │  pkg/parser/astjson  (FromJSON)
    ▼
 IR        (pkg/ir — логічне дерево алгоритму, без геометрії)
-   │  pkg/layout  (Build: рекурсивна розкладка; pkg/route — A* для зведення в Кінець)
+   │  pkg/layout  (Build: рекурсивна розкладка, шинна маршрутизація)
    ▼
 Diagram   (pkg/diagram — фігури з координатами + ребра + підпис)
    │
@@ -166,8 +166,7 @@ pkg/
   render/typst/    Typst/CeTZ-рендерер (stdlib, вихідний код; + фрагмент-режим)
   render/raster/   нативні PNG/PDF (tdewolff/canvas, вшитий serif-шрифт)
   render/excalidraw/ експорт у формат Excalidraw (.excalidraw)
-  route/           ортогональний маршрутизатор ребер (A* по сітці Ганана) — лише
-                   для зведення виходів у спільний «Кінець»
+
   rombik/split.go  розбивка завеликої схеми на частини конекторами (SplitByHeight)
 examples/         приклади Python-коду (grade.py, course.py)
 web/              SvelteKit-фронтенд + WASM-артефакти у static/

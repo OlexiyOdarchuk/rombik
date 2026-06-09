@@ -12,7 +12,6 @@ import (
 
 	"github.com/OlexiyOdarchuk/rombik/pkg/diagram"
 	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
-	"github.com/OlexiyOdarchuk/rombik/pkg/route"
 )
 
 // Розміри й відступи (у точках).
@@ -141,33 +140,56 @@ func (b *build) recordContinue(p diagram.Point) {
 	}
 }
 
-// routeBreaks зводить точки break до виходу циклу (contY) маршрутизатором —
-// break лежить глибоко у вкладених гілках, тож пряме «падіння вниз» різало б
-// сусідні блоки. A* (з ОБМЕЖЕНИМ масивом перешкод) обходить фігури тіла циклу.
+// routeBreaks зводить точки break до виходу циклу (contY) шинною маршрутизацією:
+// кожен break падає вниз до безпечного рівня (відразу над contY), йде вправо
+// до магістралі (busX), і по ній спускається до cx. Це гарантує $O(N)$ і відсутність
+// перетинів із блоками тіла (які вже всі вище contY).
 func (b *build) routeBreaks(cx, contY float64, pts []diagram.Point) {
 	if len(pts) == 0 {
 		return
 	}
-	obs := b.rects()
-	for _, p := range pts {
-		// Connect виходить стабом УНИЗ (з-під блока над точкою, який inflate робить
-		// перешкодою), тоді A* веде до виходу циклу, огинаючи фігури тіла.
-		path := route.Connect(toPt(p), route.Pt{X: cx, Y: contY}, route.Down, route.None, obs)
-		b.d.Edges = append(b.d.Edges, routed(path, true))
+	// Знаходимо гарантовано вільний коридор праворуч від усього циклу
+	right, _ := b.bodyExtent(0, 0, cx)
+	busX := right + mergeGap
+	
+	for i, p := range pts {
+		// Трохи розносимо горизонтальні лінії, якщо є кілька break
+		safeY := contY - vGap*0.8 + float64(i)*6 
+		
+		if p.X > cx-1 && p.X < cx+1 {
+			// Якщо break по центру, просто падаємо вниз до cx
+			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
+				p, {X: cx, Y: contY},
+			}})
+		} else {
+			// Спускаємось нижче тіла циклу, йдемо вправо на шину, тоді в центр
+			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
+				p, 
+				{X: p.X, Y: safeY}, 
+				{X: busX, Y: safeY}, 
+				{X: busX, Y: contY - 4}, 
+				{X: cx, Y: contY - 4}, 
+				{X: cx, Y: contY},
+			}})
+		}
 	}
 }
 
-// routeContinues заводить точки continue у колонку дуги повернення (backX) теж
-// маршрутизатором — горизонталь «наосліп» різала б правий обхід вкладеного if.
-// Звідти наявна дуга несе потік угору в заголовок (наступна ітерація).
-func (b *build) routeContinues(backX float64, pts []diagram.Point) {
+// routeContinues заводить точки continue у колонку дуги повернення (backX).
+// Щоб не перетинати фігури сусідніх гілок (напр. діаманти while), лінія 
+// спускається до безпечного рівня safeY (відразу над contY), йде горизонтально
+// до backX, де зливається з дугою повернення.
+func (b *build) routeContinues(backX, contY float64, pts []diagram.Point) {
 	if len(pts) == 0 {
 		return
 	}
-	obs := b.rects()
-	for _, p := range pts {
-		path := route.Connect(toPt(p), route.Pt{X: backX, Y: p.Y}, route.Down, route.None, obs)
-		b.d.Edges = append(b.d.Edges, routed(path, true))
+	for i, p := range pts {
+		safeY := contY - vGap*0.6 + float64(i)*6
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
+			p, 
+			{X: p.X, Y: safeY}, 
+			{X: backX, Y: safeY},
+		}})
 	}
 }
 
@@ -273,26 +295,6 @@ func (b *build) routeEnds(cx, kY float64) {
 	}})
 	b.d.Edges = append(b.d.Edges, edge(P(cx, jy), P(cx, kY))) // → у Кінець (зі стрілкою)
 }
-
-// rects — фігури як перешкоди для маршрутизатора (для break/continue через A*).
-func (b *build) rects() []route.Rect {
-	rs := make([]route.Rect, len(b.d.Shapes))
-	for i, s := range b.d.Shapes {
-		rs[i] = route.Rect{X: s.X, Y: s.Y, W: s.W, H: s.H}
-	}
-	return rs
-}
-
-func toPt(p diagram.Point) route.Pt { return route.Pt{X: p.X, Y: p.Y} }
-
-func routed(path []route.Pt, arrowless bool) diagram.Edge {
-	pts := make([]diagram.Point, len(path))
-	for i, p := range path {
-		pts[i] = diagram.Point{X: p.X, Y: p.Y}
-	}
-	return diagram.Edge{Points: pts, Arrowless: arrowless}
-}
-
 // mapCalls рекурсивно замінює виклики підпрограм на звичайні процеси (опція).
 func mapCalls(b *ir.Block) {
 	if b == nil {
@@ -705,7 +707,7 @@ func (b *build) placeGuardLoopBody(body *ir.Block, g *ir.If, cx, headHalf, headC
 	}
 	cont, backX := b.placeLoopGuard(g, cx, headHalf, headCy, fromY, startS, startE, el, exitLabel)
 	brks, conts := b.popLoop()
-	b.routeContinues(backX, conts)
+	b.routeContinues(backX, cont.Y, conts)
 	b.routeBreaks(cx, cont.Y, brks)
 	return cont
 }
@@ -807,13 +809,13 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 
 	right, _ := b.bodyExtent(startS, startE, cx)
 	backX := right + arcGap
-	b.routeContinues(backX, conts) // continue → наступна ітерація (вгору) через дугу
+	contY := diaTop + diaH + vGap
+	b.routeContinues(backX, contY, conts) // continue → наступна ітерація (вгору) через дугу
 	mergeY := top - vGap/2
 	// Без вістря: вливається в лінію входу (не у фігуру) — щоб не було «двох голів».
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Arrowless: true, Points: []diagram.Point{
 		{X: cx + dw/2, Y: diaCy}, {X: backX, Y: diaCy}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
 	}})
-	contY := diaTop + diaH + vGap
 	// Вихід — без вістря: голову дасть наступне ребро (вхід у фігуру/Кінець).
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.yes, Arrowless: true, Points: []diagram.Point{
 		{X: cx, Y: diaTop + diaH}, {X: cx, Y: contY},
@@ -834,14 +836,14 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 	// Із центру низу (трохи вниз) і без вістря (вливається в лінію входу).
 	right, _ := b.bodyExtent(startS, startE, cx)
 	backX := right + arcGap
-	b.routeContinues(backX, conts)
+	contY := bodyExit.Y + vGap
+	b.routeContinues(backX, contY, conts)
 	mergeY := top - vGap/2
 	drop := bodyExit.Y + mergeGap/2
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{
 		{X: cx, Y: bodyExit.Y}, {X: cx, Y: drop}, {X: backX, Y: drop}, {X: backX, Y: mergeY}, {X: cx, Y: mergeY},
 	}})
 
-	contY := bodyExit.Y + vGap
 	b.routeBreaks(cx, contY, brks)
 	return P(cx, contY)
 }
@@ -853,7 +855,7 @@ func (b *build) loopArcs(cx, headHalf, headCy float64, startS, startE int, bodyB
 	backX := right + arcGap
 	leftX := left - arcGap
 	contY := bodyBottom + vGap
-	b.routeContinues(backX, conts) // continue → колонка дуги повернення → вгору
+	b.routeContinues(backX, contY, conts) // continue → колонка дуги повернення → вгору
 	// Дуга повернення — у правий кут заголовка; виходить із центру низу тіла
 	// (спершу трохи вниз, тоді вбік — не «з кута»).
 	drop := bodyBottom + mergeGap/2

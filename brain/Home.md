@@ -39,7 +39,6 @@ tags: [moc, home]
 - [[SVG-рендерер]] — `pkg/render/svg`
 - [[Typst-рендер]] — `pkg/render/typst` (CeTZ → PDF через Typst)
 - [[Растровий-рендер-PNG-PDF]] — `pkg/render/raster` (нативні PNG/PDF)
-- [[Route-маршрутизатор-ребер]] — `pkg/route`
 - [[Публічний-API-rombik]] — `pkg/rombik` (фасад для бібліотечного вжитку)
 
 ### 03 — Алгоритми розкладки
