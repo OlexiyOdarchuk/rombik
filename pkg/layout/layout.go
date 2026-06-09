@@ -695,15 +695,17 @@ func endsBlock(blk *ir.Block) bool {
 	return false
 }
 
-// termGuardLast — якщо останній стейтмент тіла це guard (if із завершальною дією
-// і порожнім else), повертає його. Тоді «Ні» цього guard природно є дугою
-// повернення циклу (вгору в заголовок), без зайвого «вниз-вгору».
+// termGuardLast — якщо останній стейтмент тіла це guard (if із порожнім else),
+// повертає його. Тоді «Ні» цього guard природно зливається з дугою повернення
+// циклу (вгору в заголовок), без зайвого довгого треку «вниз-вбік-вниз». Працює
+// і коли дія завершується (break/return — «Ні» САМ є дугою), і коли ні (тоді
+// дугою є вихід тіла, а «Ні» лише вливається в її колонку).
 func termGuardLast(blk *ir.Block) *ir.If {
 	if blk == nil || len(blk.Stmts) == 0 {
 		return nil
 	}
 	g, ok := blk.Stmts[len(blk.Stmts)-1].(*ir.If)
-	if ok && nstmts(g.Else) == 0 && endsBlock(g.Then) {
+	if ok && nstmts(g.Else) == 0 && nstmts(g.Then) > 0 {
 		return g
 	}
 	return nil
@@ -720,19 +722,33 @@ func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float6
 	b.d.Shapes = append(b.d.Shapes, diagram.Shape{Kind: diagram.Decision, X: cx - dw/2, Y: diaTop, W: dw, H: diaH, Text: g.Cond})
 	diaMidY := diaTop + diaH/2
 
-	// Так → вниз → завершальна дія (вона сама йде у свій Кінець).
+	// Так → вниз → дія тіла.
 	actTop := diaTop + diaH + branchGap
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.yes, Points: []diagram.Point{{X: cx, Y: diaTop + diaH}, {X: cx, Y: actTop}}})
-	b.placeBlock(g.Then, cx, actTop)
+	exit, ended := b.placeBlock(g.Then, cx, actTop)
 
 	// Колонки дуг — за реальним краєм УСЬОГО тіла, щоб дуга повернення не різала
 	// бічні обходи внутрішніх guard-ів.
 	right, left := b.bodyExtent(startS, startE, cx)
 	backX := right + arcGap
-	// Ні → правий кут ромба → ВГОРУ в правий кут заголовка (дуга повернення).
-	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Points: []diagram.Point{
-		{X: cx + dw/2, Y: diaMidY}, {X: backX, Y: diaMidY}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
-	}})
+	if ended {
+		// Дія завершується (break/return): назад вертатись нема чому, тож «Ні» САМ
+		// є дугою повернення — правий кут ромба → ВГОРУ в правий кут заголовка.
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Points: []diagram.Point{
+			{X: cx + dw/2, Y: diaMidY}, {X: backX, Y: diaMidY}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
+		}})
+	} else {
+		// Дія продовжується: дугою повернення є ВИХІД тіла (низ → backX → вгору в
+		// заголовок), а «Ні» лише коротко вливається в ту саму колонку backX на рівні
+		// ромба — без довгого треку вниз через усе тіло.
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: b.no, Points: []diagram.Point{
+			{X: cx + dw/2, Y: diaMidY}, {X: backX, Y: diaMidY},
+		}})
+		drop := exit.Y + mergeGap/2
+		b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
+			{X: cx, Y: exit.Y}, {X: cx, Y: drop}, {X: backX, Y: drop}, {X: backX, Y: headCy}, {X: cx + headHalf, Y: headCy},
+		}})
+	}
 	// Вихід циклу: лівий кут заголовка → вниз нижче всього → центр.
 	contY := contentBottom(b.d) + vGap
 	leftX := left - arcGap
