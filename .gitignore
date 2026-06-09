@@ -10,3 +10,4 @@ out.png
 
 # WASM-артефакти
 *.wasm
+!web/static/tree-sitter*.wasm
