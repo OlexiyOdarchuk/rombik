@@ -7,7 +7,6 @@
 package layout
 
 import (
-	"math"
 	"regexp"
 	"strings"
 
@@ -217,7 +216,7 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram {
 	// Нормалізація: дуги циклів можуть виходити за [margin, w-margin] (бічні
 	// обходи ширші за фігури). Зсуваємо все так, щоб найлівіша точка була на
 	// margin, і беремо ширину за фактичним вмістом.
-	right, left := b.bodyExtent(0, 0)
+	right, left := b.bodyExtent(0, 0, cx)
 	if dx := margin - left; dx != 0 {
 		b.shiftX(dx)
 		right += dx
@@ -646,7 +645,7 @@ func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float6
 
 	// Колонки дуг — за реальним краєм УСЬОГО тіла, щоб дуга повернення не різала
 	// бічні обходи внутрішніх guard-ів.
-	right, left := b.bodyExtent(startS, startE)
+	right, left := b.bodyExtent(startS, startE, cx)
 	backX := right + arcGap
 	// Ні → правий кут ромба → ВГОРУ в правий кут заголовка (дуга повернення).
 	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: b.no, Points: []diagram.Point{
@@ -776,7 +775,7 @@ func (b *build) placeDoWhile(n *ir.DoWhile, cx, top float64) diagram.Point {
 	diaCy := diaTop + diaH/2
 	b.d.Edges = append(b.d.Edges, edge(bodyExit, P(cx, diaTop)))
 
-	right, _ := b.bodyExtent(startS, startE)
+	right, _ := b.bodyExtent(startS, startE, cx)
 	backX := right + arcGap
 	b.routeContinues(backX, conts) // continue → наступна ітерація (вгору) через дугу
 	mergeY := top - vGap/2
@@ -803,7 +802,7 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 
 	// Безумовна дуга повернення справа: низ тіла → праворуч → вгору → вхід.
 	// Із центру низу (трохи вниз) і без вістря (вливається в лінію входу).
-	right, _ := b.bodyExtent(startS, startE)
+	right, _ := b.bodyExtent(startS, startE, cx)
 	backX := right + arcGap
 	b.routeContinues(backX, conts)
 	mergeY := top - vGap/2
@@ -820,7 +819,7 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 // loopArcs малює дугу повернення (низ тіла → праворуч → вгору → правий кут
 // заголовка) і дугу виходу (лівий кут заголовка → ліворуч → вниз → центр).
 func (b *build) loopArcs(cx, headHalf, headCy float64, startS, startE int, bodyBottom float64, exitLabel string, conts []diagram.Point) diagram.Point {
-	right, left := b.bodyExtent(startS, startE)
+	right, left := b.bodyExtent(startS, startE, cx)
 	backX := right + arcGap
 	leftX := left - arcGap
 	contY := bodyBottom + vGap
@@ -881,8 +880,12 @@ func (b *build) shiftX(dx float64) {
 // bodyExtent — найправіша/найлівіша X серед фігур і ребер, доданих ПІСЛЯ маркера
 // (startS, startE). Дає реальну ширину тіла з урахуванням бічних обходів (Ні-гілки
 // внутрішніх guard-ів тощо), щоб дуги циклу огинали ВСЕ тіло й не різали внутрішні лінії.
-func (b *build) bodyExtent(startS, startE int) (right, left float64) {
-	right, left = math.Inf(-1), math.Inf(1)
+// bodyExtent — правий/лівий край вмісту, доданого після маркера (startS, startE).
+// fallback — значення, якщо вмісту нема (порожнє тіло циклу, напр. «for: pass»):
+// БЕЗ нього повертався б ±Inf → координата -Inf → json.Marshal тихо падає й на
+// виході порожній файл. Тому стартуємо з fallback (зазвичай cx), а не з Inf.
+func (b *build) bodyExtent(startS, startE int, fallback float64) (right, left float64) {
+	right, left = fallback, fallback
 	for _, s := range b.d.Shapes[startS:] {
 		right, left = max(right, s.X+s.W), min(left, s.X)
 	}

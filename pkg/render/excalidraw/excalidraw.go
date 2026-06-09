@@ -44,7 +44,12 @@ func doc(els []any) string {
 		"appState": map[string]any{"gridSize": nil, "viewBackgroundColor": "#ffffff"},
 		"files":    map[string]any{},
 	}
-	bb, _ := json.MarshalIndent(m, "", "  ")
+	bb, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		// НЕ глушимо: краще видима помилка, ніж тихий порожній файл (напр. -Inf/NaN
+		// у координатах від вади геометрії).
+		return `{"error":"excalidraw: ` + err.Error() + `"}`
+	}
 	return string(bb)
 }
 
@@ -169,14 +174,20 @@ func (b *builder) arrow(e diagram.Edge, ox, oy float64) {
 	}
 	x0, y0 := e.Points[0].X+ox, e.Points[0].Y+oy
 	var minX, minY, maxX, maxY float64 = 0, 0, 0, 0
-	pts := make([][2]float64, len(e.Points))
+	rel := make([][2]float64, len(e.Points))
 	for i, p := range e.Points {
 		dx, dy := (p.X+ox)-x0, (p.Y+oy)-y0
-		pts[i] = [2]float64{dx, dy}
+		rel[i] = [2]float64{dx, dy}
 		minX, minY = min(minX, dx), min(minY, dy)
 		maxX, maxY = max(maxX, dx), max(maxY, dy)
 	}
-	m := b.base("arrow", x0, y0, maxX-minX, maxY-minY, "")
+	// Excalidraw вимагає, щоб x,y елемента = ЛІВИЙ ВЕРХНІЙ кут bbox, а points були
+	// невід'ємні відносно нього. Інакше (стрілка вліво/вгору) рамка виділення з'їде.
+	pts := make([][2]float64, len(rel))
+	for i, r := range rel {
+		pts[i] = [2]float64{r[0] - minX, r[1] - minY}
+	}
+	m := b.base("arrow", x0+minX, y0+minY, maxX-minX, maxY-minY, "")
 	m["points"] = pts
 	m["lastCommittedPoint"] = nil
 	m["startBinding"] = nil
@@ -190,6 +201,6 @@ func (b *builder) arrow(e diagram.Edge, ox, oy float64) {
 	b.add(m)
 	if e.Label != "" && len(e.Points) >= 2 {
 		lx, ly, _ := diagram.LabelAnchor(e.Points[0], e.Points[1])
-		b.text(e.Label, lx, ly, "", 14)
+		b.text(e.Label, lx+ox, ly+oy, "", 14) // +ox/oy: коректно і для RenderAll
 	}
 }
