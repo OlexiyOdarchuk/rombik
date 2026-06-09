@@ -41,6 +41,8 @@ jobs:
 
       - name: Build static site
         working-directory: web
+        env:
+          BASE_PATH: "/${{ github.event.repository.name }}"
         run: |
           npm ci
           npm rebuild esbuild   # npm 11 блокує install-скрипти; esbuild потребує бінарник
