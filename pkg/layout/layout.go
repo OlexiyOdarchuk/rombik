@@ -605,13 +605,22 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 	elseEnded := endsBlock(n.Else)
 
 	// Guard (лише одна гілка непорожня): дія прямо вниз, порожня обходить збоку.
-	// Але якщо непорожня гілка ЗАКІНЧУЄТЬСЯ (break/return), ми не можемо лишати її 
-	// на центральній осі, бо порожня гілка (що продовжує рух) зіткнеться з нею.
 	if elseEmpty && !thenEmpty && !thenEnded {
 		return b.guard(n.Then, b.yes, b.no, +1, cx, dw, midY, branchTop)
 	}
 	if thenEmpty && !elseEmpty && !elseEnded {
 		return b.guard(n.Else, b.no, b.yes, -1, cx, dw, midY, branchTop)
+	}
+	// Непорожня гілка ЗАКІНЧУЄТЬСЯ (break/return), друга порожня: завершальну дію
+	// НЕ можна лишати на центральній осі (продовження зіткнеться з нею). Але й
+	// бічна дужка злиття (двостороння гілка) тут зайва — дія назад не зливається.
+	// Тож: дія йде ВБІК і вниз (break/return маршрутизують окремо), а ПРОДОВЖЕННЯ
+	// (порожня гілка) — прямо вниз по центру. На один рівень «сходів» менше.
+	if elseEmpty && !thenEmpty && thenEnded {
+		return b.guardTerm(n.Then, b.no, b.yes, +1, cx, dw, midY, branchTop)
+	}
+	if thenEmpty && !elseEmpty && elseEnded {
+		return b.guardTerm(n.Else, b.yes, b.no, -1, cx, dw, midY, branchTop)
 	}
 
 	// Обидві гілки (або обидві порожні) — розносимо по боках.
@@ -646,6 +655,29 @@ func (b *build) guard(body *ir.Block, downLabel, sideLabel string, side, cx, dw,
 		b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Points: []diagram.Point{exit, {X: cx, Y: mergeY}}})
 	}
 	return P(cx, mergeY), false // порожня гілка завжди дає продовження
+}
+
+// guardTerm малює «if cond: {дія; break/return}» з ПОРОЖНІМ else: завершальна дія
+// (actLabel) — ВБІК і вниз; вона сама завершується (break/return маршрутизують
+// окремо), тож НЕ зливається назад. Продовження (порожня гілка, contLabel) — прямо
+// ВНИЗ по центру до точки нижче дії. На відміну від двосторонньої гілки, тут нема
+// бічної дужки злиття для завершальної дії — на один рівень «сходів» менше.
+// side=+1 — дію праворуч, -1 — ліворуч. Ромб уже розміщено в placeIf.
+func (b *build) guardTerm(body *ir.Block, contLabel, actLabel string, side, cx, dw, midY, branchTop float64) (diagram.Point, bool) {
+	bw, bh := b.blockSize(body)
+	actCx := cx + side*max(dw/2+24, bw/2+hGap/2)
+	// Дія: кут ромба → вбік → вниз у тіло (зі стрілкою у перший блок).
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Label: actLabel, Points: []diagram.Point{
+		{X: cx + side*dw/2, Y: midY}, {X: actCx, Y: midY}, {X: actCx, Y: branchTop},
+	}})
+	b.placeBlock(body, actCx, branchTop) // тіло завершується само (break/return)
+	// Продовження: ромб → прямо вниз по центру (без вістря — голову дасть наступне
+	// ребро від точки злиття).
+	mergeY := branchTop + bh + mergeGap
+	b.d.Edges = append(b.d.Edges, diagram.Edge{Arrowless: true, Label: contLabel, Points: []diagram.Point{
+		{X: cx, Y: midY + diaH/2}, {X: cx, Y: mergeY},
+	}})
+	return P(cx, mergeY), false
 }
 
 // endsBlock — чи блок завершується (останній стейтмент return/raise/exit/break,
