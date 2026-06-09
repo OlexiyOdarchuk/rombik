@@ -586,13 +586,16 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 
 	thenEmpty := nstmts(n.Then) == 0
 	elseEmpty := nstmts(n.Else) == 0
+	thenEnded := endsBlock(n.Then)
+	elseEnded := endsBlock(n.Else)
 
 	// Guard (лише одна гілка непорожня): дія прямо вниз, порожня обходить збоку.
-	// Якщо обидві порожні (if pass else pass), малюємо симетрично.
-	if elseEmpty && !thenEmpty {
+	// Але якщо непорожня гілка ЗАКІНЧУЄТЬСЯ (break/return), ми не можемо лишати її 
+	// на центральній осі, бо порожня гілка (що продовжує рух) зіткнеться з нею.
+	if elseEmpty && !thenEmpty && !thenEnded {
 		return b.guard(n.Then, b.yes, b.no, +1, cx, dw, midY, branchTop)
 	}
-	if thenEmpty && !elseEmpty {
+	if thenEmpty && !elseEmpty && !elseEnded {
 		return b.guard(n.Else, b.no, b.yes, -1, cx, dw, midY, branchTop)
 	}
 
@@ -604,8 +607,8 @@ func (b *build) placeIf(n *ir.If, cx, top float64) (diagram.Point, bool) {
 	elseCx := cx + max(dw/2+24, ew/2+hGap/2)
 	mergeY := branchTop + max(th, eh) + mergeGap
 
-	thenEnded := b.branch(n.Then, b.yes, cx, cx-dw/2, midY, thenCx, branchTop, mergeY)
-	elseEnded := b.branch(n.Else, b.no, cx, cx+dw/2, midY, elseCx, branchTop, mergeY)
+	thenEnded = b.branch(n.Then, b.yes, cx, cx-dw/2, midY, thenCx, branchTop, mergeY)
+	elseEnded = b.branch(n.Else, b.no, cx, cx+dw/2, midY, elseCx, branchTop, mergeY)
 	return P(cx, mergeY), thenEnded && elseEnded
 }
 
