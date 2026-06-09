@@ -148,28 +148,15 @@ func (b *build) routeBreaks(cx, contY float64, pts []diagram.Point) {
 	if len(pts) == 0 {
 		return
 	}
-	// Знаходимо гарантовано вільний коридор праворуч від усього циклу
-	right, _ := b.bodyExtent(0, 0, cx)
-	busX := right + mergeGap
-	
 	for i, p := range pts {
-		// Трохи розносимо горизонтальні лінії, якщо є кілька break
 		safeY := contY - vGap*0.8 + float64(i)*6 
-		
 		if p.X > cx-1 && p.X < cx+1 {
-			// Якщо break по центру, просто падаємо вниз до cx
 			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
 				p, {X: cx, Y: contY},
 			}})
 		} else {
-			// Спускаємось нижче тіла циклу, йдемо вправо на шину, тоді в центр
 			b.d.Edges = append(b.d.Edges, diagram.Edge{Points: []diagram.Point{
-				p, 
-				{X: p.X, Y: safeY}, 
-				{X: busX, Y: safeY}, 
-				{X: busX, Y: contY - 4}, 
-				{X: cx, Y: contY - 4}, 
-				{X: cx, Y: contY},
+				p, {X: p.X, Y: safeY}, {X: cx, Y: safeY}, {X: cx, Y: contY},
 			}})
 		}
 	}

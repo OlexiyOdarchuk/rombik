@@ -4,9 +4,9 @@
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 
 	const links = [
-		{ href: '/', label: 'Головна' },
-		{ href: '/guide', label: 'Як це працює' },
-		{ href: '/app', label: 'Редактор' }
+		{ href: `${base}/`, label: 'Головна' },
+		{ href: `${base}/guide`, label: 'Як це працює' },
+		{ href: `${base}/app`, label: 'Редактор' }
 	];
 	let menuOpen = $state(false);
 </script>
