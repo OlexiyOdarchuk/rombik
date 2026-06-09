@@ -97,8 +97,11 @@ func main() {
 		f.Diagram.CapFormat = *figFmt
 	}
 
-	// Формат: для stdout (-o -) — за -t; інакше за розширенням -o.
-	format := "." + strings.TrimPrefix(strings.ToLower(*stdoutFmt), ".")
+	// Формат перекриваємо ЛИШЕ для stdout (-o -) за -t; для файлів — за розширенням.
+	format := ""
+	if *outFile == "-" {
+		format = "." + strings.TrimPrefix(strings.ToLower(*stdoutFmt), ".")
+	}
 
 	// Одна схема → точно в -o; кілька → <основа>_<функція>.<ext>.
 	if len(funcs) == 1 {
