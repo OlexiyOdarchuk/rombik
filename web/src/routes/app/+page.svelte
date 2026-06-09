@@ -1,4 +1,5 @@
 <script>
+	import { base } from '$app/paths';
 	import {
 		generate,
 		warmup,
@@ -416,7 +417,7 @@
 <div class="mx-auto flex h-[100dvh] max-w-7xl flex-col p-3 md:p-4">
 	<!-- toolbar -->
 	<div class="mb-3 flex flex-wrap items-center gap-2 md:gap-3">
-		<a href="/" class="flex h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800" title="На головну">
+		<a href="{base}/" class="flex h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800" title="На головну">
 			<svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
 			Головна
 		</a>

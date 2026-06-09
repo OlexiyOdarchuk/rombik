@@ -1,4 +1,5 @@
 <script>
+	import { base } from '$app/paths';
 	const hash = typeof __COMMIT_HASH__ !== 'undefined' ? __COMMIT_HASH__ : 'dev';
 	const date = typeof __COMMIT_DATE__ !== 'undefined' ? __COMMIT_DATE__ : 'today';
 </script>
@@ -15,8 +16,8 @@
 			</p>
 		</div>
 		<div class="flex gap-4">
-			<a href="/guide" class="hover:text-slate-800 dark:hover:text-slate-200">Як це працює</a>
-			<a href="/app" class="hover:text-slate-800 dark:hover:text-slate-200">Редактор</a>
+			<a href="{base}/guide" class="hover:text-slate-800 dark:hover:text-slate-200">Як це працює</a>
+			<a href="{base}/app" class="hover:text-slate-800 dark:hover:text-slate-200">Редактор</a>
 			<a
 				href="https://github.com/OlexiyOdarchuk/rombik"
 				class="hover:text-slate-800 dark:hover:text-slate-200"

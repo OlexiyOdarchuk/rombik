@@ -1,4 +1,5 @@
 <script>
+	import { base } from '$app/paths';
     const features = [
         {
             title: "Точно за ДСТУ 19.701-90",
@@ -89,7 +90,7 @@
             </p>
             <div class="mt-10 flex flex-wrap gap-4">
                 <a
-                    href="/app"
+                    href="{base}/app"
                     class="group relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5"
                 >
                     <span class="mr-2">Побудувати схему</span>
@@ -107,7 +108,7 @@
                     >
                 </a>
                 <a
-                    href="/guide"
+                    href="{base}/guide"
                     class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/50 px-8 py-3.5 font-semibold text-slate-700 backdrop-blur-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800 hover:-translate-y-0.5"
                 >
                     Як це працює
@@ -574,7 +575,7 @@
             Безкоштовно, у браузері, без реєстрації.
         </p>
         <a
-            href="/app"
+            href="{base}/app"
             class="mt-7 inline-block rounded-xl bg-blue-600 px-7 py-3 font-semibold text-white shadow-lg transition hover:bg-blue-500"
         >
             Відкрити редактор →

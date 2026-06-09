@@ -1,4 +1,5 @@
 <script>
+	import { base } from '$app/paths';
 	const shapes = [
 		{ name: 'Термінатор', use: 'Початок / Кінець', svg: 'terminator' },
 		{ name: 'Процес', use: 'Дія, обчислення, присвоєння', svg: 'process' },
@@ -100,7 +101,7 @@
 
 
 	<div class="mt-12 text-center">
-		<a href="/app" class="inline-block rounded-xl bg-blue-600 px-7 py-3 font-semibold text-white transition hover:bg-blue-700">
+		<a href="{base}/app" class="inline-block rounded-xl bg-blue-600 px-7 py-3 font-semibold text-white transition hover:bg-blue-700">
 			Спробувати редактор →
 		</a>
 	</div>
