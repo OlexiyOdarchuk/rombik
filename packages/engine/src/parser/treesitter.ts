@@ -454,6 +454,19 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
     if (s.type === 'break_statement') return { kind: 'break' };
     if (s.type === 'continue_statement') return { kind: 'continue' };
 
+    // C++ goto/мітка → ДСТУ-конектори (кружечки з тією ж літерою; стрілка не потрібна).
+    if (s.type === 'labeled_statement') {
+      const label = s.namedChildren.find((c) => c.type === 'statement_identifier');
+      const inner = s.namedChildren.find((c) => c.type !== 'statement_identifier');
+      const conn: AstNode = { kind: 'connector', text: label ? label.text : '?' };
+      const innerNode = inner ? stmt(inner) : null;
+      return { kind: 'block', stmts: innerNode ? [conn, innerNode] : [conn] };
+    }
+    if (s.type === 'goto_statement') {
+      const target = s.namedChildren.find((c) => c.type === 'statement_identifier');
+      return { kind: 'connector', text: target ? target.text : '?', jump: true };
+    }
+
     if (s.type === 'return_statement') {
       let val = '';
       const vals = s.namedChildren.filter((c) => c.type !== 'comment');
@@ -669,7 +682,8 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
         if (decl && decl.type === 'function_declarator') {
           const n = decl.childForFieldName('declarator');
           // identifier / field_identifier (метод) / operator_name (operator+) / destructor_name (~Class)
-          if (n && (n.type === 'identifier' || n.type === 'field_identifier' || n.type === 'operator_name' || n.type === 'destructor_name')) nameNode = n;
+          // / qualified_identifier (Клас::метод поза класом)
+          if (n && (n.type === 'identifier' || n.type === 'field_identifier' || n.type === 'operator_name' || n.type === 'destructor_name' || n.type === 'qualified_identifier')) nameNode = n;
           const p = decl.childForFieldName('parameters');
           if (p) {
             const paramsList: string[] = [];
