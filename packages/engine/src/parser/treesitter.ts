@@ -213,31 +213,41 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       const body = s.childForFieldName('body');
       let subj = cond ? cond.text : '?';
       if (isCpp && subj.startsWith('(') && subj.endsWith(')')) subj = subj.substring(1, subj.length - 1);
-      const cases: { val: string | null; node: TSNode }[] = [];
+      // Зібрати case-и; порожні мітки (fallthrough «case 1: case 2: case 3:») зливаються
+      // з наступним непорожнім — їхні значення йдуть в одну умову через АБО.
+      const cases: { vals: string[]; node: TSNode; valNode: TSNode | null }[] = [];
+      let pendingVals: string[] = [];
       if (body && (body.type === 'compound_statement' || body.type === 'block')) {
         for (let i = 0; i < body.namedChildCount; i++) {
           const c = body.namedChildren[i];
-          if (c.type === 'case_statement') {
-            const valNode = c.childForFieldName('value');
-            cases.push({ val: valNode ? valNode.text : null, node: c });
+          if (c.type !== 'case_statement') continue;
+          const valNode = c.childForFieldName('value');
+          const hasBody = c.namedChildren.some((ch) => !(valNode && ch.id === valNode.id));
+          if (!hasBody) { // лише мітка, без тіла — накопичити для наступного
+            if (valNode) pendingVals.push(valNode.text);
+            continue;
           }
+          const vals = [...pendingVals];
+          if (valNode) vals.push(valNode.text);
+          pendingVals = [];
+          cases.push({ vals, node: c, valNode });
         }
       }
+      const blockify = (node: AstNode): AstNode => (node.kind === 'block' ? node : { kind: 'block', stmts: [node] });
       const buildCascade = (i: number): AstNode => {
         if (i >= cases.length) return { kind: 'block', stmts: [] };
         const c = cases[i];
-        const condText = c.val ? `${subj} == ${c.val}` : '';
+        const condText = c.vals.length ? c.vals.map((v) => `${subj} == ${v}`).join(' || ') : '';
         const caseStmts: AstNode[] = [];
         for (let j = 0; j < c.node.namedChildCount; j++) {
           const child = c.node.namedChildren[j];
-          if (child !== c.node.childForFieldName('value')) {
-            const mapped = stmt(child);
-            if (mapped) caseStmts.push(mapped);
-          }
+          if (c.valNode && child.id === c.valNode.id) continue; // пропустити саме значення case
+          const mapped = stmt(child);
+          if (mapped) caseStmts.push(mapped);
         }
         const caseBlock: AstNode = { kind: 'block', stmts: caseStmts };
-        if (condText === '') return caseBlock;
-        return { kind: 'if', cond: oneline(condText.replace(';', '')), then: caseBlock, else: buildCascade(i + 1) };
+        if (condText === '') return caseBlock; // default
+        return { kind: 'if', cond: oneline(condText.replace(';', '')), then: caseBlock, else: blockify(buildCascade(i + 1)) };
       };
       return buildCascade(0);
     }
@@ -257,13 +267,14 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
           }
         }
       }
+      const blockify = (node: AstNode): AstNode => (node.kind === 'block' ? node : { kind: 'block', stmts: [node] });
       const buildCascade = (i: number): AstNode => {
         if (i >= cases.length) return { kind: 'block', stmts: [] };
         const c = cases[i];
         let condText = c.pat ? `${subj} == ${c.pat}` : '';
         if (c.pat === '_' || c.pat === 'case _') condText = '';
         if (condText === '') return block(c.body);
-        return { kind: 'if', cond: oneline(condText), then: block(c.body), else: buildCascade(i + 1) };
+        return { kind: 'if', cond: oneline(condText), then: block(c.body), else: blockify(buildCascade(i + 1)) };
       };
       return buildCascade(0);
     }
