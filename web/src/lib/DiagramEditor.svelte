@@ -481,78 +481,6 @@
 		return 'А';
 	}
 
-	// Розділення: клік-на-блок → схема рветься надвоє парою конекторів «X».
-	// Блок із усіма нащадками (разом із їхніми ребрами!) їде в окрему колонку
-	// праворуч; на стику в частині-1 стає конектор-вихід «X», перед блоком —
-	// конектор-вхід «X».
-	function splitAt(nodeId) {
-		const node = nodeById(nodeId);
-		if (!node) return;
-		remember();
-		const origGroup = node.group; // група, з якої виносимо частину-2
-		const letter = nextLetter();
-		// нащадки вперед: додаємо тільки ті блоки, в які можна потрапити ЛИШЕ через цей вузол (strict descendants)
-		const set = new Set([nodeId]);
-		let changed = true;
-		while (changed) {
-			changed = false;
-			for (const e of edges) {
-				if (e.fromId && e.toId && set.has(e.fromId) && !set.has(e.toId)) {
-					let hasOutsideIncoming = false;
-					for (const inE of edges) {
-						if (inE.toId === e.toId && !set.has(inE.fromId)) {
-							hasOutsideIncoming = true;
-							break;
-						}
-					}
-					if (!hasOutsideIncoming) {
-						set.add(e.toId);
-						changed = true;
-					}
-				}
-			}
-		}
-		// зсув частини-2 у чисту колонку праворуч
-		let maxX = -Infinity,
-			sx = Infinity,
-			sy = Infinity;
-		for (const n of nodes) maxX = Math.max(maxX, n.x + n.w);
-		for (const n of nodes) if (set.has(n.id)) ((sx = Math.min(sx, n.x)), (sy = Math.min(sy, n.y)));
-		const offX = maxX + 90 - sx;
-		const offY = 100 - sy; // верх частини-2 ~ під конектором-входом
-		const ox0 = node.x,
-			oy0 = node.y; // ОРИГІНАЛЬНЕ місце блоку (для конектора-виходу)
-		// переміщена частина → НОВА група (= окрема вихідна схема); конектори її «зшивають»
-		const k = gseq++;
-		const newG = 'g' + k;
-		groups.push({ id: newG, name: '', color: GROUP_COLORS[k % GROUP_COLORS.length] });
-		// рухаємо вузли (і даємо їм нову групу) І їхні внутрішні ребра
-		for (const n of nodes) if (set.has(n.id)) ((n.x += offX), (n.y += offY), (n.group = newG));
-		for (const e of edges) if (set.has(e.fromId) && set.has(e.toId)) for (const p of e.points) ((p.x += offX), (p.y += offY));
-		// конектори: вихід на місці блоку (частина-1, стара група), вхід над переміщеним блоком (нова)
-		const exit = { id: 'n' + nid++, group: origGroup, kind: 'connector', x: ox0 + node.w / 2 - 23, y: oy0, w: 46, h: 46, text: letter };
-		const entry = { id: 'n' + nid++, group: newG, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y - 92, w: 46, h: 46, text: letter };
-		nodes.push(exit, entry);
-		// межові ребра: вхідні в блок із частини-1 → у конектор-вихід; інші межові — рероут
-		for (const e of edges) {
-			const fin = set.has(e.fromId),
-				tin = set.has(e.toId);
-			if (fin === tin) continue;
-			if (e.toId === nodeId && !fin) {
-				e.toId = exit.id;
-			}
-			const a = nodeById(e.fromId),
-				b = nodeById(e.toId);
-			if (a && b) ((e.points = portRoute(a, b)), (e.manual = false));
-		}
-		const p = portRoute(entry, node);
-		edges.push({ id: 'e' + eid++, points: p, label: '', lx: p[0].x + 8, ly: p[0].y - 8, arrowless: false, fromId: entry.id, toId: nodeId, manual: false });
-		nodes = [...nodes];
-		edges = [...edges];
-		groups = [...groups];
-		sel = null;
-	}
-
 	// Виділені вузли → окрема група (= окрема вихідна схема). Порожні групи прибираємо.
 	function groupSelection() {
 		if (selNodes.size < 1) return;
@@ -687,9 +615,6 @@
 			{#if selNodes.size > 0}
 				<button onclick={groupSelection} class="shrink-0 rounded border border-emerald-300 px-2 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950">⊞ Окрема схема ({selNodes.size})</button>
 			{/if}
-			{#if sel?.type === 'node' && selNodes.size <= 1 && nodeById(sel.id)?.kind !== 'connector'}
-				<button onclick={() => splitAt(sel.id)} class="shrink-0 rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розділити</button>
-			{/if}
 			<button onclick={delSel} disabled={!sel && selNodes.size === 0} class="shrink-0 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
 			<button onclick={undo} title="Скасувати" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↶</button>
 			<button onclick={redo} title="Повторити" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↷</button>
@@ -808,6 +733,6 @@
 	</div>
 
 	<p class="border-t border-slate-200 bg-white px-4 py-1.5 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-900">
-		Тягни фон — рух полотна · Shift+тяг — рамка-ласо · Shift+клік — додати у вибір · ⊞ — виділене в окрему схему · колесо — масштаб · подвійний клік — текст · ✂ — розділити схему
+		Тягни фон — рух полотна · Shift+тяг — рамка-ласо · Shift+клік — додати у вибір · ⊞ — виділене в окрему схему · колесо — масштаб · подвійний клік — текст
 	</p>
 </div>
