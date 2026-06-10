@@ -38,7 +38,8 @@ export async function generate(code, options = {}, onProgress) {
 	await warmup(onProgress);
 	onProgress?.('Будую схему…');
 	try {
-		const lang = options.lang === 'cpp' ? 'cpp' : 'python';
+		// C — підмножина C++: та сама граматика й гілка парсера (lang='cpp').
+		const lang = options.lang === 'cpp' || options.lang === 'c' ? 'cpp' : 'python';
 		parser.setLanguage(langs[lang]);
 		const tree = parser.parse(code);
 		lastAst = parseTree(tree, lang);

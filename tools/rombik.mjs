@@ -21,7 +21,7 @@ const { values, positionals } = parseArgs({
   options: {
     out:          { type: 'string',  short: 'o' },                 // вихід (default: stdout)
     format:       { type: 'string',  short: 't', default: 'svg' }, // svg | typ | json | excalidraw
-    lang:         { type: 'string',  short: 'l' },                 // py | cpp (default: за розширенням)
+    lang:         { type: 'string',  short: 'l' },                 // py | cpp | c (default: за розширенням)
     fn:           { type: 'string' },                              // лише функція з цим іменем
     'single-end': { type: 'boolean', default: false },             // один спільний Кінець
     split:        { type: 'string' },                              // розбити на частини ≤ N (висоти)
@@ -38,7 +38,7 @@ function help() {
 Опції:
   -o, --out FILE     вихід (без нього — stdout); кілька функцій → FILE_<імʼя>.<ext>
   -t, --format FMT   svg | typ | json | excalidraw            (типово svg)
-  -l, --lang LANG    py | cpp                                  (типово за розширенням)
+  -l, --lang LANG    py | cpp | c                              (типово за розширенням)
       --fn NAME      малювати лише функцію NAME
       --single-end   один спільний «Кінець» (інакше — на кожен return/raise)
       --split N      розбити схему на частини, не вищі за N
@@ -59,9 +59,10 @@ if (values.help || positionals.length === 0) { help(); process.exit(0); }
 const file = positionals[0];
 const src = file === '-' ? readFileSync(0, 'utf8') : readFileSync(file, 'utf8');
 const ext = file === '-' ? '' : extname(file).toLowerCase();
-const cppExt = ['.cpp', '.cc', '.cxx', '.hpp', '.h', '.cs'];
+// C — підмножина C++: парситься тією ж граматикою (lang='cpp').
+const cppExt = ['.cpp', '.cc', '.cxx', '.hpp', '.h', '.cs', '.c'];
 const lang = values.lang === 'py' ? 'python'
-  : values.lang === 'cpp' ? 'cpp'
+  : values.lang === 'cpp' || values.lang === 'c' ? 'cpp'
   : cppExt.includes(ext) ? 'cpp' : 'python';
 
 // У зібраному dist/ ядро web-tree-sitter лежить поруч (locateFile); у dev його

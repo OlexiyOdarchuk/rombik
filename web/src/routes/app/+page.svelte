@@ -51,13 +51,27 @@
     cout << "Готово" << endl;
 }`;
 
+	const SAMPLE_C = `#include <stdio.h>
+
+void grade(int score) {
+    int total = score + 5;
+    printf("Бал: %d\\n", total);
+    if (total >= 90) {
+        printf("Відмінно\\n");
+    } else if (total >= 60) {
+        printf("Задовільно\\n");
+    } else {
+        printf("Незадовільно\\n");
+    }
+}`;
+
 	let code = $state(SAMPLE_PYTHON);
-	let language = $state('python'); // 'python' або 'cpp'
+	let language = $state('python'); // 'python' | 'cpp' | 'c'
 
 	let lastLanguage = language;
 	$effect(() => {
 		if (language !== lastLanguage) {
-			code = language === 'cpp' ? SAMPLE_CPP : SAMPLE_PYTHON;
+			code = language === 'cpp' ? SAMPLE_CPP : language === 'c' ? SAMPLE_C : SAMPLE_PYTHON;
 			lastLanguage = language;
 		}
 	});
@@ -621,10 +635,11 @@
 				<select bind:value={language} class="cursor-pointer bg-transparent uppercase font-bold text-slate-600 outline-none dark:text-slate-300">
 					<option value="python">Python</option>
 					<option value="cpp">C++</option>
+					<option value="c">C</option>
 				</select>
 			</div>
 			<div class="min-h-0 flex-1 overflow-hidden rounded-b-xl">
-				<CodeEditor bind:value={code} lang={language} />
+				<CodeEditor bind:value={code} lang={language === 'c' ? 'cpp' : language} />
 			</div>
 		</div>
 
