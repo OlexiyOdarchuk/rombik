@@ -397,6 +397,41 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
           const funcName = getCallName(rhs);
           if (funcName && defined.has(funcName)) return { kind: 'call', text: oneline(expr.text.replace(';', '')) };
         }
+        // list/set-comprehension → розгорнути в цикл: var = [] ; for t in it: [if c:] var.append(e)
+        if (rhs && (rhs.type === 'list_comprehension' || rhs.type === 'set_comprehension')) {
+          const left = expr.childForFieldName('left');
+          const fors = rhs.namedChildren.filter((c) => c.type === 'for_in_clause');
+          const ifs = rhs.namedChildren.filter((c) => c.type === 'if_clause');
+          const bodyExpr = rhs.namedChildren[0];
+          if (left && bodyExpr && fors.length === 1 && ifs.length <= 1) {
+            const fc = fors[0];
+            const forCond = (() => {
+              const l = fc.childForFieldName('left');
+              const r = fc.childForFieldName('right');
+              const lt = l ? l.text : '?';
+              if (r && (r.type === 'call' || r.type === 'call_expression') && getCallName(r) === 'range') {
+                const a = r.childForFieldName('arguments');
+                if (a && a.namedChildCount > 0) {
+                  const n = a.namedChildren;
+                  if (n.length === 1) return `${lt} = 0, ${endof(n[0])}, 1`;
+                  if (n.length === 2) return `${lt} = ${n[0].text}, ${endof(n[1])}, 1`;
+                  return `${lt} = ${n[0].text}, ${endof(n[1])}, ${n[2].text}`;
+                }
+              }
+              return `${lt} ∈ ${r ? r.text : '?'}`;
+            })();
+            const method = rhs.type === 'set_comprehension' ? 'add' : 'append';
+            let inner: AstNode = { kind: 'process', text: oneline(`${left.text}.${method}(${bodyExpr.text})`) };
+            if (ifs.length === 1) {
+              const cond = ifs[0].namedChildren[0];
+              inner = { kind: 'if', cond: oneline(cond ? cond.text : '?'), then: { kind: 'block', stmts: [inner] }, else: { kind: 'block', stmts: [] } };
+            }
+            return { kind: 'block', stmts: [
+              { kind: 'process', text: oneline(`${left.text} = ${rhs.type === 'set_comprehension' ? 'set()' : '[]'}`) },
+              { kind: 'for', cond: oneline(forCond), body: { kind: 'block', stmts: [inner] }, else: { kind: 'block', stmts: [] } },
+            ] };
+          }
+        }
       }
 
       return { kind: 'process', text: oneline(expr.text.replace(';', '')) };
@@ -425,6 +460,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
     if (s.isNamed) {
       if (s.type === 'function_definition' || s.type === 'class_definition' ||
           s.type === 'class_specifier' || s.type === 'struct_specifier' ||
+          s.type === 'enum_specifier' || s.type === 'template_declaration' ||
           s.type === 'using_declaration' || s.type === 'namespace_definition' ||
           s.type === 'import_statement' || s.type === 'import_from_statement' ||
           s.type === 'preproc_include' || s.type === 'preproc_def' ||
@@ -456,6 +492,19 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       const cn = node.childForFieldName('name');
       const list = node.childForFieldName('body');
       if (list) for (const k of list.namedChildren) if (k.type === 'function_definition') collect(k, (cn ? cn.text + '::' : '') + prefix);
+      return;
+    }
+    // Python-клас: методи → окремі схеми «Клас.метод».
+    if (node.type === 'class_definition') {
+      const cn = node.childForFieldName('name');
+      const body = node.childForFieldName('body');
+      if (body) for (const k of body.namedChildren) if (k.type === 'function_definition') collect(k, (cn ? cn.text + '.' : '') + prefix);
+      return;
+    }
+    // C++ шаблон: розгортаємо до самої функції/класу всередині.
+    if (node.type === 'template_declaration') {
+      for (const k of node.namedChildren)
+        if (k.type === 'function_definition' || k.type === 'class_specifier' || k.type === 'struct_specifier') collect(k, prefix);
       return;
     }
     if (node.type === 'function_definition') {
@@ -496,6 +545,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
             const id = pc.namedChildren.find((c) => c.type === 'identifier');
             names.push(id ? id.text : pc.text);
           }
+          if (names[0] === 'self' || names[0] === 'cls') names.shift(); // приймач методу — не вхідні дані
           paramsText = names.join(', ');
         }
       }

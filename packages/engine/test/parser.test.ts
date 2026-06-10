@@ -84,3 +84,38 @@ test('using namespace / класи не створюють зайвої схем
   const ast = JSON.parse(await astJson('using namespace std;\nint main(){ return 0; }'));
   assert.deepEqual(ast.map((f: any) => f.name), ['main']);
 });
+
+test('Python: методи класу → окремі схеми «Клас.метод», self прибрано', async () => {
+  const ast = JSON.parse(await astJson('class C:\n    def __init__(self, x):\n        self.x = x\n    def get(self):\n        return self.x\n', 'python'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['C.__init__', 'C.get']);
+  // self не потрапляє у «Ввід …»
+  assert.deepEqual(ast[0].block.stmts[0], { kind: 'io', text: 'Ввід x' });
+});
+
+test('C++: шаблонна функція розпізнається (не сирий блок)', async () => {
+  const ast = JSON.parse(await astJson('template <typename T>\nT maxOf(T a, T b){ if (a > b) return a; return b; }'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['maxOf']);
+  assert.ok(!/template/.test(JSON.stringify(ast)), 'template протік у схему');
+});
+
+test('C++: enum не створює зайвої схеми «програма»', async () => {
+  const ast = JSON.parse(await astJson('enum Color { RED, GREEN };\nvoid f(){ cout << 1; }'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['f']);
+});
+
+test('Python: list-comprehension розгортається в цикл', async () => {
+  const ast = JSON.parse(await astJson('def f(n):\n    r = [i*i for i in range(n)]\n    return r\n', 'python'));
+  const stmts = ast[0].block.stmts.flatMap((s: any) => s.kind === 'block' ? s.stmts : [s]);
+  assert.ok(stmts.some((s: any) => s.kind === 'process' && s.text === 'r = []'), 'нема ініціалізації r = []');
+  const loop = stmts.find((s: any) => s.kind === 'for');
+  assert.ok(loop, 'comprehension не став циклом');
+  assert.match(JSON.stringify(loop), /r\.append\(i\*i\)/);
+});
+
+test('Python: comprehension з if → ромб у тілі циклу', async () => {
+  const ast = JSON.parse(await astJson('def f(xs):\n    e = [x for x in xs if x > 0]\n    return e\n', 'python'));
+  const j = JSON.stringify(ast);
+  assert.match(j, /"kind":"for"/);
+  assert.match(j, /"cond":"x > 0"/); // if-клауза стала умовою
+  assert.match(j, /e\.append\(x\)/);
+});
