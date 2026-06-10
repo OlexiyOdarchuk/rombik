@@ -11,5 +11,11 @@ export default defineConfig({
 	define: {
 		__COMMIT_HASH__: JSON.stringify(commitHash),
 		__COMMIT_DATE__: JSON.stringify(commitDate)
+	},
+	optimizeDeps: {
+		// @rombik/engine — workspace-джерело (TS), обробляти як source, не пребандлити.
+		// web-tree-sitter застосунок не імпортує (бере статичний tree-sitter.js), а в
+		// npm-workspace він hoisted у корінь — пребандл vite падав ENOENT у web/node_modules.
+		exclude: ['@rombik/engine', 'web-tree-sitter']
 	}
 });

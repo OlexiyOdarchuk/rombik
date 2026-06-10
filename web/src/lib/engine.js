@@ -126,57 +126,82 @@ export function renderExcalidrawAll(diagrams) {
 	return engRenderExcalidrawAll(diagrams);
 }
 
-// --- Нативний PNG/PDF (поки через лінивий растер-WASM; tdewolff/canvas ~16 МБ) ---
-// TODO: замінити на браузерний SVG→canvas і викинути растер-WASM.
-let rasterPromise = null;
+// --- PNG/PDF у браузері (SVG→canvas), без Go-WASM ---
+// SVG рендерить рушій (TS), а растеризацію робить сам браузер: <img> зі SVG →
+// <canvas> → PNG; PDF — той самий растр посторінково через jsPDF (лінивий import).
 
-function loadRaster(onProgress) {
-	if (!rasterPromise)
-		rasterPromise = (async () => {
-			onProgress?.('Завантаження рушія PNG/PDF…');
-			if (!globalThis.Go) await loadScript(`${base}/wasm_exec.js`);
-			const go = new globalThis.Go();
-			const instance = await instantiateWasm(fetch(`${base}/rombik-raster.wasm`), go.importObject);
-			go.run(instance);
-		})();
-	return rasterPromise;
+function svgDims(svg) {
+	const m = svg.match(/width="([\d.]+)" height="([\d.]+)"/);
+	return m ? { w: parseFloat(m[1]), h: parseFloat(m[2]) } : { w: 800, h: 600 };
 }
 
-function b64ToBytes(b64) {
-	const bin = atob(b64);
-	const bytes = new Uint8Array(bin.length);
-	for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-	return bytes;
+// svgToCanvas: SVG-рядок → <canvas> у масштабі scale (білий фон, як у Go-растрі).
+async function svgToCanvas(svg, scale) {
+	const { w, h } = svgDims(svg);
+	const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+	try {
+		const img = new Image();
+		await new Promise((res, rej) => {
+			img.onload = () => res();
+			img.onerror = () => rej(new Error('не вдалося растеризувати SVG'));
+			img.src = url;
+		});
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.max(1, Math.round(w * scale));
+		canvas.height = Math.max(1, Math.round(h * scale));
+		const ctx = canvas.getContext('2d');
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.setTransform(scale, 0, 0, scale, 0, 0);
+		ctx.drawImage(img, 0, 0, w, h);
+		return { canvas, w, h };
+	} finally {
+		URL.revokeObjectURL(url);
+	}
 }
 
-/** Нативний PDF схеми (Uint8Array). cap = { caption, figNum, capWord, capFormat }. */
-export async function renderPdf(diagram, cap, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPdf(JSON.stringify(diagram), JSON.stringify(cap)));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.pdf);
+async function canvasToBytes(canvas) {
+	const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+	return new Uint8Array(await blob.arrayBuffer());
 }
 
-/** Нативний PNG схеми (Uint8Array). scale — пікселів на одиницю. */
-export async function renderPng(diagram, cap, scale, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPng(JSON.stringify(diagram), JSON.stringify(cap), scale));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.png);
+// svgsToPdf: кожен SVG — окрема сторінка PDF (растр високої щільності у jsPDF).
+async function svgsToPdf(svgs, scale = 3) {
+	const { jsPDF } = await import('jspdf');
+	let pdf = null;
+	for (const svg of svgs) {
+		const { canvas, w, h } = await svgToCanvas(svg, scale);
+		const orient = w > h ? 'l' : 'p';
+		if (!pdf) pdf = new jsPDF({ unit: 'pt', format: [w, h], orientation: orient });
+		else pdf.addPage([w, h], orient);
+		pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+	}
+	if (!pdf) pdf = new jsPDF();
+	return new Uint8Array(pdf.output('arraybuffer'));
+}
+
+/** PNG схеми (Uint8Array). cap = { caption, figNum, capWord, capFormat }; scale — щільність. */
+export async function renderPng(diagram, cap, scale = 2, onProgress) {
+	onProgress?.('Рендер PNG…');
+	const { canvas } = await svgToCanvas(renderSvg({ ...diagram, ...cap }), scale);
+	return canvasToBytes(canvas);
 }
 
 /** Один PNG з УСІХ схем (Uint8Array). */
-export async function renderPngAll(diagrams, scale, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPngAll(JSON.stringify(diagrams), scale));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.png);
+export async function renderPngAll(diagrams, scale = 2, onProgress) {
+	onProgress?.('Рендер PNG…');
+	const { canvas } = await svgToCanvas(engRenderSvgAll(diagrams), scale);
+	return canvasToBytes(canvas);
 }
 
-/** Один багатосторінковий PDF з УСІХ схем (Uint8Array). */
+/** PDF схеми (Uint8Array). */
+export async function renderPdf(diagram, cap, onProgress) {
+	onProgress?.('Рендер PDF…');
+	return svgsToPdf([renderSvg({ ...diagram, ...cap })]);
+}
+
+/** Багатосторінковий PDF з УСІХ схем (Uint8Array). */
 export async function renderPdfAll(diagrams, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPdfAll(JSON.stringify(diagrams)));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.pdf);
+	onProgress?.('Рендер PDF…');
+	return svgsToPdf(diagrams.map((d) => renderSvg(d)));
 }
