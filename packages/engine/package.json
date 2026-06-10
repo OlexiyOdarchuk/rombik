@@ -1,0 +1,17 @@
+{
+  "name": "@rombik/engine",
+  "version": "0.1.0",
+  "description": "Перетворення коду (Python/C++) на блок-схему алгоритму за ДСТУ 19.701-90. Чистий TS, без DOM/фреймворку.",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test --experimental-strip-types \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

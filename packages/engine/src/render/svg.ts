@@ -1,6 +1,6 @@
 // SVG-рендерер — порт pkg/render/svg. Малює diagram точними ДСТУ-примітивами.
-import type { Diagram, Shape, Point } from './diagram.ts';
-import { captionLine, labelAnchor } from './diagram.ts';
+import type { Diagram, Shape, Point } from '../diagram.ts';
+import { captionLine, labelAnchor } from '../diagram.ts';
 
 const CAP_GAP = 30;
 const FONT_ATTR = `"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif"`;
