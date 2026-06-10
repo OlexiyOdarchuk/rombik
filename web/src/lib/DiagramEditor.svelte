@@ -510,13 +510,55 @@
 		const gset = selGroups;
 		if (gset.size < 2) return;
 		remember();
+		const origGroup = new Map(nodes.map((n) => [n.id, n.group])); // групи ДО злиття
 		const target = [...gset].sort((a, b) => minXOfGroup(a) - minXOfGroup(b))[0];
 		for (const n of nodes) if (gset.has(n.group)) n.group = target;
+		dissolveBoundaryConnectors(gset, origGroup);
 		const used = new Set(nodes.map((n) => n.group));
 		groups = groups.filter((g) => used.has(g.id));
 		nodes = [...nodes];
+		edges = [...edges];
 		selNodes = new Set();
 		sel = null;
+	}
+
+	// Зшити межові конектори: пара кружечків «X» (вихід в одній злитій схемі, вхід в
+	// іншій) зникає, а пряме ребро X→Y відновлюється. Чіпаємо лише пари, що були в
+	// РІЗНИХ злитих групах (внутрішні конектори схеми не займаємо).
+	function dissolveBoundaryConnectors(gset, origGroup) {
+		const conns = nodes.filter((n) => n.kind === 'connector' && gset.has(origGroup.get(n.id)));
+		const byLetter = new Map();
+		for (const c of conns) {
+			if (!byLetter.has(c.text)) byLetter.set(c.text, []);
+			byLetter.get(c.text).push(c);
+		}
+		const removeIds = new Set();
+		const newEdges = [];
+		for (const cs of byLetter.values()) {
+			if (cs.length !== 2) continue;
+			if (origGroup.get(cs[0].id) === origGroup.get(cs[1].id)) continue; // не межова пара
+			const role = (c) => ({ inc: edges.filter((e) => e.toId === c.id), out: edges.filter((e) => e.fromId === c.id) });
+			const r0 = role(cs[0]), r1 = role(cs[1]);
+			let exitR, entryR;
+			if (r0.out.length === 0 && r1.inc.length === 0) ((exitR = r0), (entryR = r1));
+			else if (r1.out.length === 0 && r0.inc.length === 0) ((exitR = r1), (entryR = r0));
+			else continue; // нестандартна пара — лишаємо як є
+			for (const ein of exitR.inc)
+				for (const eout of entryR.out) {
+					const a = nodeById(ein.fromId), b = nodeById(eout.toId);
+					if (a && b) {
+						const p = portRoute(a, b);
+						const lp = labelAnchor(p[0], p[1]);
+						newEdges.push({ id: 'e' + eid++, points: p, label: ein.label || eout.label || '', lx: lp.x, ly: lp.y, arrowless: false, fromId: a.id, toId: b.id, manual: false });
+					}
+				}
+			removeIds.add(cs[0].id);
+			removeIds.add(cs[1].id);
+		}
+		if (removeIds.size) {
+			nodes = nodes.filter((n) => !removeIds.has(n.id));
+			edges = edges.filter((e) => !removeIds.has(e.fromId) && !removeIds.has(e.toId)).concat(newEdges);
+		}
 	}
 
 	// nodeIdAt/groupOfPoint — до якої групи (схеми) належить точка ребра. Без авто-
