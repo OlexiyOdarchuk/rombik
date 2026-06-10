@@ -4,51 +4,61 @@ tags: [component, ir, core]
 
 # IR — проміжне представлення
 
-**Пакет:** `pkg/ir` · **Файл:** `ir.go`
+**Модуль:** `ir.ts` (`packages/engine/src/ir.ts`)
 
 Логічне (мова-агностик) представлення алгоритму як **структури керування**. Сюди
 парсер зводить будь-який код; звідси [[Layout-рушій-розкладки|layout]] робить
 геометрію. **Жодного рендера й жодних координат** — лише структура.
 
-## Інтерфейс Node
+## Дискримінований union Node
 
-```go
-type Node interface{ node() }
+```ts
+export type Node =
+  | Process | IO | Call | Terminal
+  | If | For | While | DoWhile | InfLoop
+  | Break | Continue | Connector | Block;
 ```
 
-Приватний метод `node()` робить набір типів закритим (sum type «по-Go»): лише
-оголошені тут структури можуть бути вузлами. Розкладка робить `switch x := n.(type)`.
+Кожен варіант має літеральне поле `kind` — це **discriminated union** (sum type
+«по-TS»). Розкладка робить `switch (n.kind)`, і TypeScript звужує тип у кожній гілці.
 
 ## Вузли-листя (текст → одна фігура)
 
-| Тип | Фігура ДСТУ | Сенс |
-|-----|-------------|------|
-| `Process{Text}` | прямокутник | дія/обчислення |
-| `IO{Text}` | паралелограм | ввід/вивід |
-| `Terminal{Text}` | прямокутник → веде в «Кінець» | `return`/`raise`/`exit` |
-| `Call{Text}` | прямокутник із рисками | виклик функції з цього ж файлу |
-| `Break{}` | — (без фігури) | вихід із циклу |
-| `Continue{}` | — (без фігури) | стрибок на заголовок циклу (наступна ітерація) |
+| Тип | Поля | Фігура ДСТУ | Сенс |
+|-----|------|-------------|------|
+| `Process` | `text` | прямокутник | дія/обчислення |
+| `IO` | `text` | паралелограм | ввід/вивід |
+| `Terminal` | `text` | прямокутник → веде в «Кінець» | `return`/`raise`/`exit` |
+| `Call` | `text` | прямокутник із рисками | виклик функції з цього ж файлу |
+| `Break` | — | — (без фігури) | вихід із циклу |
+| `Continue` | — | — (без фігури) | стрибок на заголовок циклу (наступна ітерація) |
 
 > `Terminal` малюється звичайним прямокутником (або паралелограмом за опцією
-> `ReturnAsIO`), але **завершує гілку** і веде у термінатор «Кінець». →
+> `returnAsIO`), але **завершує гілку** і веде у термінатор «Кінець». →
 > [[Зведення-виходів-у-Кінець]].
 
 ## Керівні вузли
 
-```go
-type If struct { Cond string; Then, Else *Block }        // ромб + дві гілки
-type For struct { Spec string; Body, Else *Block }       // шестикутник + тіло (+ for/else)
-type While struct { Cond string; Body, Else *Block }     // передумова: ромб згори (+ while/else)
-type DoWhile struct { Cond string; Body *Block }         // післяумова: ромб знизу
-type InfLoop struct { Body *Block }                      // while True без умови
+```ts
+interface If      { kind: 'if'; cond: string; then: Block; else: Block; }   // ромб + дві гілки
+interface For     { kind: 'for'; spec: string; body: Block; else: Block; }  // шестикутник + тіло (+ for/else)
+interface While   { kind: 'while'; cond: string; body: Block; else: Block; }// передумова: ромб згори (+ while/else)
+interface DoWhile { kind: 'dowhile'; cond: string; body: Block; }           // післяумова: ромб знизу
+interface InfLoop { kind: 'infloop'; body: Block; }                         // while True без умови
+interface Connector { kind: 'connector'; text: string; }                    // з'єднувач «А» (розбиття схеми)
 ```
 
-- **`For.Spec`** — готовий підпис «i = 0, n-1, 1» (його будує парсер, не layout).
-- **`For.Else`/`While.Else`** — гілка `for/else`/`while/else`: виконується після
-  **нормального** завершення циклу (без `break`); `nil`/порожня — якщо її нема.
-- **`DoWhile.Cond`** — умова `break` з ідіоми `while True: … if cond: break`.
+- **`For.spec`** — готовий підпис «i = 0, n-1, 1» (його будує парсер, не layout).
+- **`For.else`/`While.else`** — гілка `for/else`/`while/else`: виконується після
+  **нормального** завершення циклу (без `break`); порожній `Block` — якщо її нема.
+- **`DoWhile.cond`** — умова `break` з ідіоми `while True: … if cond: break` (або
+  C++ `do…while`).
 - **`InfLoop`** — `while True` із break-ами десь усередині; виходить лише через `break`.
+- **`Connector`** — з'єднувач для розбиття довгої схеми на частини. → [[Публічний-API-rombik|splitByHeight]].
+
+> [!note] Гілки завжди присутні
+> `then`/`else`/`body` — завжди `Block` (порожній, якщо гілки нема), на відміну від
+> Go `*Block` (nil). Це прибирає null-перевірки в layout.
 
 > `Break` і `Continue` — стрибки без фігури: `Break` веде на вихід циклу, `Continue` —
 > на заголовок (дуга повторної ітерації). → [[Розкладка-циклів]].
@@ -57,11 +67,9 @@ type InfLoop struct { Body *Block }                      // while True без у
 
 ## Контейнери
 
-```go
-type Block struct { Stmts []Node }          // послідовність (згори вниз)
-func NewBlock(stmts ...Node) *Block         // конструктор
-
-type Func struct { Name string; Body *Block } // іменована програма → окрема схема
+```ts
+interface Block { kind: 'block'; stmts: Node[]; }     // послідовність (згори вниз)
+interface Func  { name: string; body: Block; }        // іменована програма → окрема схема
 ```
 
 `Func` — одна функція (або тіло модуля). Файл із кількома `def` дає кілька `Func`,
@@ -69,13 +77,11 @@ type Func struct { Name string; Body *Block } // іменована програ
 
 ## Чому IR окремо від AST і від Diagram
 
-- **Від AST** (`astjson.Node`) — бо AST «на дроті» плаский і нетипізований; IR —
-  типобезпечна доменна модель з інтерфейсом. → [[astjson-конвертер]].
+- **Від AST** (`AstNode`) — бо AST «на дроті» плаский і нетипізований; IR —
+  типобезпечний union із літеральними `kind`. → [[astjson-конвертер]].
 - **Від Diagram** — бо IR не має координат; це чиста логіка «що за чим іде». Геометрію
   додає [[Layout-рушій-розкладки|layout]]. Одне IR теоретично можна розкласти
   по-різному.
-
-Приклад ручної побудови IR — функція `demo()` у `cmd/rombik/main.go`.
 
 ## Пов'язане
 

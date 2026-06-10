@@ -4,21 +4,23 @@ tags: [component, layout, core, important]
 
 # Layout — рушій розкладки
 
-**Пакет:** `pkg/layout` · **Файл:** `layout.go` · ⭐ **серце проєкту**
+**Каталог:** `layout/` (`packages/engine/src/layout/`) · ⭐ **серце проєкту**
+**Файли:** `measure.ts` (size-сімейство), `options.ts` (опції + текст), `place.ts` (клас `Builder`)
 
 Перетворює логічний [[IR-проміжне-представлення|ir]] у геометричний
 [[Diagram-модель-геометрії|diagram]]. Уся «магія» тут — і вона **не про графи**:
-структурований код — це вкладене дерево, тож розкладка **рекурсивна**.
+структурований код — це вкладене дерево, тож розкладка **рекурсивна**. Алгоритм
+портовано з Go **байт-у-байт** (стережуть golden-тести).
 
 > [!important] Дві фази
-> 1. **`size`** — знизу вгору рахує габарити піддерева (скільки місця треба).
-> 2. **`place`** — згори вниз роздає координати, додаючи фігури й ребра.
+> 1. **`size`** (`measure.ts`) — знизу вгору рахує габарити піддерева (скільки місця треба).
+> 2. **`place`** (`place.ts`) — згори вниз роздає координати, додаючи фігури й ребра.
 >
 > Деталі обох фаз — окрема нотатка: [[Розкладка-рекурсією-size-і-place]].
 
-## Константи (точки)
+## measure.ts — константи (точки)
 
-```
+```ts
 boxH=46  minBoxW=130  charW=8.5  padX=28        // блоки й текст
 diaH=76  minDiaW=150                            // ромб
 termW=130  termH=42                             // термінатор
@@ -27,63 +29,75 @@ vGap=44  hGap=56  branchGap=48  mergeGap=44     // відступи
 margin=44  arcGap=38                            // поля; винос дуг циклу
 ```
 
-Ширина під текст: `textW(s) = len(s)*charW + padX`, не менше `minBoxW`. Ромб і
-шестикутник мають свої формули (`diaW`, `hexW`) із запасом на скоси.
+Ширина під текст: `textW(s) = max(runeLen(s)*charW + padX, minBoxW)`. Ромб і
+шестикутник мають свої формули (`diaW`, `hexW`) із запасом на скоси. Ширина тексту —
+**оцінка** через `charW` (як у Go), без вимірювання браузером, щоб розкладка була
+однакова всюди (веб, Node) і трималась golden-парності — рушій **без DOM-залежностей**.
 
-## Options — перемикачі рендера
+Експорти `measure.ts`: `size(n, o)`, `blockSize(b, o)`, `branchSize(b, o)`, `textW`,
+`diaW`, `hexW`, `nstmts` + усі константи.
 
-```go
-type Options struct {
-    CallAsProcess bool   // виклик → звичайний прямокутник
-    SingleEnd     bool   // один спільний «Кінець»
-    Yes, No       string // підписи гілок («Так»/«Ні»)
-    InWord, OutWord string // слова вводу/виводу
-    StartText, EndText string // текст термінаторів
-    StripTypes    bool   // прибрати тип-анотації
-    ReturnAsIO    bool   // return — паралелограмом
+## options.ts — перемикачі рендера
+
+```ts
+export interface Options {
+  callAsProcess?: boolean;  // виклик → звичайний прямокутник
+  singleEnd?: boolean;      // один спільний «Кінець»
+  yes?, no?: string;        // підписи гілок («Так»/«Ні»)
+  inWord?, outWord?: string;// слова вводу/виводу
+  startText?, endText?: string; // текст термінаторів
+  stripTypes?: boolean;     // прибрати тип-анотації
+  returnAsIO?: boolean;     // return — паралелограмом
+  capWord?: string;         // слово-supplement підпису
+  noStart?, noEnd?: boolean;// без термінатора Початок/Кінець (для частин split)
 }
 ```
 
-Серіалізується в/з JSON (`json:"callAsProcess"` тощо) — так фронтенд передає галочки
-у WASM. Кожна опція детально — [[Опції-рендера]].
+`resolveOptions(o)` заповнює ДСТУ-замовчування → `ResolvedOptions` (усі поля
+обов'язкові). Усі опції необов'язкові — фронт передає лише змінені галочки. Кожна
+опція детально — [[Опції-рендера]].
 
-## build — стан розкладки
+Текстові перетворення тут же:
+- **`ioText(t, o)`** — застосовує обрані `inWord`/`outWord` («Ввід» → «Введення» тощо).
+- **`procText(t, o)`** — за `stripTypes` прибирає тип-анотацію регуляркою
+  `typeAnnRe` (`name: type =` → `name =`).
 
-```go
-type build struct {
-    d          *diagram.Diagram   // полотно, що наповнюється
-    ends       []diagram.Point    // точки-виходи → у «Кінець»
-    loopBreaks [][]diagram.Point  // СТЕК збирачів break (на кожен вкладений цикл)
-    singleEnd  bool
-    yes, no, inWord, outWord, endText string
-    stripTypes, retAsIO bool
+## place.ts — клас Builder (стан розкладки)
+
+```ts
+class Builder {
+  d: Diagram = { shapes: [], edges: [], w: 0, h: 0 };  // полотно, що наповнюється
+  ends: Point[] = [];          // точки-виходи → у «Кінець»
+  loopBreaks: Point[][] = [];  // СТЕК збирачів break (на кожен вкладений цикл)
+  loopConts: Point[][] = [];   // СТЕК збирачів continue
+  o: ResolvedOptions;
 }
 ```
 
 - **`ends`** — куди звести всі виходи функції. → [[Зведення-виходів-у-Кінець]].
-- **`loopBreaks`** — стек: `pushLoop`/`popLoop`/`recordBreak`. Кожен `break` пишеться
-  у вершину стека (поточний цикл), `routeBreaks` зводить їх до виходу циклу.
+- **`loopBreaks`/`loopConts`** — стеки: `pushLoop`/`popLoop`/`recordBreak`/`recordContinue`.
+  Кожен `break`/`continue` пишеться у вершину стека (поточний цикл).
 
-## Build — головна функція
+> [!warning] shiftX і аліасинг точок
+> У TS `Point` — об'єкт (посилання), а в Go — значення-копія. Спільна точка може бути
+> і в `ends`, і кінцем ребра `routeEnds`. Тому `shiftX(dx)` зсуває **кожен об'єкт рівно
+> раз** (через `Set<Point>`), інакше спільна точка зсунеться двічі → діагональ.
 
-```go
-func Build(prog *ir.Block, opts Options) *diagram.Diagram
+## layoutProgram — головна функція
+
+```ts
+export function layoutProgram(prog: Block, o: ResolvedOptions): Diagram
 ```
 
-1. Якщо `CallAsProcess` — `mapCalls` рекурсивно замінює `ir.Call` → `ir.Process`.
-2. Дефолти опцій («Так»/«Ні»/«Ввід»/«Вивід»/«Початок»/«Кінець»).
-3. `blockSize(prog)` → ширина полотна `w = bw + 2*margin`, центр `cx = w/2`.
-4. Ставить термінатор «Початок», ребро вниз.
-5. `placeBlock(prog, cx, bodyTop)` → розкладає тіло, повертає точку виходу й `ended`.
-6. Якщо тіло не завершилось `return`'ом — додає природний вихід у `ends`.
-7. Якщо `ends` непорожній — `routeEnds` + термінатор «Кінець».
-8. `W`, `H` = розмір полотна за `contentBottom`.
+(внутрішньо створює `Builder` і кличе `run`):
 
-## Допоміжні текстові перетворення
-
-- **`ioText`** — застосовує обрані `inWord`/`outWord` («Ввід» → «Введення» тощо).
-- **`procText`** — за `StripTypes` прибирає тип-анотацію регуляркою
-  `typeAnnRe` (`name: type =` → `name =`).
+1. Якщо `callAsProcess` — `mapCalls` рекурсивно замінює `Call` → `Process`.
+2. `blockSize(prog)` → ширина полотна `w = bw + 2*margin`, центр `cx = w/2`.
+3. Якщо не `noStart` — ставить термінатор «Початок», ребро вниз.
+4. `placeBlock(prog, cx, bodyTop)` → розкладає тіло, повертає точку виходу й `ended`.
+5. Якщо тіло не завершилось `return`'ом — додає природний вихід у `ends`.
+6. Якщо не `noEnd` і `ends` непорожній — `routeEnds` + термінатор «Кінець».
+7. `bodyExtent` + `shiftX` вирівнюють по лівому полю; `d.w`/`d.h` = розмір полотна.
 
 ## Карта методів place
 
@@ -92,16 +106,17 @@ func Build(prog *ir.Block, opts Options) *diagram.Diagram
 | `placeBlock` | `Block` | послідовність + ребра між блоками |
 | `leaf` | Process/IO/Call | одна фігура |
 | `placeTerminal` | `Terminal` | return/raise → у «Кінець» |
-| `placeIf` / `guard` / `branch` | `If` | [[Розкладка-if-guard-і-симетрія]] |
+| `placeIf` / `guard` / `guardTerm` / `branch` | `If` | [[Розкладка-if-guard-і-симетрія]] |
 | `placeFor` / `placeWhile` / `placeDoWhile` / `placeInfLoop` | цикли | [[Розкладка-циклів]] |
-| `loopArcs` | — | дуги повернення/виходу циклу |
+| `loopArcs` / `placeLoopGuard` / `placeLoopElse` | — | дуги повернення/виходу циклу, for/while-else |
 | `routeEnds` / `routeBreaks` | — | [[Зведення-виходів-у-Кінець]] |
 
 ## Маршрутизація ребер
 
-`routeEnds` зводить виходи у «Кінець» через [[Route-маршрутизатор-ребер|route.Route]]
-(A* з обходом фігур). Решта ребер — прості ортогональні ламані, побудовані прямо в
-`place*`-методах (не через A*). → [[A-зірка-маршрутизація]].
+`routeEnds` зводить виходи у «Кінець» **простими ортогональними ламаними** (прямо
+вниз, якщо вихід на осі `cx`; інакше через проміжну точку на рівні `mergeGap/2`).
+Решта ребер також — прості ортогональні ламані, побудовані прямо в `place*`-методах.
+(Окремого A*-маршрутизатора більше немає — він не знадобився після байт-у-байт порту.)
 
 ## Пов'язане
 

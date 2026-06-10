@@ -1,65 +1,74 @@
 ---
-tags: [web, wasm, component]
+tags: [web, component]
 ---
 
-# WASM-міст
+# Без Go-WASM: Tree-sitter + прямий TS-рушій
 
-**Пакети:** `cmd/wasm` (легкий) + `cmd/wasmraster` (важкий) · тег `//go:build js && wasm`
+> [!important] Що змінилось
+> Раніше рушій у браузері був **Go**, скомпільований у два WASM-модулі (легкий
+> `rombik.wasm` для SVG/Typst + важкий `rombik-raster.wasm` для PNG/PDF), і `engine.js`
+> був мостом Go↔JS через `wasm_exec.js`. **Після міграції на TypeScript Go-WASM немає
+> зовсім.** Рушій — це звичайний TS-пакет `@rombik/engine`, що бандлиться vite разом із
+> застосунком. ЄДИНИЙ WASM, що лишився, — **граматики Tree-sitter** (`web-tree-sitter`),
+> і це **парсер**, а не рушій.
 
-Go-рушій у браузері поділено на **два WASM-модулі**, бо растровий рендер (PNG/PDF)
-тягне важкі залежності, які не потрібні для звичайного перегляду. Жоден із них **не
-імпортує** `parser/python` (там `os/exec`) — JavaScript розбирає через Tree-sitter, сюди приходить
-готовий AST-JSON. → [[Розділення-відповідальностей]].
+## Дві частини рантайму
 
-## Модуль 1 — `cmd/wasm` (легкий, `rombik.wasm` ~4 МБ)
+| Частина | Що це | WASM? |
+|---------|-------|-------|
+| **Парсер** | `web-tree-sitter` + граматики `tree-sitter-python/cpp.wasm` | так (граматики) |
+| **Рушій** | `@rombik/engine` (TypeScript: layout + рендери) | ні, чистий TS |
 
-Парсинг-результат → SVG/Typst. Реєструє три глобальні функції:
+Парсер дає синтаксичне дерево `Tree`; рушій бере його й видає
+[[Diagram-модель-геометрії|Diagram]] та формати. Межа між ними — AST
+([[Чому-AST-JSON-як-контракт]], [[Розділення-відповідальностей]]).
 
-```go
-js.Global().Set("rombikGenerate", js.FuncOf(generate))   // AST-JSON → схеми (svg+typst+diagram)
-js.Global().Set("rombikRenderOne", js.FuncOf(renderOne)) // дешевий ре-рендер однієї схеми
-js.Global().Set("rombikTypstAll", js.FuncOf(typstAll))   // експорт усіх схем одним .typ
-js.Global().Set("rombikSplit", js.FuncOf(split))         // розбиття довгої схеми на частини
-select {}                                                 // тримаємо модуль живим
-```
+## Рушій `@rombik/engine`
 
-| Функція | Вхід | Вихід (JSON) |
-|---------|------|--------------|
-| `rombikGenerate(astJSON, optionsJSON?)` | AST-JSON + опції | `{functions:[{name, svg, typst, diagram, ...}]}` (з `diagram` на клієнті генерується формат **Excalidraw**) |
-| `rombikSplit(astJSON, optionsJSON, name, maxH)` | AST-JSON + опції, ім'я функції, макс. висота | масив `{svg, typst, diagram}` для кожної частини з'єднаної через конектори |
-| `rombikRenderOne(diagramJSON, captionJSON?)` | один `Diagram` + правки підпису | `{svg, typst}` |
-| `rombikTypstAll(diagramsJSON)` | масив `Diagram` | `{typst}` |
+Пакет `packages/engine` (`exports` → `src/index.ts`). Публічні точки входу замість
+колишніх глобальних `rombik*`-функцій:
 
-`rombikRenderOne` — ключ до **живого редагування підпису**: фронт міняє лише
-`Caption/FigNum/CapWord` і просить перемалювати ОДНУ схему, **без повторного парсингу**.
-Саме заради цього `Diagram` має `UnmarshalJSON` ([[Diagram-модель-геометрії]]).
+| Функція | Вхід | Вихід |
+|---------|------|-------|
+| `fromTree(tree, lang, opts?)` | Tree-sitter `Tree` | `Result[]` (`{name, diagram}`) |
+| `fromAst(astJSON, opts?)` | AST-JSON / масив `AstFunc` | `Result[]` |
+| `splitFromAst(astJSON, opts, name, maxH)` | + ім'я, макс. висота | `Result[]` (частини через конектори) |
+| `renderSvg` / `renderSvgAll` | `Diagram` | SVG |
+| `renderTypst` / `renderTypstAll` (+ `fragment…`) | `Diagram` | Typst |
+| `renderExcalidraw` / `renderExcalidrawAll` | `Diagram` | JSON `.excalidraw` |
+| `parseTree(tree, lang)` | Tree-sitter `Tree` | AST-JSON |
+| `layoutProgram(prog, o)` | IR-блок | `Diagram` (ядро розкладки) |
 
-## Модуль 2 — `cmd/wasmraster` (важкий, `rombik-raster.wasm` ~16 МБ)
+**Живе редагування підпису** тепер тривіальне: фронт міняє `caption/figNum/capWord`
+у вже наявному `Diagram`-об'єкті (`{...diagram, ...cap}`) і кличе `renderSvg`/`renderTypst`
+заново — **без повторного парсингу**, без серіалізації через WASM-межу.
 
-Нативний PNG/PDF через [[Растровий-рендер-PNG-PDF|raster]] (tdewolff/canvas). Фронт
-вантажить його **ліниво** — лише на першому експорті PNG/PDF. Реєструє:
+## PNG/PDF — браузерний растр (без важкого WASM)
 
-```go
-js.Global().Set("rombikPng",    js.FuncOf(png))     // Diagram → PNG (base64)
-js.Global().Set("rombikPdf",    js.FuncOf(pdf))     // Diagram → PDF
-js.Global().Set("rombikPdfAll", js.FuncOf(pdfAll))  // масив Diagram → багатосторінковий PDF
-```
+Колишній `rombik-raster.wasm` (tdewolff/canvas, ~16 МБ, lazy) **прибрано**. Тепер
+растеризація — суто браузерна: `renderSvg` → `<img>` зі SVG → `<canvas>` (білий фон) →
+PNG; PDF — той самий растр посторінково через **jsPDF** (лінивий `import('jspdf')`).
+Деталі — [[Браузерний-рушій]].
 
-## Чому два модулі
+## Vite-нюанс
 
-- **Швидкий старт:** для перегляду схем досить легкого 4 МБ, а не 16 МБ.
-- **Lazy:** важкий растровий код вантажиться, лише коли реально треба PNG/PDF.
-- **Та сама межа:** обидва беруть `Diagram`/AST-JSON і кличуть спільне ядро
-  (`layout.Build` + рендери) — як і CLI. → [[Конвеєр-обробки]].
+`optimizeDeps.exclude: ['@rombik/engine', 'web-tree-sitter']`:
+- `@rombik/engine` — workspace-джерело (TS), обробляється як source, не пребандлиться;
+- `web-tree-sitter` hoisted у корінь монорепо (застосунок бере статичний
+  `tree-sitter.js`), тож пребандл vite падав ENOENT у `web/node_modules`.
 
-## select{} — чому
+## Чому так краще, ніж два Go-WASM
 
-`main` навмисно висить на `select{}`: інакше після виходу з `main` зареєстровані
-функції зникли б. У JS `go.run(instance)` не `await`-ять саме тому. → [[Браузерний-рушій]].
+- **Швидкий старт:** немає 4 МБ + 16 МБ WASM-завантажень; рушій — частина JS-бандла.
+- **Без межі серіалізації:** `Diagram` — звичайний JS-об'єкт, не треба
+  marshal/unmarshal через `js.FuncOf`, нема `select{}`-трюку, щоб тримати Go-`main` живим.
+- **Та сама межа даних:** усі точки входу беруть `Tree`/AST/`Diagram` і кличуть спільне
+  ядро (`layoutProgram` + рендери) — як і CLI на Node. → [[Конвеєр-обробки]].
 
 ## Пов'язане
 
 - [[Браузерний-рушій]] · [[Фронтенд-SvelteKit]]
 - [[astjson-конвертер]] · [[Layout-рушій-розкладки]]
-- [[Растровий-рендер-PNG-PDF]] · [[Typst-рендер]]
+- [[Typst-рендер]]
 - [[Розділення-відповідальностей]]
+</content>

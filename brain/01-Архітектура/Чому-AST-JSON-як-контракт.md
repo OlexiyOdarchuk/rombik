@@ -5,66 +5,72 @@ tags: [architecture, decision]
 # Чому AST-JSON як контракт
 
 > [!abstract] Рішення
-> Між **парсером** (специфічним для мови й середовища) і **ядром** (розкладка+рендер)
+> Між **парсером** (специфічним для мови) і **ядром** (розкладка+рендер)
 > стоїть єдиний проміжний формат — **спрощений AST у JSON**. Будь-який фронтенд
-> видає його, єдина функція `astjson.FromJSON` зводить його в [[IR-проміжне-представлення|IR]].
+> видає його, єдина функція `fromJson` зводить його в [[IR-проміжне-представлення|IR]].
 
 ## Що це
 
-Файл `pkg/parser/astjson/astjson.go` визначає вузол:
+Файл `packages/engine/src/astjson.ts` визначає вузол:
 
-```go
-type Node struct {
-    Kind  string   // process|io|terminal|call|if|for|while|dowhile|infloop|break|block
-    Text  string   // для process/io/call/terminal
-    Cond  string   // для if/for/while/dowhile  (для for — це Spec)
-    Stmts []Node   // для block
-    Then, Else, Body *Node
+```ts
+interface AstNode {
+  kind: string;            // process|io|terminal|call|if|for|while|dowhile|infloop|break|continue|block
+  text?: string;           // для process/io/call/terminal
+  cond?: string;           // для if/for/while/dowhile  (для for — це spec)
+  stmts?: AstNode[];       // для block
+  then?: AstNode | null;
+  else?: AstNode | null;
+  body?: AstNode | null;
 }
-type Func struct { Name string; Block Node }
+interface AstFunc { name: string; block: AstNode; }
 ```
 
-Парсер видає `[]Func` як JSON-рядок; `FromJSON` повертає `[]ir.Func`.
+Парсер видає `AstFunc[]` (рядок JSON або вже розпарсений масив); `fromJson` повертає
+`Func[]` (IR).
 
 ## Навіщо саме так
 
 ### 1. Багатомовність майже безкоштовна
 
-Доданий фронтенд (C++ через tree-sitter, JS через свій парсер…) має лише **видати
-цей JSON**. Уся розкладка, рендер, опції — спільні. → [[Як-додати-нову-мову]].
+Доданий фронтенд має лише **видати цей JSON**. Уся розкладка, рендер, опції — спільні.
+Зараз один парсер (tree-sitter) уже видає AST-JSON і для Python, і для C++ —
+зведення в `parser/treesitter.ts` спільне для обох. → [[Як-додати-нову-мову]].
 
-### 2. WASM без підпроцесів
+### 2. Ядро не залежить від парсера
 
-`os/exec` (запуск `python3`) у WASM недоступний. Якби ядро напряму викликало парсер,
-браузерна збірка була б неможлива. Натомість:
+Якби ядро напряму викликало tree-sitter, воно тягло б за собою WASM-граматики й
+середовище. Натомість межа — рядок AST-JSON:
 
-- **CLI:** `parser/python` сам кличе `python3` і віддає AST-JSON.
-- **Браузер:** Tree-sitter (разом з `parser.js`), JS передає AST-JSON у `rombikGenerate`.
+- **CLI:** `tools/rombik.mjs` парсить через web-tree-sitter і кличе `fromTree`/`fromAst`.
+- **Браузер:** `web/src/lib/engine.js` парсить через web-tree-sitter (WASM) і кличе ті самі функції.
 
-Обидва шляхи сходяться у `FromJSON`. → [[WASM-міст]], [[Браузерний-рушій]].
+Обидва шляхи сходяться у `fromJson`. → [[WASM-міст]], [[Браузерний-рушій]].
 
-### 3. Один парсер на два середовища
+### 3. Один парсер на дві мови й два середовища
 
-`parser.py` написаний так, щоб працювати **і** через stdin (CLI), **і** через
-глобальну js-змінні (Tree-sitter) — один файл, одне джерело правди. У python.go він
-вшитий через `//go:embed`, а build-скрипт копіює його ж у `web/static/`.
+`parser/treesitter.ts` — один модуль для Python і C++ (`parseTree(tree, lang)`),
+однаковий у вебі й у Node. Tree-sitter уміє обидві граматики, тож фронтенд один, а
+не по парсеру на мову. Раніше AST-JSON давали ДВА парсери (Python `ast` і tree-sitter);
+тепер — лише tree-sitter, бо він покриває обидві мови.
 
 ### 4. JSON — зрозумілий шов
 
 AST-JSON легко роздрукувати, порівняти, замокати в тесті. Межа між «розбором мови» і
 «геометрією» стає явною й інспектованою.
 
-## Чому проміжний `astjson.Node`, а не одразу `ir`
+## Чому проміжний `AstNode`, а не одразу `ir`
 
 Можна було б десеріалізувати JSON прямо в `ir`. Але:
 
-- `ir` використовує **інтерфейс** `Node` з різними структурами — JSON так не
-  розбереш без кастомного `UnmarshalJSON` на кожен тип.
-- `astjson.Node` — пласка структура з усіма можливими полями; `Kind` — рядок-дискримінатор.
-  `ToNode`/`ToBlock` роблять явний switch і будують типобезпечний `ir`.
+- `ir` — дискримінований union `Node` зі строгими структурами на кожен `kind`
+  (`then`/`else`/`body` як `Block`, без `null`) — підганяти сирий JSON під нього
+  без проміжної нормалізації незручно й крихко.
+- `AstNode` — пласка структура з усіма опційними полями; `kind` — рядок-дискримінатор.
+  `toNode`/`toBlock` роблять явний `switch` і будують типобезпечний `ir` (вкладені
+  `block` інлайняться).
 
-Тобто `astjson.Node` — це «DTO на дроті», `ir` — «доменна модель». Розділення дає
-чистоту обом.
+Тобто `AstNode` — це «DTO на дроті», `ir` — «доменна модель». Розділення дає чистоту обом.
 
 ## Пов'язане
 
