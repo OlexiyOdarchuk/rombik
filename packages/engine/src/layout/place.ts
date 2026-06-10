@@ -165,15 +165,18 @@ class Builder {
 
   routeBreaks(cx: number, contY: number, pts: Point[]): void {
     if (pts.length === 0) return;
+    // break зливається в точку виходу циклу (contY) — як дуга виходу: БЕЗ вістря.
+    // Головку дасть continuation із contY у наступну фігуру (інакше зайва головка
+    // на стику). У Go тут вістря лишали — це був візуальний дефект.
     pts.forEach((p, i) => {
       if (p.x > cx - 1 && p.x < cx + 1) {
-        this.d.edges.push({ points: [p, { x: cx, y: contY }] });
+        this.d.edges.push({ arrowless: true, points: [p, { x: cx, y: contY }] });
         return;
       }
       const safeY = contY - (pts.length - 1 - i) * 7;
       const pts4: Point[] = [p, { x: p.x, y: safeY }, { x: cx, y: safeY }];
       if (safeY < contY - 0.5) pts4.push({ x: cx, y: contY });
-      this.d.edges.push({ points: pts4 });
+      this.d.edges.push({ arrowless: true, points: pts4 });
     });
   }
 
