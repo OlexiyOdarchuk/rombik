@@ -83,6 +83,15 @@ function endof(node: TSNode | null): string {
   return node.text + ' - 1';
 }
 
+// counterFor — формат лічильникового циклу: comma «i = 0, 9, 1» (ДСТУ, типово),
+// range «i = 0..9», verbose «i від 0 до 9». Різні викладачі приймають по-різному.
+function counterFor(v: string, from: string, to: string, step: string, fmt: string): string {
+  const noStep = step === '1';
+  if (fmt === 'range') return noStep ? `${v} = ${from}..${to}` : `${v} = ${from}..${to} (крок ${step})`;
+  if (fmt === 'verbose') return noStep ? `${v} від ${from} до ${to}` : `${v} від ${from} до ${to}, крок ${step}`;
+  return `${v} = ${from}, ${to}, ${step}`;
+}
+
 // unwrapElse — розгортає вузол else_clause у його тіло (для for/while-else; if
 // розгортає інлайн). Без цього else_clause летить у block() як невідомий вузол і
 // стає текстовим дампом замість розібраної гілки.
@@ -117,7 +126,7 @@ function formatArg(argNode: TSNode): string {
 
 // parsePascal — окрема гілка для Pascal (синтаксис зовсім інший: begin/end, := ,
 // procedure/function, for..to..do, while..do, repeat..until, case..of, writeln/readln).
-function parsePascal(root: TSNode, defined: Set<string>): AstFunc[] {
+function parsePascal(root: TSNode, defined: Set<string>, forFormat = 'comma'): AstFunc[] {
   const program = root.type === 'program' ? root : (root.namedChildren.find((c) => c.type === 'program') ?? root);
   const funcs: AstFunc[] = [];
   const e = (n: TSNode | null) => (n ? oneline(n.text.replace(/:=/g, '=')) : '');
@@ -163,7 +172,7 @@ function parsePascal(root: TSNode, defined: Set<string>): AstFunc[] {
       const v = asg?.namedChildren[0]?.text ?? 'i';
       const start = asg?.namedChildren[asg.namedChildCount - 1]?.text ?? '?';
       const end = p[1]?.text ?? '?';
-      return { kind: 'for', cond: oneline(`${v} = ${start}, ${end}, ${downto ? '-1' : '1'}`), body: blockify(pStmt(p[2])), else: { kind: 'block', stmts: [] } };
+      return { kind: 'for', cond: oneline(counterFor(v, start, end, downto ? '-1' : '1', forFormat)), body: blockify(pStmt(p[2])), else: { kind: 'block', stmts: [] } };
     }
     if (s.type === 'repeat') {
       const p = noK(s); // [statements, untilCond]
@@ -227,11 +236,12 @@ function parsePascal(root: TSNode, defined: Set<string>): AstFunc[] {
 }
 
 // parseTree — головна функція: tree-sitter Tree + мова → масив схем (AstFunc).
-export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
+// forFormat — формат лічильникового for (comma | range | verbose).
+export function parseTree(tree: TSTree, lang: Lang, forFormat = 'comma'): AstFunc[] {
   const defined = new Set<string>();
   collectDefinedFunctions(tree.rootNode, defined);
 
-  if (lang === 'pascal') return parsePascal(tree.rootNode, defined);
+  if (lang === 'pascal') return parsePascal(tree.rootNode, defined, forFormat);
 
   const isCpp = lang === 'cpp';
   const isPy = lang === 'python';
@@ -283,9 +293,9 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
             if (args && args.namedChildCount > 0) {
               const argNodes = args.namedChildren;
               const leftText = left ? left.text : '?';
-              if (argNodes.length === 1) condText = `${leftText} = 0, ${endof(argNodes[0])}, 1`;
-              else if (argNodes.length === 2) condText = `${leftText} = ${argNodes[0].text}, ${endof(argNodes[1])}, 1`;
-              else if (argNodes.length >= 3) condText = `${leftText} = ${argNodes[0].text}, ${endof(argNodes[1])}, ${argNodes[2].text}`;
+              if (argNodes.length === 1) condText = counterFor(leftText, '0', endof(argNodes[0]), '1', forFormat);
+              else if (argNodes.length === 2) condText = counterFor(leftText, argNodes[0].text, endof(argNodes[1]), '1', forFormat);
+              else if (argNodes.length >= 3) condText = counterFor(leftText, argNodes[0].text, endof(argNodes[1]), argNodes[2].text, forFormat);
             }
           }
         }
@@ -555,9 +565,9 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
                 const a = r.childForFieldName('arguments');
                 if (a && a.namedChildCount > 0) {
                   const n = a.namedChildren;
-                  if (n.length === 1) return `${lt} = 0, ${endof(n[0])}, 1`;
-                  if (n.length === 2) return `${lt} = ${n[0].text}, ${endof(n[1])}, 1`;
-                  return `${lt} = ${n[0].text}, ${endof(n[1])}, ${n[2].text}`;
+                  if (n.length === 1) return counterFor(lt, '0', endof(n[0]), '1', forFormat);
+                  if (n.length === 2) return counterFor(lt, n[0].text, endof(n[1]), '1', forFormat);
+                  return counterFor(lt, n[0].text, endof(n[1]), n[2].text, forFormat);
                 }
               }
               return `${lt} ∈ ${r ? r.text : '?'}`;

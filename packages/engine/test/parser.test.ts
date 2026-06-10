@@ -191,6 +191,15 @@ test('Python: pass та «...» не малюються (no-op заглушки)
   assert.deepEqual(ell[0].block.stmts, []); // лише «...» → порожнє тіло
 });
 
+test('forFormat: comma / range / verbose', async () => {
+  const p = await parserFor('python');
+  const tree = p.parse('def f(n):\n    for i in range(n):\n        x = i\n');
+  const spec = (fmt: any) => JSON.parse(JSON.stringify(parseTree(tree, 'python', fmt))).find((f: any) => f.name === 'f').block.stmts.find((s: any) => s.kind === 'for').cond;
+  assert.equal(spec('comma'), 'i = 0, n - 1, 1');
+  assert.equal(spec('range'), 'i = 0..n - 1');
+  assert.equal(spec('verbose'), 'i від 0 до n - 1');
+});
+
 // --- Pascal ---
 test('Pascal: процедури/функції + головна програма → окремі схеми', async () => {
   const ast = JSON.parse(await astJson('program P;\nfunction sq(x: integer): integer;\nbegin\n  sq := x*x;\nend;\nbegin\n  writeln(sq(3));\nend.', 'pascal'));
