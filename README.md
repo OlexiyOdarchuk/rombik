@@ -2,10 +2,11 @@
 
 **Код → блок-схема за ДСТУ 19.701-90 (SVG / PNG / PDF / Typst / Excalidraw).**
 
-rombik перетворює код на Python та C++ на акуратну блок-схему алгоритму (ГОСТ/ДСТУ 19.701-90 —
-той самий стандарт, що вимагають у курсових і лабораторних). Працює як CLI-утиліта
-й як браузерний застосунок (усе локально, без сервера: парсинг — у WASM). PNG і PDF
-малюються **нативно в Go** — без зовнішніх інструментів.
+rombik перетворює код на **Python та C++** на акуратну блок-схему алгоритму
+(ГОСТ/ДСТУ 19.701-90 — той самий стандарт, що вимагають у курсових і лабораторних).
+Працює **повністю у браузері**, без сервера: код нікуди не надсилається. Рушій —
+чистий **TypeScript** (`@rombik/engine`), тож тим самим кодом можна користуватись
+і в Node-скриптах.
 
 ```python
 def grade(score):
@@ -22,8 +23,6 @@ def grade(score):
     print("Готово")
 ```
 
-↓ `go run ./cmd/rombik -py examples/grade.py -o grade.svg` ↓
-
 > Початок → паралелограм «Ввід score» → «Ввід name» → процес «total = score + 5»
 > → ромб «total >= 90» (Так/Ні) → вкладені гілки → «Вивід «Готово»» → Кінець.
 
@@ -34,159 +33,119 @@ def grade(score):
 - **Точні ДСТУ-примітиви** — термінатор (овал), процес (прямокутник), розв'язок (ромб),
   ввід/вивід (паралелограм), початок циклу (шестикутник), підпрограма (прямокутник
   із боковими рисками).
-- **Розпізнавання керівних конструкцій** — `if/elif/else`, `match/case`,
+- **Розпізнавання керівних конструкцій** — `if/elif/else`, `match/case`, `switch`,
   `try/except/finally`, `with`, `for ... in range`, `while`, `for/else`, `while/else`,
   ідіоми `while True: … if cond: break` (післяумова) та нескінченний цикл, `break`,
   `continue`, `return/raise/exit`, виклики локальних функцій → символ підпрограми.
+  C++: `cin/cout`, `for`, `do/while`, `switch` тощо.
 - **Кожна функція — окрема схема.** Параметри функції малюються вхідним паралелограмом.
 - **Підпис «Рисунок N»** — конфігуроване слово/шаблон/нумерація (за ДСТУ); шрифт Times New Roman 14.
 - **Налаштування під вимоги викладача** — слова вводу/виводу, підписи гілок, один
   спільний «Кінець» чи окремий на кожен вихід, зняття тип-анотацій тощо.
-- **П'ять форматів виводу** — **SVG**, **PNG** і **PDF** (нативно, без rsvg/typst),
+- **П'ять форматів виводу** — **SVG**, **PNG** і **PDF** (браузерний canvas),
   **Typst** (CeTZ — для вставки в курсову; є фрагмент-режим), **Excalidraw** (`.excalidraw`
-  — доредагувати на excalidraw.com), а ще JSON-геометрія. «Завантажити всі» — у будь-якому форматі.
+  — доредагувати на excalidraw.com). «Завантажити всі» — у будь-якому форматі.
 - **Візуальний редактор** (у браузері) — безмежне полотно з пан/зумом, перетягування
-  блоків із магніченням, редаговані стрілки, правка тексту/підписів, конектори
-  «А-в-кружечку», undo/redo. Кнопка **«Розбити на частини»** ріже завелику схему на
-  кілька зв'язаних конекторами частин.
-- **Браузерна версія** — SvelteKit + Tree-sitter + WASM, без бекенду; код нікуди не надсилається.
-  Синтаксичні помилки показуються по-людськи, а не призводять до падіння програми.
+  блоків, редаговані стрілки, правка тексту/підписів, конектори, undo/redo. Кнопка
+  **«Розбити на частини»** ріже завелику схему на кілька зв'язаних конекторами частин.
+- **Без бекенду** — SvelteKit + Tree-sitter (WASM-граматики) + TS-рушій. Синтаксичні
+  помилки показуються по-людськи, а не призводять до падіння.
 
 ---
 
-## Швидкий старт (CLI)
+## Запуск (браузерна версія)
 
-Потрібен **Go 1.26+** і **python3 3.9+** (для рідного парсера `ast`). Більше нічого:
-PNG/PDF/SVG/Typst — усе всередині бінарника.
+Потрібен лише **Node 22+**. Монорепо на npm-workspaces.
 
 ```bash
-# демо (захардкоджений алгоритм)
-go run ./cmd/rombik
-
-# зі свого файлу
-go run ./cmd/rombik -py examples/grade.py -o grade.svg
-
-# нативний PNG / PDF (без зовнішніх утиліт)
-go run ./cmd/rombik -py examples/grade.py -o grade.png -scale 3
-go run ./cmd/rombik -py examples/course.py -o course.pdf      # усі функції → один PDF
-
-# Typst для вставки в курсову
-go run ./cmd/rombik -py examples/course.py -o course.typ
-
-# лише одна функція з файлу
-go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o matrix.svg
+npm install            # з кореня — лінкує @rombik/engine у веб
+npm run dev            # http://localhost:5173
+npm run build:web      # статика у web/build/
 ```
-
-### Прапорці CLI
-
-| Прапорець       | Типово     | Призначення                                                        |
-|-----------------|------------|--------------------------------------------------------------------|
-| `-py FILE`      | —          | Python-файл для парсингу (без нього — демо).                        |
-| `-o FILE`       | `out.svg`  | Вихід. Формат — за розширенням: `.svg`, `.png`, `.pdf`, `.typ`, `.excalidraw`, `.json`. |
-| `-fn NAME`      | —          | Малювати лише функцію з цим іменем.                                 |
-| `-calls-plain`  | `false`    | Виклики підпрограм — звичайним прямокутником (не ДСТУ-символом).    |
-| `-single-end`   | `false`    | Один спільний «Кінець» (інакше — на кожен `return/raise/exit`).     |
-| `-scale N`      | `2`        | Щільність PNG (пікселів на одиницю).                                |
-| `-caption S`    | —          | Підпис схеми (інакше — ім'я функції; `«-»` — без підпису).          |
-| `-fignum N`     | `0`        | Номер «Рисунок N» (`0` — за порядком функцій).                      |
-| `-figword S`    | «Рисунок»  | Слово підпису («Рис.», «Figure»…).                                  |
-| `-capformat S`  | `{word} {num} — {text}` | Шаблон підпису.                                       |
-
-> Кілька функцій: `.pdf`/`.typ`/`.excalidraw` → **один спільний документ** (наскрізна
-> нумерація); інші формати → файли `<основа>_<функція>.<ext>`.
-
-Готові бінарники на 6 платформ (Linux/Windows/macOS × amd64/arm64) — у GitHub Releases
-(збираються на тег `v*`).
 
 ---
 
-## Браузерна версія (web/)
+## Бібліотека / скриптинг (`@rombik/engine`)
 
-SvelteKit (Svelte 5) + Tailwind v4, повністю статичний застосунок із редактором
-коду **CodeMirror** (підсвітка Python/C++, one-dark), **візуальним редактором схеми**
-(пан/зум, перетягування з магніченням, редаговані стрілки й підписи, конектори,
-розбивка, undo/redo) і **темною темою**. Розбір синтаксису робить **Tree-sitter** (у
-WASM), а розкладку й рендер — два Go-WASM-модулі (легкий для SVG/Typst/Excalidraw,
-важкий растровий для PNG/PDF підвантажується ліниво). Жоден код не виходить за межі браузера.
+Чистий TS, без DOM/фреймворку — працює у браузері, Node, будь-де. Парсинг дає
+tree-sitter (Tree), далі все в рушії:
 
-```bash
-# 1) зібрати WASM-артефакти (з кореня репозиторію)
-./web/build-wasm.sh
-
-# 2) запустити фронтенд
-cd web
-npm install
-npm rebuild esbuild   # npm 11 блокує install-скрипти
-npm run dev           # http://localhost:5173
-npm run build         # статика у build/
+```ts
+import { fromTree, renderSvg, splitFromAst } from '@rombik/engine';
+// tree — результат web-tree-sitter (Python/C++)
+const figs = fromTree(tree, 'python', { singleEnd: true });
+for (const f of figs) writeFileSync(`${f.name}.svg`, renderSvg(f.diagram));
 ```
+
+Інші точки входу: `fromAst(astJSON, opts)` (готовий AST-JSON), `parseTree(tree, lang)`
+(tree → AST-JSON), `renderTypst` / `renderExcalidraw`, `splitFromAst(ast, opts, name, maxH)`.
+PNG/PDF — браузерний SVG→canvas (див. `web/src/lib/engine.js`).
 
 ---
 
 ## Як це працює (конвеєр)
 
 ```
-Python-код
-   │  pkg/parser/python  (python3 -c parser.py  →  AST-JSON)   ·  у браузері — Tree-sitter + parser.js
+код (Python / C++)
+   │  tree-sitter (WASM-граматика)            ← єдиний парсер: браузер і Node
    ▼
-AST-JSON  (мова-агностик контракт; той самий формат у CLI та браузері)
-   │  pkg/parser/astjson  (FromJSON)
+Tree → parser/treesitter  →  AST-JSON          (мова-агностик контракт)
    ▼
-IR        (pkg/ir — логічне дерево алгоритму, без геометрії)
-   │  pkg/layout  (Build: рекурсивна розкладка, шинна маршрутизація)
+astjson → IR              (логічне дерево алгоритму, без геометрії)
+   │  layout  (рекурсивна розкладка, шинна маршрутизація поворотів/виходів)
    ▼
-Diagram   (pkg/diagram — фігури з координатами + ребра + підпис)
+Diagram   (фігури з координатами + ребра-ламані + підпис)
    │
-   ├─ pkg/render/svg        → SVG       ├─ pkg/render/raster    → PNG / PDF (tdewolff/canvas)
-   ├─ pkg/render/typst      → Typst     ├─ pkg/render/excalidraw → .excalidraw
-   └─ encoding/json         → JSON (геометрія)
+   ├─ render/svg        → SVG        ├─ render/excalidraw → .excalidraw
+   ├─ render/typst      → Typst      └─ (веб) SVG → canvas → PNG / PDF (jsPDF)
 ```
 
-Кожен етап — окремий пакет із однією відповідальністю. Ядро (`ir` → `layout` →
-`diagram` → рендери) не залежить ні від Python, ні від ОС, ні від конкретного формату,
-тож однаково працює в CLI та в обох WASM-модулях. Для бібліотечного вжитку є фасад
-`pkg/rombik` (`FromPython`/`FromAST` + методи `Result.SVG/Typst/PNG/PDF`).
+Кожен етап — окремий модуль із однією відповідальністю. Ядро (`ir` → `layout` →
+`diagram` → рендери) не залежить ні від мови, ні від DOM, ні від формату.
 
 ---
 
 ## Структура репозиторію
 
 ```
-cmd/rombik/       CLI-точка входу (файл → SVG/PNG/PDF/Typst/JSON)
-cmd/wasm/         WASM-1 (легкий): парсинг → SVG/Typst
-cmd/wasmraster/   WASM-2 (важкий): нативні PNG/PDF, lazy-load
-pkg/
-  rombik/         високорівневий публічний API (фасад)
-  parser/python/  Python-парсер: parser.py (ast) + python.go (обгортка)
-  parser/astjson/ конвертер «AST-JSON → IR» (спільний для всіх мов/середовищ)
-  ir/             проміжне представлення алгоритму (Node, Block, Func, …)
-  layout/         рушій розкладки IR → геометрія (уся «магія» тут)
-  diagram/        модель геометрії + підпис (контракт layout ↔ рендери)
-  render/svg/      SVG-рендерер (stdlib)
-  render/typst/    Typst/CeTZ-рендерер (stdlib, вихідний код; + фрагмент-режим)
-  render/raster/   нативні PNG/PDF (tdewolff/canvas, вшитий serif-шрифт)
-  render/excalidraw/ експорт у формат Excalidraw (.excalidraw)
-
-  rombik/split.go  розбивка завеликої схеми на частини конекторами (SplitByHeight)
-examples/         приклади Python-коду (grade.py, course.py)
-web/              SvelteKit-фронтенд + WASM-артефакти у static/
-brain/            📚 повна документація проєкту (Obsidian-vault)
+packages/engine/        @rombik/engine — TS-рушій (без DOM/фреймворку)
+  src/
+    parser/treesitter   tree-sitter → AST-JSON (Python + C++)
+    astjson · ir        AST-JSON → IR (логічне дерево)
+    layout/             розкладка IR → геометрія (серце проєкту)
+    diagram             модель геометрії + підпис
+    render/{svg,typst,excalidraw}
+    build               fromAst / fromTree / splitFromAst (оркестрація)
+  test/                 golden-парність (node:test): corpus + заморожені еталони
+web/                    SvelteKit-фронтенд (CodeMirror, редактор схеми, експорт, PNG/PDF на canvas)
+examples/               приклади коду
+brain/                  📚 документація проєкту (Obsidian-vault)
 ```
+
+---
+
+## Розробка
+
+```bash
+npm test                              # тести рушія (golden-парність, node:test)
+npm run typecheck                     # tsc --noEmit (strict)
+npm run dev                           # дев-сервер вебу
+```
+
+> **Інваріант якості:** кожен модуль рушія стереже `packages/engine/test/golden` —
+> заморожені байт-у-байт еталони (історично зняті з Go-рушія, з якого проєкт мігрував).
 
 ---
 
 ## Документація
 
 У теці [`brain/`](brain/) — повний «другий мозок» проєкту: задум, архітектура, розбір
-кожного пакета, алгоритми розкладки, веб-частина, інструкції. Відкривайте як
-Obsidian-vault або читайте з [`brain/Home.md`](brain/Home.md).
+модулів, алгоритми розкладки. Відкривайте як Obsidian-vault або з [`brain/Home.md`](brain/Home.md).
 
 ---
 
 ## Залежності
 
-- **Go-модуль:** єдина зовнішня залежність — `github.com/tdewolff/canvas` (нативні
-  PNG/PDF); решта ядра — на стандартній бібліотеці.
-- **CLI рантайм:** лише `python3` 3.9+ (для парсера). PNG/PDF/SVG/Typst — без зовнішніх
-  інструментів.
-- **Браузер:** `web-tree-sitter` (WASM), `wasm_exec.js` з Go SDK.
+- **Рушій (`@rombik/engine`):** нуль рантайм-залежностей (чистий TS). Тести —
+  `web-tree-sitter` (граматики) + вбудований `node:test`.
+- **Веб:** SvelteKit (Svelte 5) + Tailwind v4, CodeMirror, `web-tree-sitter`, `jspdf`.
