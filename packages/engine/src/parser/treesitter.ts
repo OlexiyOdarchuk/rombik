@@ -397,6 +397,41 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
           const funcName = getCallName(rhs);
           if (funcName && defined.has(funcName)) return { kind: 'call', text: oneline(expr.text.replace(';', '')) };
         }
+        // list/set-comprehension → розгорнути в цикл: var = [] ; for t in it: [if c:] var.append(e)
+        if (rhs && (rhs.type === 'list_comprehension' || rhs.type === 'set_comprehension')) {
+          const left = expr.childForFieldName('left');
+          const fors = rhs.namedChildren.filter((c) => c.type === 'for_in_clause');
+          const ifs = rhs.namedChildren.filter((c) => c.type === 'if_clause');
+          const bodyExpr = rhs.namedChildren[0];
+          if (left && bodyExpr && fors.length === 1 && ifs.length <= 1) {
+            const fc = fors[0];
+            const forCond = (() => {
+              const l = fc.childForFieldName('left');
+              const r = fc.childForFieldName('right');
+              const lt = l ? l.text : '?';
+              if (r && (r.type === 'call' || r.type === 'call_expression') && getCallName(r) === 'range') {
+                const a = r.childForFieldName('arguments');
+                if (a && a.namedChildCount > 0) {
+                  const n = a.namedChildren;
+                  if (n.length === 1) return `${lt} = 0, ${endof(n[0])}, 1`;
+                  if (n.length === 2) return `${lt} = ${n[0].text}, ${endof(n[1])}, 1`;
+                  return `${lt} = ${n[0].text}, ${endof(n[1])}, ${n[2].text}`;
+                }
+              }
+              return `${lt} ∈ ${r ? r.text : '?'}`;
+            })();
+            const method = rhs.type === 'set_comprehension' ? 'add' : 'append';
+            let inner: AstNode = { kind: 'process', text: oneline(`${left.text}.${method}(${bodyExpr.text})`) };
+            if (ifs.length === 1) {
+              const cond = ifs[0].namedChildren[0];
+              inner = { kind: 'if', cond: oneline(cond ? cond.text : '?'), then: { kind: 'block', stmts: [inner] }, else: { kind: 'block', stmts: [] } };
+            }
+            return { kind: 'block', stmts: [
+              { kind: 'process', text: oneline(`${left.text} = ${rhs.type === 'set_comprehension' ? 'set()' : '[]'}`) },
+              { kind: 'for', cond: oneline(forCond), body: { kind: 'block', stmts: [inner] }, else: { kind: 'block', stmts: [] } },
+            ] };
+          }
+        }
       }
 
       return { kind: 'process', text: oneline(expr.text.replace(';', '')) };

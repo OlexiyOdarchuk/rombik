@@ -102,3 +102,20 @@ test('C++: enum не створює зайвої схеми «програма»
   const ast = JSON.parse(await astJson('enum Color { RED, GREEN };\nvoid f(){ cout << 1; }'));
   assert.deepEqual(ast.map((f: any) => f.name), ['f']);
 });
+
+test('Python: list-comprehension розгортається в цикл', async () => {
+  const ast = JSON.parse(await astJson('def f(n):\n    r = [i*i for i in range(n)]\n    return r\n', 'python'));
+  const stmts = ast[0].block.stmts.flatMap((s: any) => s.kind === 'block' ? s.stmts : [s]);
+  assert.ok(stmts.some((s: any) => s.kind === 'process' && s.text === 'r = []'), 'нема ініціалізації r = []');
+  const loop = stmts.find((s: any) => s.kind === 'for');
+  assert.ok(loop, 'comprehension не став циклом');
+  assert.match(JSON.stringify(loop), /r\.append\(i\*i\)/);
+});
+
+test('Python: comprehension з if → ромб у тілі циклу', async () => {
+  const ast = JSON.parse(await astJson('def f(xs):\n    e = [x for x in xs if x > 0]\n    return e\n', 'python'));
+  const j = JSON.stringify(ast);
+  assert.match(j, /"kind":"for"/);
+  assert.match(j, /"cond":"x > 0"/); // if-клауза стала умовою
+  assert.match(j, /e\.append\(x\)/);
+});
