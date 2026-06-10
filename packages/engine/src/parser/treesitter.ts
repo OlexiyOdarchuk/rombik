@@ -425,6 +425,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
     if (s.isNamed) {
       if (s.type === 'function_definition' || s.type === 'class_definition' ||
           s.type === 'class_specifier' || s.type === 'struct_specifier' ||
+          s.type === 'enum_specifier' || s.type === 'template_declaration' ||
           s.type === 'using_declaration' || s.type === 'namespace_definition' ||
           s.type === 'import_statement' || s.type === 'import_from_statement' ||
           s.type === 'preproc_include' || s.type === 'preproc_def' ||
@@ -456,6 +457,19 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       const cn = node.childForFieldName('name');
       const list = node.childForFieldName('body');
       if (list) for (const k of list.namedChildren) if (k.type === 'function_definition') collect(k, (cn ? cn.text + '::' : '') + prefix);
+      return;
+    }
+    // Python-клас: методи → окремі схеми «Клас.метод».
+    if (node.type === 'class_definition') {
+      const cn = node.childForFieldName('name');
+      const body = node.childForFieldName('body');
+      if (body) for (const k of body.namedChildren) if (k.type === 'function_definition') collect(k, (cn ? cn.text + '.' : '') + prefix);
+      return;
+    }
+    // C++ шаблон: розгортаємо до самої функції/класу всередині.
+    if (node.type === 'template_declaration') {
+      for (const k of node.namedChildren)
+        if (k.type === 'function_definition' || k.type === 'class_specifier' || k.type === 'struct_specifier') collect(k, prefix);
       return;
     }
     if (node.type === 'function_definition') {
@@ -496,6 +510,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
             const id = pc.namedChildren.find((c) => c.type === 'identifier');
             names.push(id ? id.text : pc.text);
           }
+          if (names[0] === 'self' || names[0] === 'cls') names.shift(); // приймач методу — не вхідні дані
           paramsText = names.join(', ');
         }
       }

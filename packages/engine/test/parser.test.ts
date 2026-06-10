@@ -84,3 +84,21 @@ test('using namespace / класи не створюють зайвої схем
   const ast = JSON.parse(await astJson('using namespace std;\nint main(){ return 0; }'));
   assert.deepEqual(ast.map((f: any) => f.name), ['main']);
 });
+
+test('Python: методи класу → окремі схеми «Клас.метод», self прибрано', async () => {
+  const ast = JSON.parse(await astJson('class C:\n    def __init__(self, x):\n        self.x = x\n    def get(self):\n        return self.x\n', 'python'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['C.__init__', 'C.get']);
+  // self не потрапляє у «Ввід …»
+  assert.deepEqual(ast[0].block.stmts[0], { kind: 'io', text: 'Ввід x' });
+});
+
+test('C++: шаблонна функція розпізнається (не сирий блок)', async () => {
+  const ast = JSON.parse(await astJson('template <typename T>\nT maxOf(T a, T b){ if (a > b) return a; return b; }'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['maxOf']);
+  assert.ok(!/template/.test(JSON.stringify(ast)), 'template протік у схему');
+});
+
+test('C++: enum не створює зайвої схеми «програма»', async () => {
+  const ast = JSON.parse(await astJson('enum Color { RED, GREEN };\nvoid f(){ cout << 1; }'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['f']);
+});
