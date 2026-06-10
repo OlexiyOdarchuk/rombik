@@ -2,9 +2,13 @@
 	// Візуальний редактор схеми (Фаза 2): безмежне полотно (пан+зум), редаговані
 	// стрілки (вибір, тягання вузлів і кінців, переприв'язка, малювання нових),
 	// авто-ортогональний рероут при русі блоків, розділення конектором.
-	let { diagram, onsave, oncancel } = $props();
+	// diagrams — масив {name, diagram} (усі функції коду на одному полотні);
+	// diagram — застарілий одиночний вхід (огортається в масив).
+	let { diagrams = null, diagram = null, onsave, oncancel } = $props();
 
 	const MARGIN = 24;
+	// Кольори рамок груп (кожна функція/схема — своя група).
+	const GROUP_COLORS = ['#2563eb', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#db2777', '#65a30d', '#e11d48'];
 	const PALETTE = [
 		['process', 'Дія', 150, 46],
 		['decision', 'Умова', 150, 76],
@@ -17,6 +21,9 @@
 
 	let nodes = $state([]);
 	let edges = $state([]);
+	let groups = $state([]); // [{id, name, color}] — групи = окремі схеми
+	let selNodes = $state(new Set()); // мультивибір вузлів (id)
+	let lasso = $state(null); // {x0,y0,x1,y1} під час рамки-ласо
 	let sel = $state(null); // {type:'node'|'edge', id}
 	let editId = $state(null); // фігура, чий текст редагуємо
 	let editLabel = $state(null); // ребро, чий підпис (Так/Ні) редагуємо
@@ -29,7 +36,7 @@
 	// --- історія (undo/redo) ---
 	let past = [];
 	let futureH = [];
-	const snap = () => JSON.stringify({ nodes, edges });
+	const snap = () => JSON.stringify({ nodes, edges, groups });
 	function remember() {
 		past.push(snap());
 		if (past.length > 60) past.shift();
@@ -39,7 +46,9 @@
 		const o = JSON.parse(s);
 		nodes = o.nodes;
 		edges = o.edges;
+		groups = o.groups ?? groups;
 		sel = null;
+		selNodes = new Set();
 		editId = null;
 		editLabel = null;
 	}
@@ -54,41 +63,63 @@
 		restore(futureH.pop());
 	}
 
-	$effect(() => load(diagram));
+	$effect(() => load(diagrams ?? diagram));
 
-	function load(d) {
-		let k = 0;
-		const ns = (d.shapes ?? []).map((s) => ({ id: 'n' + k++, kind: s.kind, x: s.x, y: s.y, w: s.w, h: s.h, text: s.text ?? '' }));
-		const at = (pt) => {
-			if (!pt) return null;
-			for (const n of ns) if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
-			return null;
-		};
-		let j = 0;
-		const es = (d.edges ?? []).map((e) => {
-			const pts = (e.points ?? []).map((p) => ({ x: p.x, y: p.y }));
-			const lp = labelAnchor(pts[0], pts[1]);
-			return {
-				id: 'e' + j++,
-				points: pts,
-				label: e.label ?? '',
-				lx: lp.x,
-				ly: lp.y, // позиція підпису (рухається окремо)
-				arrowless: !!e.arrowless,
-				fromId: at(pts[0]),
-				toId: at(pts[pts.length - 1]),
-				manual: false
+	// load — усі схеми на одне полотно: кожна зміщується праворуч у власну колонку,
+	// її блоки дістають group = id групи (= окрема вихідна схема).
+	function load(input) {
+		const list = Array.isArray(input) ? input : input ? [{ name: '', diagram: input }] : [];
+		let k = 0, j = 0, gx = 0;
+		const ns = [], es = [], grps = [];
+		for (let gi = 0; gi < list.length; gi++) {
+			const it = list[gi];
+			const d = it.diagram ?? it;
+			const gid = 'g' + gi;
+			grps.push({ id: gid, name: it.name ?? '', color: GROUP_COLORS[gi % GROUP_COLORS.length] });
+			const offX = gx;
+			const gn = (d.shapes ?? []).map((s) => ({ id: 'n' + k++, group: gid, kind: s.kind, x: s.x + offX, y: s.y, w: s.w, h: s.h, text: s.text ?? '' }));
+			const at = (pt) => {
+				if (!pt) return null;
+				for (const n of gn) if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
+				return null;
 			};
-		});
-		nid = k;
-		eid = j;
-		nodes = ns;
-		edges = es;
-		sel = null;
-		editId = null;
+			const ge = (d.edges ?? []).map((e) => {
+				const pts = (e.points ?? []).map((p) => ({ x: p.x + offX, y: p.y }));
+				const lp = labelAnchor(pts[0], pts[1]);
+				return { id: 'e' + j++, points: pts, label: e.label ?? '', lx: lp.x, ly: lp.y, arrowless: !!e.arrowless, fromId: at(pts[0]), toId: at(pts[pts.length - 1]), manual: false };
+			});
+			ns.push(...gn); es.push(...ge);
+			gx += (d.w ?? 400) + 80;
+		}
+		nid = k; eid = j;
+		nodes = ns; edges = es; groups = grps;
+		sel = null; selNodes = new Set(); editId = null;
 	}
 
 	const nodeById = (id) => nodes.find((n) => n.id === id);
+
+	// Рамки груп: bbox блоків кожної групи + підпис («Рисунок N» або імʼя функції).
+	let groupFrames = $derived.by(() => {
+		if (groups.length <= 1) return []; // одна схема — рамка зайва
+		const m = new Map();
+		for (const n of nodes) {
+			let f = m.get(n.group);
+			if (!f) { f = { group: n.group, minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }; m.set(n.group, f); }
+			f.minX = Math.min(f.minX, n.x); f.minY = Math.min(f.minY, n.y);
+			f.maxX = Math.max(f.maxX, n.x + n.w); f.maxY = Math.max(f.maxY, n.y + n.h);
+		}
+		const PAD = 16;
+		return [...m.values()].map((f) => {
+			const gi = groups.findIndex((g) => g.id === f.group);
+			const g = groups[gi];
+			return {
+				color: g?.color ?? '#94a3b8',
+				name: g?.name || `Рисунок ${gi + 1}`,
+				x: f.minX - PAD, y: f.minY - PAD - 22,
+				w: f.maxX - f.minX + 2 * PAD, h: f.maxY - f.minY + 2 * PAD + 22
+			};
+		});
+	});
 
 	// Позиція підпису ребра (Так/Ні) — як labelAnchor у @rombik/engine (далі від ромба).
 	function labelAnchor(p0, p1) {
@@ -460,73 +491,45 @@
 		sel = null;
 	}
 
+	// nodeIdAt/groupOfPoint — до якої групи (схеми) належить точка ребра. Без авто-
+	// детекції компонентів: групи задає користувач, тут лише розкладаємо ребра по них.
+	function nodeIdAt(pt) {
+		for (const n of nodes) if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
+		return null;
+	}
+	function groupOfPoint(pt) {
+		const id = nodeIdAt(pt);
+		if (id) return nodeById(id).group;
+		let best = null, bd = Infinity; // junction (стик) — найближча за центром фігура
+		for (const n of nodes) { const d = (pt.x - (n.x + n.w / 2)) ** 2 + (pt.y - (n.y + n.h / 2)) ** 2; if (d < bd) { bd = d; best = n.group; } }
+		return best;
+	}
+
+	// save — одна вихідна схема НА ГРУПУ. Жодної авто-фрагментації: розкладка строго
+	// за group вузлів. Ребро йде в групу свого кінця.
 	function save() {
-		// Знаходимо зв'язані компоненти
-		const adj = {};
-		for (const n of nodes) adj[n.id] = [];
+		const buckets = new Map();
+		const bucket = (g) => { if (!buckets.has(g)) buckets.set(g, { nodes: [], edges: [] }); return buckets.get(g); };
+		for (const n of nodes) bucket(n.group).nodes.push(n);
 		for (const e of edges) {
-			if (e.fromId && e.toId) {
-				adj[e.fromId].push(e.toId);
-				adj[e.toId].push(e.fromId);
-			}
+			const g = groupOfPoint(e.points[0]) ?? groupOfPoint(e.points[e.points.length - 1]);
+			if (g != null) bucket(g).edges.push(e);
 		}
-		
-		const visited = new Set();
-		const components = [];
-		for (const n of nodes) {
-			if (!visited.has(n.id)) {
-				const compNodes = new Set();
-				const q = [n.id];
-				visited.add(n.id);
-				compNodes.add(n.id);
-				
-				while (q.length) {
-					const cur = q.shift();
-					for (const neighbor of adj[cur] || []) {
-						if (!visited.has(neighbor)) {
-							visited.add(neighbor);
-							compNodes.add(neighbor);
-							q.push(neighbor);
-						}
-					}
-				}
-				components.push(compNodes);
-			}
-		}
-
-		// Сортуємо компоненти за позицією X (зліва направо), щоб зберегти порядок частин
-		components.sort((a, b) => {
-			let minXa = Infinity, minXb = Infinity;
-			for (const n of nodes) {
-				if (a.has(n.id)) minXa = Math.min(minXa, n.x);
-				if (b.has(n.id)) minXb = Math.min(minXb, n.x);
-			}
-			return minXa - minXb;
-		});
-
-		const out = components.map(comp => {
-			const compNodes = nodes.filter(n => comp.has(n.id));
-			const compEdges = edges.filter(e => comp.has(e.fromId) && comp.has(e.toId));
-			
+		const out = [...buckets.values()].filter((b) => b.nodes.length).map((b) => {
 			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-			const acc = (x, y) => { 
-				minX = Math.min(minX, x); minY = Math.min(minY, y); 
-				maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); 
-			};
-			for (const n of compNodes) { acc(n.x, n.y); acc(n.x + n.w, n.y + n.h); }
-			for (const e of compEdges) for (const p of e.points) acc(p.x, p.y);
-			
+			const acc = (x, y) => { minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); };
+			for (const n of b.nodes) { acc(n.x, n.y); acc(n.x + n.w, n.y + n.h); }
+			for (const e of b.edges) for (const p of e.points) acc(p.x, p.y);
 			if (!isFinite(minX)) { minX = minY = 0; maxX = maxY = 100; }
 			const dx = MARGIN - minX, dy = MARGIN - minY;
-			
 			return {
-				shapes: compNodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
-				edges: compEdges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
+				_minX: minX,
+				shapes: b.nodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
+				edges: b.edges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
 				w: maxX - minX + 2 * MARGIN,
 				h: maxY - minY + 2 * MARGIN
 			};
-		});
-
+		}).sort((a, b) => a._minX - b._minX).map(({ _minX, ...rest }) => rest);
 		onsave?.(out.length === 1 ? out[0] : out);
 	}
 
@@ -608,6 +611,11 @@
 		</defs>
 		<rect width="100%" height="100%" fill="url(#ed-grid)" />
 		<g bind:this={gEl} transform="translate({view.x},{view.y}) scale({view.scale})">
+			<!-- рамки груп (кожна = окрема вихідна схема) -->
+			{#each groupFrames as gf (gf.name + ',' + gf.x)}
+				<rect x={gf.x} y={gf.y} width={gf.w} height={gf.h} rx="12" fill={gf.color} fill-opacity="0.04" stroke={gf.color} stroke-width={1.5 / view.scale} stroke-dasharray="8 5" opacity="0.75" pointer-events="none" />
+				<text x={gf.x + 12} y={gf.y + 17} font-size="13" font-weight="bold" fill={gf.color} pointer-events="none">{gf.name}</text>
+			{/each}
 			<!-- ребра -->
 			{#each edges as e (e.id)}
 				<!-- товста невидима «хіт-зона» для зручного кліку -->
