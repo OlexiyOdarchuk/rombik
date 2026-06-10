@@ -2,6 +2,7 @@
 	import '../app.css';
 	import Nav from '$lib/Nav.svelte';
 	import Footer from '$lib/Footer.svelte';
+	import BugReport from '$lib/BugReport.svelte';
 
 	let { children } = $props();
 </script>
@@ -13,3 +14,4 @@
 	</main>
 	<Footer />
 </div>
+<BugReport />

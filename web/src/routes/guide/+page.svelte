@@ -1,5 +1,6 @@
 <script>
 	import { base } from '$app/paths';
+	import { openBug } from '$lib/bug.svelte.js';
 	const shapes = [
 		{ name: 'Термінатор', use: 'Початок / Кінець', svg: 'terminator' },
 		{ name: 'Процес', use: 'Дія, обчислення, присвоєння', svg: 'process' },
@@ -140,14 +141,12 @@
 		<p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
 			Якщо якась конструкція намалювалась неправильно — напиши, додай шматок коду, і я полагоджу.
 		</p>
-		<a
-			href="https://github.com/OlexiyOdarchuk/rombik/issues/new"
-			target="_blank"
-			rel="noopener"
+		<button
+			onclick={openBug}
 			class="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-white px-5 py-2.5 font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-800 dark:bg-slate-900 dark:text-amber-400 dark:hover:bg-slate-800"
 		>
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
 			Повідомити про помилку
-		</a>
+		</button>
 	</div>
 </section>
