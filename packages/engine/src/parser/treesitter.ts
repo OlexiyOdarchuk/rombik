@@ -383,6 +383,20 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
           if (args && args.namedChildCount > 0) return { kind: 'io', text: oneline('Ввід ' + args.namedChildren.map(formatArg).join(' ')) };
           return { kind: 'io', text: 'Ввід' };
         }
+        // C-style I/O (поширене в C++): printf(«fmt», args) / scanf(«fmt», &vars).
+        if (funcName === 'printf') {
+          const args = expr.childForFieldName('arguments');
+          if (args && args.namedChildCount > 0) return { kind: 'io', text: oneline('Вивід ' + args.namedChildren.map(formatArg).join(' ')) };
+          return { kind: 'io', text: 'Вивід' };
+        }
+        if (funcName === 'scanf') {
+          const args = expr.childForFieldName('arguments');
+          if (args && args.namedChildCount > 1) {
+            const vars = args.namedChildren.slice(1).map((a) => a.text.replace(/^&/, ''));
+            return { kind: 'io', text: oneline('Ввід ' + vars.join(', ')) };
+          }
+          return { kind: 'io', text: 'Ввід' };
+        }
         if (funcName === 'exit' || funcName === 'quit') return { kind: 'terminal', text: 'Вихід' };
         if (funcName && defined.has(funcName)) return { kind: 'call', text: oneline(expr.text.replace(';', '')) };
       }
@@ -397,8 +411,8 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
           const funcName = getCallName(rhs);
           if (funcName && defined.has(funcName)) return { kind: 'call', text: oneline(expr.text.replace(';', '')) };
         }
-        // list/set-comprehension → розгорнути в цикл: var = [] ; for t in it: [if c:] var.append(e)
-        if (rhs && (rhs.type === 'list_comprehension' || rhs.type === 'set_comprehension')) {
+        // list/set/dict-comprehension → розгорнути в цикл: var = [] ; for t in it: [if c:] var.append(e)
+        if (rhs && (rhs.type === 'list_comprehension' || rhs.type === 'set_comprehension' || rhs.type === 'dictionary_comprehension')) {
           const left = expr.childForFieldName('left');
           const fors = rhs.namedChildren.filter((c) => c.type === 'for_in_clause');
           const ifs = rhs.namedChildren.filter((c) => c.type === 'if_clause');
@@ -420,14 +434,23 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
               }
               return `${lt} ∈ ${r ? r.text : '?'}`;
             })();
-            const method = rhs.type === 'set_comprehension' ? 'add' : 'append';
-            let inner: AstNode = { kind: 'process', text: oneline(`${left.text}.${method}(${bodyExpr.text})`) };
+            const isDict = rhs.type === 'dictionary_comprehension';
+            const isSet = rhs.type === 'set_comprehension';
+            let innerText: string;
+            if (isDict) {
+              const key = bodyExpr.childForFieldName('key') ?? bodyExpr.namedChildren[0];
+              const val = bodyExpr.childForFieldName('value') ?? bodyExpr.namedChildren[1];
+              innerText = `${left.text}[${key ? key.text : '?'}] = ${val ? val.text : '?'}`;
+            } else {
+              innerText = `${left.text}.${isSet ? 'add' : 'append'}(${bodyExpr.text})`;
+            }
+            let inner: AstNode = { kind: 'process', text: oneline(innerText) };
             if (ifs.length === 1) {
               const cond = ifs[0].namedChildren[0];
               inner = { kind: 'if', cond: oneline(cond ? cond.text : '?'), then: { kind: 'block', stmts: [inner] }, else: { kind: 'block', stmts: [] } };
             }
             return { kind: 'block', stmts: [
-              { kind: 'process', text: oneline(`${left.text} = ${rhs.type === 'set_comprehension' ? 'set()' : '[]'}`) },
+              { kind: 'process', text: oneline(`${left.text} = ${isDict ? '{}' : isSet ? 'set()' : '[]'}`) },
               { kind: 'for', cond: oneline(forCond), body: { kind: 'block', stmts: [inner] }, else: { kind: 'block', stmts: [] } },
             ] };
           }
@@ -486,25 +509,40 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
 
   function collect(node: TSNode | null, prefix = ''): void {
     if (!node) return;
+    // Усі види «контейнерів визначень», у які заходимо рекурсивно.
+    const DEFS = ['function_definition', 'decorated_definition', 'class_definition',
+      'class_specifier', 'struct_specifier', 'namespace_definition', 'template_declaration'];
     // C++ клас/структура: кожен метод-тіло — окрема схема «Клас::метод». Поля й
     // специфікатори доступу ігноруємо (інакше протекли б у «main»).
     if (node.type === 'class_specifier' || node.type === 'struct_specifier') {
       const cn = node.childForFieldName('name');
       const list = node.childForFieldName('body');
-      if (list) for (const k of list.namedChildren) if (k.type === 'function_definition') collect(k, (cn ? cn.text + '::' : '') + prefix);
+      const pfx = prefix + (cn ? cn.text + '::' : '');
+      if (list) for (const k of list.namedChildren) if (DEFS.includes(k.type)) collect(k, pfx);
       return;
     }
-    // Python-клас: методи → окремі схеми «Клас.метод».
+    // Python-клас: методи → окремі схеми «Клас.метод» (зокрема декоровані й вкладені).
     if (node.type === 'class_definition') {
       const cn = node.childForFieldName('name');
       const body = node.childForFieldName('body');
-      if (body) for (const k of body.namedChildren) if (k.type === 'function_definition') collect(k, (cn ? cn.text + '.' : '') + prefix);
+      const pfx = prefix + (cn ? cn.text + '.' : '');
+      if (body) for (const k of body.namedChildren) if (DEFS.includes(k.type)) collect(k, pfx);
+      return;
+    }
+    // Декорований def (@staticmethod, @app.route…) — розгортаємо до самої функції/класу.
+    if (node.type === 'decorated_definition') {
+      collect(node.childForFieldName('definition'), prefix);
+      return;
+    }
+    // C++ namespace: збираємо визначення всередині (без префікса — неймспейси тонкі).
+    if (node.type === 'namespace_definition') {
+      const body = node.childForFieldName('body');
+      if (body) for (const k of body.namedChildren) if (DEFS.includes(k.type)) collect(k, prefix);
       return;
     }
     // C++ шаблон: розгортаємо до самої функції/класу всередині.
     if (node.type === 'template_declaration') {
-      for (const k of node.namedChildren)
-        if (k.type === 'function_definition' || k.type === 'class_specifier' || k.type === 'struct_specifier') collect(k, prefix);
+      for (const k of node.namedChildren) if (DEFS.includes(k.type)) collect(k, prefix);
       return;
     }
     if (node.type === 'function_definition') {
@@ -517,7 +555,8 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
         while (decl && decl.type !== 'identifier' && decl.type !== 'function_declarator') decl = decl.childForFieldName('declarator');
         if (decl && decl.type === 'function_declarator') {
           const n = decl.childForFieldName('declarator');
-          if (n && (n.type === 'identifier' || n.type === 'field_identifier')) nameNode = n; // field_identifier — метод у класі
+          // identifier / field_identifier (метод) / operator_name (operator+) / destructor_name (~Class)
+          if (n && (n.type === 'identifier' || n.type === 'field_identifier' || n.type === 'operator_name' || n.type === 'destructor_name')) nameNode = n;
           const p = decl.childForFieldName('parameters');
           if (p) {
             const paramsList: string[] = [];

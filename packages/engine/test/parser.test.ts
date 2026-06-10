@@ -119,3 +119,39 @@ test('Python: comprehension з if → ромб у тілі циклу', async ()
   assert.match(j, /"cond":"x > 0"/); // if-клауза стала умовою
   assert.match(j, /e\.append\(x\)/);
 });
+
+test('Python: dict-comprehension → d = {} ; for … : d[k] = v', async () => {
+  const ast = JSON.parse(await astJson('def f(ks, vs):\n    d = {k: v for k, v in zip(ks, vs)}\n    return d\n', 'python'));
+  const j = JSON.stringify(ast);
+  assert.match(j, /"d = \{\}"/);
+  assert.match(j, /"d\[k\] = v"/);
+});
+
+test('Python: декоровані методи (@staticmethod) витягуються', async () => {
+  const ast = JSON.parse(await astJson('class M:\n    @staticmethod\n    def sq(x):\n        return x*x\n    @classmethod\n    def make(cls):\n        return cls()\n', 'python'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['M.sq', 'M.make']);
+});
+
+test('Python: вкладений клас → Зовн.Внутр.метод', async () => {
+  const ast = JSON.parse(await astJson('class O:\n    class I:\n        def ping(self):\n            return 1\n    def m(self):\n        return 2\n', 'python'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['O.I.ping', 'O.m']);
+});
+
+test('C++: функції в namespace витягуються', async () => {
+  const ast = JSON.parse(await astJson('namespace m { int sq(int x){ return x*x; } int cube(int x){ return x*x*x; } }'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['sq', 'cube']);
+});
+
+test('C++: printf/scanf → ввід/вивід', async () => {
+  const ast = JSON.parse(await astJson('void f(){ int x; scanf("%d", &x); printf("got %d", x); }'));
+  const j = JSON.stringify(ast);
+  assert.match(j, /"Ввід x"/);       // & прибрано, формат відкинуто
+  assert.match(j, /Вивід .*got/);
+});
+
+test('C++: operator та деструктор мають правильні імена', async () => {
+  const op = JSON.parse(await astJson('struct V { int x; V operator+(V o){ V r; return r; } };'));
+  assert.ok(op.some((f: any) => f.name === 'V::operator+'), 'operator+ → unknown');
+  const dt = JSON.parse(await astJson('class F { public: F(){} ~F(){ cout << 1; } };'));
+  assert.deepEqual(dt.map((f: any) => f.name), ['F::F', 'F::~F']);
+});
