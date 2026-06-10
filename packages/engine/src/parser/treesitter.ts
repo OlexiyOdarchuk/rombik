@@ -237,7 +237,10 @@ function parsePascal(root: TSNode, defined: Set<string>, forFormat = 'comma'): A
 
 // parseTree — головна функція: tree-sitter Tree + мова → масив схем (AstFunc).
 // forFormat — формат лічильникового for (comma | range | verbose).
-export function parseTree(tree: TSTree, lang: Lang, forFormat = 'comma'): AstFunc[] {
+export function parseTree(tree: TSTree, lang: Lang, t: { forFormat?: string; returnWord?: string; forEachWord?: string } = {}): AstFunc[] {
+  const forFormat = t.forFormat ?? 'comma';
+  const returnWord = t.returnWord || 'Повернути';
+  const forEachWord = t.forEachWord || '∈';
   const defined = new Set<string>();
   collectDefinedFunctions(tree.rootNode, defined);
 
@@ -285,7 +288,7 @@ export function parseTree(tree: TSTree, lang: Lang, forFormat = 'comma'): AstFun
       if (isPy) {
         const left = s.childForFieldName('left');
         const right = s.childForFieldName('right');
-        let condText = `${left ? left.text : '?'} ∈ ${right ? right.text : '?'}`;
+        let condText = `${left ? left.text : '?'} ${forEachWord} ${right ? right.text : '?'}`;
         if (right && (right.type === 'call' || right.type === 'call_expression')) {
           const func = getCallName(right);
           if (func === 'range') {
@@ -328,7 +331,7 @@ export function parseTree(tree: TSTree, lang: Lang, forFormat = 'comma'): AstFun
       const decl = s.childForFieldName('declarator');
       const right = s.childForFieldName('right');
       const body = s.childForFieldName('body');
-      const cond = `${decl ? decl.text : '?'} ∈ ${right ? right.text : '?'}`;
+      const cond = `${decl ? decl.text : '?'} ${forEachWord} ${right ? right.text : '?'}`;
       return { kind: 'for', cond: oneline(cond), body: block(body), else: block(null) };
     }
 
@@ -482,7 +485,7 @@ export function parseTree(tree: TSTree, lang: Lang, forFormat = 'comma'): AstFun
       let val = '';
       const vals = s.namedChildren.filter((c) => c.type !== 'comment');
       if (vals.length > 0) val = vals.map((c) => c.text).join(' ');
-      return { kind: 'terminal', text: val ? oneline('Повернути ' + val.replace(';', '')) : 'Повернути' };
+      return { kind: 'terminal', text: val ? oneline(returnWord + ' ' + val.replace(';', '')) : returnWord };
     }
 
     if (s.type === 'raise_statement' || s.type === 'throw_statement') {
@@ -570,7 +573,7 @@ export function parseTree(tree: TSTree, lang: Lang, forFormat = 'comma'): AstFun
                   return counterFor(lt, n[0].text, endof(n[1]), n[2].text, forFormat);
                 }
               }
-              return `${lt} ∈ ${r ? r.text : '?'}`;
+              return `${lt} ${forEachWord} ${r ? r.text : '?'}`;
             })();
             const isDict = rhs.type === 'dictionary_comprehension';
             const isSet = rhs.type === 'set_comprehension';

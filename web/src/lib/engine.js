@@ -44,7 +44,7 @@ export async function generate(code, options = {}, onProgress) {
 			: options.lang === 'cpp' || options.lang === 'c' ? 'cpp' : 'python';
 		parser.setLanguage(langs[lang]);
 		const tree = parser.parse(code);
-		lastAst = parseTree(tree, lang, options.forFormat);
+		lastAst = parseTree(tree, lang, options);
 		const functions = fromAst(lastAst, options).map((r) => ({
 			name: r.name, diagram: r.diagram, svg: renderSvg(r.diagram),
 		}));

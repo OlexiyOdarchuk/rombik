@@ -21,6 +21,8 @@ export interface Options {
   exitText?: string;
   // формат лічильникового for: 'comma' (i = 0, 9, 1) | 'range' (i = 0..9) | 'verbose' (i від 0 до 9)
   forFormat?: 'comma' | 'range' | 'verbose';
+  returnWord?: string; // слово перед return (типово «Повернути»)
+  forEachWord?: string; // роздільник foreach «x ∈ arr» (типово «∈»)
 }
 
 export interface ResolvedOptions {

@@ -194,10 +194,20 @@ test('Python: pass та «...» не малюються (no-op заглушки)
 test('forFormat: comma / range / verbose', async () => {
   const p = await parserFor('python');
   const tree = p.parse('def f(n):\n    for i in range(n):\n        x = i\n');
-  const spec = (fmt: any) => JSON.parse(JSON.stringify(parseTree(tree, 'python', fmt))).find((f: any) => f.name === 'f').block.stmts.find((s: any) => s.kind === 'for').cond;
+  const spec = (fmt: any) => JSON.parse(JSON.stringify(parseTree(tree, 'python', { forFormat: fmt }))).find((f: any) => f.name === 'f').block.stmts.find((s: any) => s.kind === 'for').cond;
   assert.equal(spec('comma'), 'i = 0, n - 1, 1');
   assert.equal(spec('range'), 'i = 0..n - 1');
   assert.equal(spec('verbose'), 'i від 0 до n - 1');
+});
+
+test('returnWord / forEachWord — редаговані', async () => {
+  const p = await parserFor('python');
+  const tree = p.parse('def f(a):\n    for x in a:\n        y = x\n    return a\n');
+  const j = (o: any) => JSON.stringify(parseTree(tree, 'python', o));
+  assert.match(j({}), /"Повернути a"/);
+  assert.match(j({}), /"x ∈ a"/);
+  assert.match(j({ returnWord: 'Результат', forEachWord: 'з' }), /"Результат a"/);
+  assert.match(j({ returnWord: 'Результат', forEachWord: 'з' }), /"x з a"/);
 });
 
 // --- Pascal ---

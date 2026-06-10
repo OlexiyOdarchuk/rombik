@@ -180,8 +180,10 @@ end.`;
 		callAsProcess: false,
 		stripTypes: false,
 		returnAsIO: false,
-		branch: 'так', // так | yes | pm
-		io: 'short', // short | verbose | imperative
+		yesWord: 'Так', noWord: 'Ні', // підписи гілок (редаговані)
+		inWord: 'Ввід', outWord: 'Вивід', // слова вводу/виводу (редаговані)
+		returnWord: 'Повернути', // слово перед return
+		forEachWord: '∈', // роздільник foreach «x ∈ arr»
 		showCaption: true, // підпис «Рисунок N — …» під схемою
 		capWord: 'Рисунок', // слово підпису (Рисунок / Рис. / своє)
 		capFormat: '{word} {num} — {text}', // шаблон підпису
@@ -190,12 +192,13 @@ end.`;
 		typstFragment: false, // Typst лише фрагмент (без преамбули) — для вставки у свій .typ
 		font: "'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif" // шрифт для SVG
 	});
-	const BRANCH = { так: ['Так', 'Ні'], yes: ['Yes', 'No'], pm: ['+', '−'] };
-	const IO = { short: ['Ввід', 'Вивід'], verbose: ['Введення', 'Виведення'], imperative: ['Ввести', 'Вивести'] };
+	// Пресети для швидкого заповнення вільних полів.
+	const BRANCH_PRESETS = [['Так', 'Ні'], ['Yes', 'No'], ['+', '−'], ['И', 'Н']];
+	const IO_PRESETS = [['Ввід', 'Вивід'], ['Введення', 'Виведення'], ['Ввести', 'Вивести']];
 
 	function engineOpts() {
-		const [yes, no] = BRANCH[s.branch];
-		const [inWord, outWord] = IO[s.io];
+		const yes = s.yesWord, no = s.noWord;
+		const inWord = s.inWord, outWord = s.outWord;
 		return {
 			singleEnd: s.singleEnd,
 			mainOnlyTerminators: s.mainOnlyTerminators,
@@ -211,6 +214,8 @@ end.`;
 			no,
 			inWord,
 			outWord,
+			returnWord: s.returnWord,
+			forEachWord: s.forEachWord,
 			capWord: s.capWord,
 			lang: language
 		};
@@ -535,22 +540,38 @@ end.`;
 							{:else if sTab === 'text'}
 								<div class="space-y-4">
 									<h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Формулювання всередині</h3>
-									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-										Текст гілок (if/while)
-										<select bind:value={s.branch} onchange={reapply} class="w-40 rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
-											<option value="так">Так / Ні</option>
-											<option value="yes">Yes / No</option>
-											<option value="pm">+ / −</option>
-										</select>
-									</label>
-									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-										Текст вводу/виводу
-										<select bind:value={s.io} onchange={reapply} class="w-40 rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
-											<option value="short">Ввід / Вивід</option>
-											<option value="verbose">Введення / Виведення</option>
-											<option value="imperative">Ввести / Вивести</option>
-										</select>
-									</label>
+									<div>
+										<p class="mb-1 text-xs text-slate-500 dark:text-slate-400">Підписи гілок (if / while)</p>
+										<div class="flex gap-2">
+											<input bind:value={s.yesWord} onchange={reapply} class="w-1/2 rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+											<input bind:value={s.noWord} onchange={reapply} class="w-1/2 rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</div>
+										<div class="mt-1.5 flex flex-wrap gap-1">
+											{#each BRANCH_PRESETS as [y, n] (y)}
+												<button type="button" onclick={() => { s.yesWord = y; s.noWord = n; reapply(); }} class="rounded border border-slate-200 px-2 py-0.5 text-xs text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">{y} / {n}</button>
+											{/each}
+										</div>
+									</div>
+									<div>
+										<p class="mb-1 text-xs text-slate-500 dark:text-slate-400">Слова вводу / виводу</p>
+										<div class="flex gap-2">
+											<input bind:value={s.inWord} onchange={reapply} class="w-1/2 rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+											<input bind:value={s.outWord} onchange={reapply} class="w-1/2 rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</div>
+										<div class="mt-1.5 flex flex-wrap gap-1">
+											{#each IO_PRESETS as [i, o] (i)}
+												<button type="button" onclick={() => { s.inWord = i; s.outWord = o; reapply(); }} class="rounded border border-slate-200 px-2 py-0.5 text-xs text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">{i} / {o}</button>
+											{/each}
+										</div>
+									</div>
+									<div class="grid grid-cols-2 gap-3">
+										<label class="text-xs text-slate-500 dark:text-slate-400">Слово перед return
+											<input bind:value={s.returnWord} onchange={reapply} class="mt-1 w-full rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</label>
+										<label class="text-xs text-slate-500 dark:text-slate-400">Роздільник «для кожного» (foreach)
+											<input bind:value={s.forEachWord} onchange={reapply} class="mt-1 w-full rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</label>
+									</div>
 
 									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
 										Формат циклу for

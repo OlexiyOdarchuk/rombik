@@ -25,7 +25,7 @@ function buildResults(funcs: Func[], o: ResolvedOptions): Result[] {
 
 // fromTree: дерево tree-sitter (Python/C++) → схеми. Повний шлях код→схема в TS.
 export function fromTree(tree: TSTree, lang: Lang, opts: Options = {}): Result[] {
-  return buildResults(fromJson(parseTree(tree, lang, opts.forFormat)), resolveOptions(opts));
+  return buildResults(fromJson(parseTree(tree, lang, { forFormat: opts.forFormat, returnWord: opts.returnWord, forEachWord: opts.forEachWord })), resolveOptions(opts));
 }
 
 // fromAst: розібраний AST-JSON (рядок або масив) + опції → список схем.
