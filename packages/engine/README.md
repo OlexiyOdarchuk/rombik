@@ -1,6 +1,6 @@
 # rombik-engine
 
-Рушій **rombik**: код (**Python / C++**) → блок-схема алгоритму за **ДСТУ 19.701‑90**.
+Рушій **rombik**: код (**Python / C / C++ / Pascal**) → блок-схема алгоритму за **ДСТУ 19.701‑90**.
 Чистий **TypeScript**, нуль рантайм-залежностей, без DOM і фреймворків. Дає геометрію
 схеми та рендери у **SVG / Typst (CeTZ) / Excalidraw**.
 
@@ -45,7 +45,7 @@ for (const { name, diagram } of fromTree(tree, 'python', {})) {
 | `renderExcalidraw(d)` / `renderExcalidrawAll(ds)` | `.excalidraw` (доредагувати на excalidraw.com) |
 | `captionLine`, `labelAnchor` | допоміжні (підпис «Рисунок N», якорі підписів) |
 
-`lang` — `'python' | 'cpp'`. `opts` (`Options`, усі поля необов'язкові): `singleEnd`,
+`lang` — `'python' | 'cpp' | 'pascal'` (C → 'cpp'). `opts` (`Options`, усі поля необов'язкові): `singleEnd`,
 `callAsProcess`, `stripTypes`, `returnAsIO`, `yes`/`no` (підписи гілок),
 `inWord`/`outWord` (слова вводу/виводу), `capWord`. Типи (`Diagram`, `Shape`, `Edge`,
 `Point`, `Options`, …) йдуть у комплекті.
@@ -53,12 +53,17 @@ for (const { name, diagram } of fromTree(tree, 'python', {})) {
 PNG/PDF тут немає (це робота растеризатора): рендер дає **SVG**, далі —
 браузерним `<canvas>` або зовнішнім `rsvg-convert` / `cairosvg`.
 
-## Підтримувані конструкції
+## Мови та конструкції
 
-if / else‑if, `switch` (усі `case` + `default`, fallthrough → одна умова), `for`
-(класичний і range‑based), `while`, `do‑while`, вкладені цикли, `break` / `continue`,
-кілька `return`, рекурсія, виклики (підпрограма), `cin`/`cout` (вводу/виводу),
-`try`/`catch`, методи класів (окремі схеми `Клас::метод`).
+- **Python** — if/elif/else, match/case, try/except/finally, with, for…in range, while,
+  for/else, while/else, while True…break, break/continue/return/raise,
+  list/set/dict‑comprehension → цикл, методи й вкладені класи (`Клас.метод`), декоратори.
+- **C / C++** — if/else, `switch` (усі case+default, fallthrough → умова через `||`),
+  for (класичний і range‑based), while, do‑while, break/continue, рекурсія,
+  `cin`/`cout` і `printf`/`scanf`, try/catch, методи класів (`Клас::метод`), оператори,
+  namespace, шаблони. C — підмножина C++ (`lang: 'cpp'`).
+- **Pascal** — procedure/function, `:=`, writeln/readln, if..then..else,
+  for..to/downto..do, while..do, repeat..until, case..of.
 
 ## Розробка
 

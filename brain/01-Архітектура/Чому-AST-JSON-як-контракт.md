@@ -49,7 +49,7 @@ interface AstFunc { name: string; block: AstNode; }
 
 ### 3. Один парсер на дві мови й два середовища
 
-`parser/treesitter.ts` — один модуль для Python і C++ (`parseTree(tree, lang)`),
+`parser/treesitter.ts` — один модуль для Python, C, C++ і Pascal (`parseTree(tree, lang)`),
 однаковий у вебі й у Node. Tree-sitter уміє обидві граматики, тож фронтенд один, а
 не по парсеру на мову. Раніше AST-JSON давали ДВА парсери (Python `ast` і tree-sitter);
 тепер — лише tree-sitter, бо він покриває обидві мови.
