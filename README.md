@@ -89,10 +89,17 @@ for (const f of figs) writeFileSync(`${f.name}.svg`, renderSvg(f.diagram));
 (tree → AST-JSON), `renderTypst` / `renderExcalidraw`, `splitFromAst(ast, opts, name, maxH)`.
 PNG/PDF — браузерний SVG→canvas (див. `web/src/lib/engine.js`).
 
-### CLI — самодостатній скрипт
+### CLI — пакет `rombik`
 
-Зібрати standalone CLI (бандл рушія + tree-sitter в один файл; **без node_modules і
-TS-флагів** — просто `node`):
+Найпростіше — через npm (потрібен лише **Node 22+**):
+
+```bash
+npx rombik examples/grade.py -o grade.svg     # без встановлення
+npm i -g rombik && rombik prog.cpp -t typ     # глобально
+```
+
+Або зібрати standalone-копію вручну (бандл рушія + tree-sitter в один файл, **без
+node_modules і TS-флагів** — просто `node`):
 
 ```bash
 npm run build:cli                                   # → dist/rombik.mjs (+ wasm поруч)
