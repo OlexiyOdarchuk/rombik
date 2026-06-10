@@ -4,7 +4,7 @@
   "description": "Перетворення коду (Python/C++) на блок-схему алгоритму за ДСТУ 19.701-90.",
   "type": "module",
   "license": "MIT",
-  "author": "OlexiyOdarchuk (https://github.com/OlexiyOdarchuk)",
+  "author": "Oleksii Odarchuk aka iShawyha (https://github.com/OlexiyOdarchuk)",
   "homepage": "https://github.com/OlexiyOdarchuk/rombik#readme",
   "bugs": "https://github.com/OlexiyOdarchuk/rombik/issues",
   "keywords": [
