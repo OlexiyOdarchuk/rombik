@@ -577,11 +577,38 @@
 	// save — одна вихідна схема НА ГРУПУ. Жодної авто-фрагментації: розкладка строго
 	// за group вузлів. Ребро йде в групу свого кінця.
 	function save() {
+		// Робоча копія (стан редактора не чіпаємо). Крос-групове ребро рвемо парою
+		// конекторів: вихід «X» у групі-джерелі, вхід «X» у групі-приймачі.
+		const wn = nodes.map((n) => ({ ...n }));
+		const byId = new Map(wn.map((n) => [n.id, n]));
+		const grpOf = (id, pt) => byId.get(id)?.group ?? groupOfPoint(pt);
+		const used = new Set(wn.filter((n) => n.kind === 'connector').map((n) => n.text));
+		let li = 0;
+		const freshLetter = () => {
+			while (li < ABC.length && used.has(ABC[li])) li++;
+			const c = ABC[li] ?? 'А';
+			used.add(c); li++;
+			return c;
+		};
+		const we = [];
+		let cid = nid;
+		for (const e of edges) {
+			const sp = e.points[0], tp = e.points[e.points.length - 1];
+			const gf = grpOf(e.fromId, sp), gt = grpOf(e.toId, tp);
+			if (gf === gt || gf == null || gt == null) { we.push(e); continue; }
+			const letter = freshLetter();
+			const src = byId.get(e.fromId), dst = byId.get(e.toId);
+			const exit = { id: 'c' + cid++, group: gf, kind: 'connector', x: (src ? src.x + src.w / 2 : sp.x) - 23, y: src ? src.y + src.h + 24 : sp.y, w: 46, h: 46, text: letter };
+			const entry = { id: 'c' + cid++, group: gt, kind: 'connector', x: (dst ? dst.x + dst.w / 2 : tp.x) - 23, y: dst ? dst.y - 70 : tp.y - 46, w: 46, h: 46, text: letter };
+			wn.push(exit, entry); byId.set(exit.id, exit); byId.set(entry.id, entry);
+			we.push({ points: src ? portRoute(src, exit) : [sp, { x: exit.x + 23, y: exit.y }], fromId: e.fromId, toId: exit.id, label: e.label, arrowless: e.arrowless });
+			we.push({ points: dst ? portRoute(entry, dst) : [{ x: entry.x + 23, y: entry.y + 46 }, tp], fromId: entry.id, toId: dst.id });
+		}
 		const buckets = new Map();
 		const bucket = (g) => { if (!buckets.has(g)) buckets.set(g, { nodes: [], edges: [] }); return buckets.get(g); };
-		for (const n of nodes) bucket(n.group).nodes.push(n);
-		for (const e of edges) {
-			const g = groupOfPoint(e.points[0]) ?? groupOfPoint(e.points[e.points.length - 1]);
+		for (const n of wn) bucket(n.group).nodes.push(n);
+		for (const e of we) {
+			const g = byId.get(e.fromId)?.group ?? byId.get(e.toId)?.group ?? grpOf(null, e.points[0]);
 			if (g != null) bucket(g).edges.push(e);
 		}
 		const out = [...buckets.entries()].filter(([, b]) => b.nodes.length).map(([gid, b]) => {
