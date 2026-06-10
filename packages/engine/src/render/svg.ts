@@ -91,3 +91,30 @@ export function render(d: Diagram): string {
   b.push('</svg>');
   return b.join('');
 }
+
+// renderAll — усі схеми в ОДНОМУ SVG (вертикально, по центру, з проміжком). Порт RenderAll.
+export function renderAll(ds: Diagram[]): string {
+  if (ds.length === 0) return '';
+  if (ds.length === 1) return render(ds[0]);
+  const gap = 44;
+  let maxW = 0, totalH = 0;
+  ds.forEach((d, i) => {
+    if (d.w > maxW) maxW = d.w;
+    totalH += diagHeight(d);
+    if (i > 0) totalH += gap;
+  });
+  const b: string[] = [];
+  b.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${f0(maxW)}" height="${f0(totalH)}" viewBox="0 0 ${f0(maxW)} ${f0(totalH)}" font-family=${FONT_ATTR} font-size="14">`);
+  b.push(ARROW_DEFS);
+  b.push('<rect width="100%" height="100%" fill="#ffffff"/>');
+  let y = 0;
+  for (const d of ds) {
+    const dx = (maxW - d.w) / 2;
+    b.push(`<g transform="translate(${f(dx)},${f(y)})">`);
+    writeBody(b, d);
+    b.push('</g>');
+    y += diagHeight(d) + gap;
+  }
+  b.push('</svg>');
+  return b.join('');
+}

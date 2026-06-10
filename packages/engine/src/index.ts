@@ -8,6 +8,6 @@ export type { Options } from './layout/options.ts';
 export { layoutProgram } from './layout/place.ts';
 export { fromAst, fromTree, splitFromAst, splitByHeight, type Result } from './build.ts';
 export { parseTree, type TSNode, type TSTree, type Lang } from './parser/treesitter.ts';
-export { render as renderSvg } from './render/svg.ts';
-export { render as renderTypst, renderAll as renderTypstAll, fragment as renderTypstFragment } from './render/typst.ts';
+export { render as renderSvg, renderAll as renderSvgAll } from './render/svg.ts';
+export { render as renderTypst, renderAll as renderTypstAll, fragment as renderTypstFragment, fragmentAll as renderTypstFragmentAll } from './render/typst.ts';
 export { render as renderExcalidraw, renderAll as renderExcalidrawAll } from './render/excalidraw.ts';

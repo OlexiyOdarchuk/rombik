@@ -21,6 +21,7 @@
     "vite": "^6.0.0"
   },
   "dependencies": {
+    "@rombik/engine": "*",
     "@codemirror/lang-cpp": "^6.0.3",
     "@codemirror/lang-python": "^6.2.1",
     "@codemirror/state": "^6.6.0",
