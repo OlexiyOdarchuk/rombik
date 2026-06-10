@@ -5,8 +5,15 @@ import type { Options } from './layout/options.ts';
 import { resolveOptions } from './layout/options.ts';
 import { fromJson, type AstFunc } from './astjson.ts';
 import { layoutProgram } from './layout/place.ts';
+import { parseTree, type TSTree, type Lang } from './parser/treesitter.ts';
 
 export interface Result { name: string; diagram: Diagram; }
+
+// fromTree: дерево tree-sitter (Python/C++) → схеми. Повний шлях код→схема (парсер
+// у браузері/Node дає Tree, далі все в TS).
+export function fromTree(tree: TSTree, lang: Lang, opts: Options = {}): Result[] {
+  return fromAst(parseTree(tree, lang), opts);
+}
 
 // fromAst: розібраний AST-JSON (рядок або масив) + опції → список схем.
 export function fromAst(astJSON: string | AstFunc[], opts: Options = {}): Result[] {
