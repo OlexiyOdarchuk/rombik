@@ -63,3 +63,24 @@ test('switch: умова веде в окрему гілку (вкладений
   assert.equal(sw.else.kind, 'block');
   assert.equal(sw.else.stmts[0].kind, 'if');
 });
+
+// --- інші C++ прогалини ---
+test('range-for (for (int x : arr)) — це цикл, не дія', async () => {
+  const ast = JSON.parse(await astJson('int s(int a[]){ int t=0; for (int x : a) { t += x; } return t; }'));
+  const loop = ast[0].block.stmts.find((s: any) => s.kind === 'for');
+  assert.ok(loop, 'range-for не став циклом');
+  assert.match(loop.cond, /x ∈ a/);
+});
+
+test('методи класу — окремі схеми «Клас::метод»', async () => {
+  const ast = JSON.parse(await astJson('class C { int v; public: void inc(){ v=v+1; } int get(){ return v; } };'));
+  const names = ast.map((f: any) => f.name);
+  assert.deepEqual(names, ['C::inc', 'C::get']);
+  // поле v не протекло в окрему «main»-схему
+  assert.ok(!names.includes('main') && !names.includes('програма'));
+});
+
+test('using namespace / класи не створюють зайвої схеми «програма»', async () => {
+  const ast = JSON.parse(await astJson('using namespace std;\nint main(){ return 0; }'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['main']);
+});

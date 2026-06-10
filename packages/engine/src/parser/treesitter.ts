@@ -200,6 +200,14 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       }
     }
 
+    if (s.type === 'for_range_loop') { // C++ range-based for: for (int x : arr)
+      const decl = s.childForFieldName('declarator');
+      const right = s.childForFieldName('right');
+      const body = s.childForFieldName('body');
+      const cond = `${decl ? decl.text : '?'} ∈ ${right ? right.text : '?'}`;
+      return { kind: 'for', cond: oneline(cond), body: block(body), else: block(null) };
+    }
+
     if (s.type === 'do_statement') {
       const cond = s.childForFieldName('condition');
       const body = s.childForFieldName('body');
@@ -415,6 +423,8 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
 
     if (s.isNamed) {
       if (s.type === 'function_definition' || s.type === 'class_definition' ||
+          s.type === 'class_specifier' || s.type === 'struct_specifier' ||
+          s.type === 'using_declaration' || s.type === 'namespace_definition' ||
           s.type === 'import_statement' || s.type === 'import_from_statement' ||
           s.type === 'preproc_include' || s.type === 'preproc_def' ||
           s.type === 'comment' || s.type === 'string') return null;
@@ -437,8 +447,16 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
   const funcs: AstFunc[] = [];
   const mainStmts: AstNode[] = [];
 
-  function collect(node: TSNode | null): void {
+  function collect(node: TSNode | null, prefix = ''): void {
     if (!node) return;
+    // C++ клас/структура: кожен метод-тіло — окрема схема «Клас::метод». Поля й
+    // специфікатори доступу ігноруємо (інакше протекли б у «main»).
+    if (node.type === 'class_specifier' || node.type === 'struct_specifier') {
+      const cn = node.childForFieldName('name');
+      const list = node.childForFieldName('body');
+      if (list) for (const k of list.namedChildren) if (k.type === 'function_definition') collect(k, (cn ? cn.text + '::' : '') + prefix);
+      return;
+    }
     if (node.type === 'function_definition') {
       let nameNode = node.childForFieldName('name');
       let paramsText = '';
@@ -449,7 +467,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
         while (decl && decl.type !== 'identifier' && decl.type !== 'function_declarator') decl = decl.childForFieldName('declarator');
         if (decl && decl.type === 'function_declarator') {
           const n = decl.childForFieldName('declarator');
-          if (n && n.type === 'identifier') nameNode = n;
+          if (n && (n.type === 'identifier' || n.type === 'field_identifier')) nameNode = n; // field_identifier — метод у класі
           const p = decl.childForFieldName('parameters');
           if (p) {
             const paramsList: string[] = [];
@@ -481,13 +499,13 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
         }
       }
 
-      const fnName = nameNode ? nameNode.text : 'unknown';
+      const fnName = prefix + (nameNode ? nameNode.text : 'unknown');
       const b = block(bodyNode);
       if (paramsText && paramsText.trim() !== '') (b.stmts ??= []).unshift({ kind: 'io', text: 'Ввід ' + oneline(paramsText) });
       funcs.push({ name: fnName, block: b });
 
       if (bodyNode && bodyNode.type === 'block') {
-        for (const k of bodyNode.namedChildren) if (k.type === 'function_definition') collect(k);
+        for (const k of bodyNode.namedChildren) if (k.type === 'function_definition') collect(k, prefix);
       }
     } else {
       const mapped = stmt(node);
