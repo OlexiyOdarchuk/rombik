@@ -12,6 +12,10 @@ export default defineConfig({
 		__COMMIT_HASH__: JSON.stringify(commitHash),
 		__COMMIT_DATE__: JSON.stringify(commitDate)
 	},
+	// @rombik/engine експортується умовно: «rombik-source» → TS-джерела (для монорепо),
+	// «default» → зібраний dist (для npm-споживачів). Веб бере джерела (HMR на правки рушія).
+	resolve: { conditions: ['rombik-source'] },
+	ssr: { resolve: { conditions: ['rombik-source'] } },
 	optimizeDeps: {
 		// @rombik/engine — workspace-джерело (TS), обробляти як source, не пребандлити.
 		// web-tree-sitter застосунок не імпортує (бере статичний tree-sitter.js), а в

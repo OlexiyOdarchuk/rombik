@@ -9,6 +9,7 @@ mkdirSync(dist, { recursive: true });
 await build({
   entryPoints: [join(root, 'tools', 'rombik.mjs')],
   bundle: true, platform: 'node', format: 'esm', target: 'node22',
+  conditions: ['rombik-source'], // @rombik/engine → TS-джерела (не зібраний dist)
   outfile: join(dist, 'rombik.mjs'),
 });
 // замінити шебанг (--experimental-strip-types) на звичайний node

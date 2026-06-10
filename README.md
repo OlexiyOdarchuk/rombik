@@ -63,6 +63,9 @@ npm run dev            # http://localhost:5173
 npm run build:web      # статика у web/build/
 ```
 
+**Nix:** `nix develop` дає готове середовище (Node 22 + `rsvg-convert` для PNG/PDF) —
+без ручної возні з версіями.
+
 ---
 
 ## Бібліотека / скриптинг (`@rombik/engine`)

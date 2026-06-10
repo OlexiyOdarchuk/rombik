@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install deps (npm workspace)
+        run: npm ci
+
+      - name: esbuild binary
+        run: npm rebuild esbuild # npm 11 блокує install-скрипти; esbuild потребує бінарник
+
+      - name: Tests + coverage (@rombik/engine)
+        run: npm run coverage --workspace @rombik/engine
+
+      - name: Typecheck (@rombik/engine)
+        run: npm run typecheck --workspace @rombik/engine
+
+      - name: Build web (smoke)
+        run: npm run build --workspace web
+
+      - name: Build standalone CLI
+        run: npm run build:cli
+
+      - name: CLI smoke — код → SVG
+        run: node dist/rombik.mjs examples/grade.py | grep -q "</svg>"

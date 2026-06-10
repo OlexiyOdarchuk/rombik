@@ -12,7 +12,7 @@
     "typecheck": "npm run typecheck --workspace @rombik/engine",
     "dev": "npm run dev --workspace web",
     "build:web": "npm run build --workspace web",
-    "cli": "node --experimental-strip-types tools/rombik.mjs",
+    "cli": "node --conditions=rombik-source --experimental-strip-types tools/rombik.mjs",
     "build:cli": "node tools/build-cli.mjs"
   },
   "devDependencies": {
