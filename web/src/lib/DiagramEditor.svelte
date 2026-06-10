@@ -90,7 +90,7 @@
 
 	const nodeById = (id) => nodes.find((n) => n.id === id);
 
-	// Позиція підпису ребра (Так/Ні) — як у Go diagram.LabelAnchor (далі від ромба).
+	// Позиція підпису ребра (Так/Ні) — як labelAnchor у @rombik/engine (далі від ромба).
 	function labelAnchor(p0, p1) {
 		if (!p0) return { x: 0, y: 0 };
 		if (!p1) return { x: p0.x + 8, y: p0.y - 8 };
