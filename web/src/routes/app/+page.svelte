@@ -174,6 +174,9 @@ end.`;
 	let s = $state({
 		singleEnd: false, // false = Кінець на кожен вихід
 		mainOnlyTerminators: false, // ДСТУ: Початок/Кінець лише для main, решта — Вхід/Вихід
+		forFormat: 'comma', // формат for: comma (i = 0, 9, 1) | range (i = 0..9) | verbose (i від 0 до 9)
+		startWord: 'Початок', endWord: 'Кінець', // слова термінаторів main
+		entryWord: 'Вхід', exitWord: 'Вихід', // слова термінаторів підпрограм
 		callAsProcess: false,
 		stripTypes: false,
 		returnAsIO: false,
@@ -196,6 +199,11 @@ end.`;
 		return {
 			singleEnd: s.singleEnd,
 			mainOnlyTerminators: s.mainOnlyTerminators,
+			forFormat: s.forFormat,
+			startText: s.startWord,
+			endText: s.endWord,
+			entryText: s.entryWord,
+			exitText: s.exitWord,
 			callAsProcess: s.callAsProcess,
 			stripTypes: s.stripTypes,
 			returnAsIO: s.returnAsIO,
@@ -543,6 +551,35 @@ end.`;
 											<option value="imperative">Ввести / Вивести</option>
 										</select>
 									</label>
+
+									<label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+										Формат циклу for
+										<select bind:value={s.forFormat} onchange={reapply} class="w-40 rounded-md border-slate-300 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+											<option value="comma">i = 0, 9, 1</option>
+											<option value="range">i = 0..9</option>
+											<option value="verbose">i від 0 до 9</option>
+										</select>
+									</label>
+
+									<h3 class="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">Термінатори</h3>
+									<div class="grid grid-cols-2 gap-3">
+										<label class="text-xs text-slate-500 dark:text-slate-400">Початок (main)
+											<input bind:value={s.startWord} onchange={reapply} class="mt-1 w-full rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</label>
+										<label class="text-xs text-slate-500 dark:text-slate-400">Кінець (main)
+											<input bind:value={s.endWord} onchange={reapply} class="mt-1 w-full rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+										</label>
+									</div>
+									{#if s.mainOnlyTerminators}
+										<div class="grid grid-cols-2 gap-3">
+											<label class="text-xs text-slate-500 dark:text-slate-400">Вхід (підпрограма)
+												<input bind:value={s.entryWord} onchange={reapply} class="mt-1 w-full rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+											</label>
+											<label class="text-xs text-slate-500 dark:text-slate-400">Вихід (підпрограма)
+												<input bind:value={s.exitWord} onchange={reapply} class="mt-1 w-full rounded-md border-slate-300 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+											</label>
+										</div>
+									{/if}
 
 									<h3 class="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">Підписи діаграм</h3>
 									<label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
