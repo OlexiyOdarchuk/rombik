@@ -45,10 +45,12 @@ for (const f of readdirSync(corpus)) {
     file: f, lang, options: {}, astJSON: JSON.parse(astJSON),
     functions: res.functions.map((fn) => {
       const dj = JSON.stringify(fn.diagram);
+      const parts = JSON.parse(globalThis.rombikSplit(astJSON, JSON.stringify({}), fn.name, 900)).parts || [];
       return {
         name: fn.name, diagram: fn.diagram, svg: fn.svg,
         typst: JSON.parse(globalThis.rombikTypstOne(dj, false)).typst,
         excalidraw: JSON.parse(globalThis.rombikExcalidraw(dj)).excalidraw,
+        split: parts.map((p) => ({ name: p.name, svg: p.svg })),
       };
     }),
   }, null, 1));
