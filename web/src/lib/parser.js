@@ -74,6 +74,15 @@ function endof(node) {
 
 // isTrueNode/breakIfNode — для розпізнавання «while True» (нескінченний цикл) та
 // ідіоми післяумови «while True: … if C: break» (do-while). Дзеркалить is_true/break_if з parser.py.
+// unwrapElse — розгортає else_clause for/while у його тіло (if розгортає інлайн).
+// Без цього else_clause летить у block() невідомим вузлом і стає текстовим дампом.
+function unwrapElse(alt) {
+    if (alt && alt.type === "else_clause") {
+        return alt.childForFieldName("body") || alt.childForFieldName("consequence")
+            || (alt.namedChildCount > 0 ? alt.namedChildren[0] : null);
+    }
+    return alt;
+}
 function isTrueNode(n) {
     return !!n && (n.type === "true" || (n.type === "integer" && n.text === "1"));
 }
@@ -161,7 +170,7 @@ export function parseTreeToAstJson(tree, lang) {
                 kind: "while",
                 cond: oneline(condText),
                 body: block(body),
-                else: block(s.childForFieldName("alternative"))
+                else: block(unwrapElse(s.childForFieldName("alternative")))
             };
         }
         
@@ -193,7 +202,7 @@ export function parseTreeToAstJson(tree, lang) {
                     kind: "for",
                     cond: oneline(condText),
                     body: block(s.childForFieldName("body")),
-                    else: block(s.childForFieldName("alternative"))
+                    else: block(unwrapElse(s.childForFieldName("alternative")))
                 };
             }
             if (isCpp) {

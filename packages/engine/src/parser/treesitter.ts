@@ -82,6 +82,17 @@ function endof(node: TSNode | null): string {
   return node.text + ' - 1';
 }
 
+// unwrapElse — розгортає вузол else_clause у його тіло (для for/while-else; if
+// розгортає інлайн). Без цього else_clause летить у block() як невідомий вузол і
+// стає текстовим дампом замість розібраної гілки.
+function unwrapElse(alt: TSNode | null): TSNode | null {
+  if (alt && alt.type === 'else_clause') {
+    return alt.childForFieldName('body') || alt.childForFieldName('consequence') ||
+      (alt.namedChildCount > 0 ? alt.namedChildren[0] : null);
+  }
+  return alt;
+}
+
 function isTrueNode(n: TSNode | null): boolean {
   return !!n && (n.type === 'true' || (n.type === 'integer' && n.text === '1'));
 }
@@ -143,7 +154,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       }
       let condText = cond ? cond.text : '?';
       if (isCpp && condText.startsWith('(') && condText.endsWith(')')) condText = condText.substring(1, condText.length - 1);
-      return { kind: 'while', cond: oneline(condText), body: block(body), else: block(s.childForFieldName('alternative')) };
+      return { kind: 'while', cond: oneline(condText), body: block(body), else: block(unwrapElse(s.childForFieldName('alternative'))) };
     }
 
     if (s.type === 'for_statement') {
@@ -164,7 +175,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
             }
           }
         }
-        return { kind: 'for', cond: oneline(condText), body: block(s.childForFieldName('body')), else: block(s.childForFieldName('alternative')) };
+        return { kind: 'for', cond: oneline(condText), body: block(s.childForFieldName('body')), else: block(unwrapElse(s.childForFieldName('alternative'))) };
       }
       if (isCpp) {
         const init = s.childForFieldName('initializer');
