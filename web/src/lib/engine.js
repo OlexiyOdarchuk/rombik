@@ -14,29 +14,7 @@ let initPromise = null;
 let parser = null;
 let langs = {}; // 'python' | 'cpp' -> Language
 
-function loadScript(src) {
-	return new Promise((resolve, reject) => {
-		const s = document.createElement('script');
-		s.src = src;
-		s.onload = resolve;
-		s.onerror = () => reject(new Error('не вдалося завантажити ' + src));
-		document.head.appendChild(s);
-	});
-}
-
-async function instantiateWasm(resp, importObject) {
-	if (WebAssembly.instantiateStreaming) {
-		try {
-			return (await WebAssembly.instantiateStreaming(resp, importObject)).instance;
-		} catch (e) {
-			console.warn('WASM streaming failed, fallback to arrayBuffer', e);
-		}
-	}
-	const bytes = await (await resp).arrayBuffer();
-	return (await WebAssembly.instantiate(bytes, importObject)).instance;
-}
-
-// init: лише tree-sitter (рушій тепер чистий TS, wasm не потрібен).
+// init: лише tree-sitter (рушій тепер чистий TS, Go-wasm не потрібен).
 async function init(onProgress) {
 	onProgress?.('Завантаження Tree-sitter…');
 	const modulePath = `${base}/tree-sitter.js`;
