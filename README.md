@@ -92,13 +92,18 @@ npm run build:cli                                   # → dist/rombik.mjs (+ was
 node dist/rombik.mjs examples/grade.py -o grade.svg
 ./dist/rombik.mjs prog.cpp -t typ > prog.typ         # shebang; з будь-якої теки
 cat prog.py | ./dist/rombik.mjs - -t json            # stdin → JSON-геометрія
+
+# PNG / PDF — растеризуй SVG зовнішнім конвертером (rsvg-convert / cairosvg / inkscape):
+./dist/rombik.mjs grade.py | rsvg-convert -f pdf -o grade.pdf
+./dist/rombik.mjs grade.py | rsvg-convert -f png -o grade.png
 ```
 
 > Папку `dist/` (скрипт + 3 wasm, ~4 МБ) можна скопіювати куди завгодно — працює з
 > чистим Node 22+, нічого не встановлюючи. Для dev без бандла: `npm run cli -- file.py`.
 
 Опції: `-o/--out`, `-t/--format svg|typ|json|excalidraw`, `-l/--lang py|cpp`, `--fn NAME`,
-`--single-end`, `--split N`. `-h` — повна довідка.
+`--single-end`, `--split N`. `-h` — повна довідка. **PNG/PDF у CLI** немає (потрібен
+браузерний canvas) — растеризуй SVG зовнішнім тулом, як вище; на сайті ж PNG/PDF є.
 
 ---
 

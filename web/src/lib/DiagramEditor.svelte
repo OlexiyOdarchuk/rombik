@@ -2,9 +2,13 @@
 	// Візуальний редактор схеми (Фаза 2): безмежне полотно (пан+зум), редаговані
 	// стрілки (вибір, тягання вузлів і кінців, переприв'язка, малювання нових),
 	// авто-ортогональний рероут при русі блоків, розділення конектором.
-	let { diagram, onsave, oncancel } = $props();
+	// diagrams — масив {name, diagram} (усі функції коду на одному полотні);
+	// diagram — застарілий одиночний вхід (огортається в масив).
+	let { diagrams = null, diagram = null, onsave, oncancel } = $props();
 
 	const MARGIN = 24;
+	// Кольори рамок груп (кожна функція/схема — своя група).
+	const GROUP_COLORS = ['#2563eb', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#db2777', '#65a30d', '#e11d48'];
 	const PALETTE = [
 		['process', 'Дія', 150, 46],
 		['decision', 'Умова', 150, 76],
@@ -17,6 +21,9 @@
 
 	let nodes = $state([]);
 	let edges = $state([]);
+	let groups = $state([]); // [{id, name, color}] — групи = окремі схеми
+	let selNodes = $state(new Set()); // мультивибір вузлів (id)
+	let lasso = $state(null); // {x0,y0,x1,y1} під час рамки-ласо
 	let sel = $state(null); // {type:'node'|'edge', id}
 	let editId = $state(null); // фігура, чий текст редагуємо
 	let editLabel = $state(null); // ребро, чий підпис (Так/Ні) редагуємо
@@ -24,12 +31,16 @@
 	let view = $state({ x: 40, y: 40, scale: 1 });
 	let gEl; // внутрішня <g> з трансформацією (для коректного перерахунку координат)
 	let nid = 0,
-		eid = 0;
+		eid = 0,
+		gseq = 0; // лічильник унікальних id груп
+
+	// Чи вузол у виділенні (мультивибір АБО одиночний primary).
+	const isNodeSel = (id) => selNodes.has(id) || (sel?.type === 'node' && sel.id === id);
 
 	// --- історія (undo/redo) ---
 	let past = [];
 	let futureH = [];
-	const snap = () => JSON.stringify({ nodes, edges });
+	const snap = () => JSON.stringify({ nodes, edges, groups });
 	function remember() {
 		past.push(snap());
 		if (past.length > 60) past.shift();
@@ -39,7 +50,9 @@
 		const o = JSON.parse(s);
 		nodes = o.nodes;
 		edges = o.edges;
+		groups = o.groups ?? groups;
 		sel = null;
+		selNodes = new Set();
 		editId = null;
 		editLabel = null;
 	}
@@ -54,41 +67,70 @@
 		restore(futureH.pop());
 	}
 
-	$effect(() => load(diagram));
+	$effect(() => load(diagrams ?? diagram));
 
-	function load(d) {
-		let k = 0;
-		const ns = (d.shapes ?? []).map((s) => ({ id: 'n' + k++, kind: s.kind, x: s.x, y: s.y, w: s.w, h: s.h, text: s.text ?? '' }));
-		const at = (pt) => {
-			if (!pt) return null;
-			for (const n of ns) if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
-			return null;
-		};
-		let j = 0;
-		const es = (d.edges ?? []).map((e) => {
-			const pts = (e.points ?? []).map((p) => ({ x: p.x, y: p.y }));
-			const lp = labelAnchor(pts[0], pts[1]);
-			return {
-				id: 'e' + j++,
-				points: pts,
-				label: e.label ?? '',
-				lx: lp.x,
-				ly: lp.y, // позиція підпису (рухається окремо)
-				arrowless: !!e.arrowless,
-				fromId: at(pts[0]),
-				toId: at(pts[pts.length - 1]),
-				manual: false
+	// load — усі схеми на одне полотно: кожна зміщується праворуч у власну колонку,
+	// її блоки дістають group = id групи (= окрема вихідна схема).
+	function load(input) {
+		const list = Array.isArray(input) ? input : input ? [{ name: '', diagram: input }] : [];
+		let k = 0, j = 0, gx = 0;
+		const ns = [], es = [], grps = [];
+		for (let gi = 0; gi < list.length; gi++) {
+			const it = list[gi];
+			const d = it.diagram ?? it;
+			const gid = 'g' + gi;
+			grps.push({ id: gid, name: it.name ?? '', color: GROUP_COLORS[gi % GROUP_COLORS.length] });
+			const offX = gx;
+			const gn = (d.shapes ?? []).map((s) => ({ id: 'n' + k++, group: gid, kind: s.kind, x: s.x + offX, y: s.y, w: s.w, h: s.h, text: s.text ?? '' }));
+			const at = (pt) => {
+				if (!pt) return null;
+				for (const n of gn) if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
+				return null;
 			};
-		});
-		nid = k;
-		eid = j;
-		nodes = ns;
-		edges = es;
-		sel = null;
-		editId = null;
+			const ge = (d.edges ?? []).map((e) => {
+				const pts = (e.points ?? []).map((p) => ({ x: p.x + offX, y: p.y }));
+				const lp = labelAnchor(pts[0], pts[1]);
+				return { id: 'e' + j++, points: pts, label: e.label ?? '', lx: lp.x, ly: lp.y, arrowless: !!e.arrowless, fromId: at(pts[0]), toId: at(pts[pts.length - 1]), manual: false };
+			});
+			ns.push(...gn); es.push(...ge);
+			gx += (d.w ?? 400) + 80;
+		}
+		nid = k; eid = j; gseq = list.length;
+		nodes = ns; edges = es; groups = grps;
+		sel = null; selNodes = new Set(); editId = null;
 	}
 
 	const nodeById = (id) => nodes.find((n) => n.id === id);
+	// Групи (схеми), яких торкається поточне виділення — для кнопки «Об'єднати».
+	let selGroups = $derived.by(() => {
+		const s = new Set();
+		for (const n of nodes) if (selNodes.has(n.id)) s.add(n.group);
+		return s;
+	});
+	const minXOfGroup = (gid) => { let m = Infinity; for (const n of nodes) if (n.group === gid) m = Math.min(m, n.x); return m; };
+
+	// Рамки груп: bbox блоків кожної групи + підпис («Рисунок N» або імʼя функції).
+	let groupFrames = $derived.by(() => {
+		if (groups.length <= 1) return []; // одна схема — рамка зайва
+		const m = new Map();
+		for (const n of nodes) {
+			let f = m.get(n.group);
+			if (!f) { f = { group: n.group, minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }; m.set(n.group, f); }
+			f.minX = Math.min(f.minX, n.x); f.minY = Math.min(f.minY, n.y);
+			f.maxX = Math.max(f.maxX, n.x + n.w); f.maxY = Math.max(f.maxY, n.y + n.h);
+		}
+		const PAD = 16;
+		return [...m.values()].map((f) => {
+			const gi = groups.findIndex((g) => g.id === f.group);
+			const g = groups[gi];
+			return {
+				color: g?.color ?? '#94a3b8',
+				name: g?.name || `Рисунок ${gi + 1}`,
+				x: f.minX - PAD, y: f.minY - PAD - 22,
+				w: f.maxX - f.minX + 2 * PAD, h: f.maxY - f.minY + 2 * PAD + 22
+			};
+		});
+	});
 
 	// Позиція підпису ребра (Так/Ні) — як labelAnchor у @rombik/engine (далі від ромба).
 	function labelAnchor(p0, p1) {
@@ -184,9 +226,16 @@
 	let act = $state(null); // {kind, ...}
 
 	function bgDown(ev) {
-		// фон: пан полотна + зняти виділення
 		if (act) return;
+		// Shift+тяг фону — рамка-ласо (мультивибір); звичайний тяг — пан + зняти виділення.
+		if (ev.shiftKey) {
+			const w = toWorld(ev.clientX, ev.clientY);
+			act = { kind: 'lasso', pid: ev.pointerId };
+			lasso = { x0: w.x, y0: w.y, x1: w.x, y1: w.y };
+			return;
+		}
 		sel = null;
+		selNodes = new Set();
 		editId = null;
 		act = { kind: 'pan', pid: ev.pointerId, sx: ev.clientX, sy: ev.clientY, vx: view.x, vy: view.y };
 	}
@@ -195,6 +244,16 @@
 		ev.stopPropagation();
 		if (act) return;
 		if (editId && editId !== n.id) editId = null;
+		// Shift-клік — лише перемкнути вузол у мультивиборі (без тягання).
+		if (ev.shiftKey) {
+			const s = new Set(selNodes);
+			s.has(n.id) ? s.delete(n.id) : s.add(n.id);
+			selNodes = s;
+			sel = s.size ? { type: 'node', id: n.id } : null;
+			return;
+		}
+		// Клік по вузлу поза мультивибором — почати з нього (інакше тягнемо всю групу).
+		if (!selNodes.has(n.id)) selNodes = new Set([n.id]);
 		sel = { type: 'node', id: n.id };
 		const w = toWorld(ev.clientX, ev.clientY);
 		act = { kind: 'node', pid: ev.pointerId, id: n.id, ox: n.x, oy: n.y, wx: w.x, wy: w.y };
@@ -239,6 +298,8 @@
 		if (act.kind === 'pan') {
 			view.x = act.vx + (ev.clientX - act.sx);
 			view.y = act.vy + (ev.clientY - act.sy);
+		} else if (act.kind === 'lasso') {
+			lasso = { ...lasso, x1: w.x, y1: w.y };
 		} else if (act.kind === 'node') {
 			const n = nodeById(act.id);
 			let nx = act.ox + (w.x - act.wx),
@@ -249,9 +310,15 @@
 			guides = m.g;
 			const dx = nx - n.x,
 				dy = ny - n.y;
-			n.x = nx;
-			n.y = ny;
-			rerouteFor(n.id, dx, dy);
+			// мультивибір (>1) — рухаємо всю групу разом; інакше лише цей вузол
+			const moving = selNodes.has(n.id) && selNodes.size > 1 ? selNodes : new Set([n.id]);
+			for (const id of moving) {
+				const nn = nodeById(id);
+				if (!nn) continue;
+				nn.x += dx;
+				nn.y += dy;
+				rerouteFor(id, dx, dy);
+			}
 			nodes = [...nodes];
 			edges = [...edges];
 		} else if (act.kind === 'label') {
@@ -298,6 +365,21 @@
 	function onUp(ev) {
 		if (!act || (act.pid !== undefined && ev.pointerId !== act.pid)) return;
 		const w = toWorld(ev.clientX, ev.clientY);
+		if (act.kind === 'lasso') {
+			// вибрати вузли, чий центр у прямокутнику
+			const lx0 = Math.min(lasso.x0, lasso.x1), lx1 = Math.max(lasso.x0, lasso.x1);
+			const ly0 = Math.min(lasso.y0, lasso.y1), ly1 = Math.max(lasso.y0, lasso.y1);
+			const s = new Set();
+			for (const n of nodes) {
+				const cx = n.x + n.w / 2, cy = n.y + n.h / 2;
+				if (cx >= lx0 && cx <= lx1 && cy >= ly0 && cy <= ly1) s.add(n.id);
+			}
+			selNodes = s;
+			sel = s.size ? { type: 'node', id: [...s][0] } : null;
+			lasso = null;
+			act = null;
+			return;
+		}
 		if (act.kind === 'vertex' && act.end) {
 			// відпустили кінець ребра над фігурою → переприв'язка
 			const over = nodeAtPoint(w);
@@ -343,13 +425,25 @@
 		remember();
 		const c = toWorld(gEl.ownerSVGElement.getBoundingClientRect().left + 300, gEl.ownerSVGElement.getBoundingClientRect().top + 200);
 		const id = 'n' + nid++;
-		nodes.push({ id, kind, x: c.x, y: c.y, w, h, text: kind === 'connector' ? nextLetter() : 'текст' });
+		// група: від виділеного вузла, інакше остання/перша наявна (щоб блок не «осиротів»)
+		const grp = (sel?.type === 'node' && nodeById(sel.id)?.group) ?? groups[groups.length - 1]?.id ?? 'g0';
+		nodes.push({ id, group: grp, kind, x: c.x, y: c.y, w, h, text: kind === 'connector' ? nextLetter() : 'текст' });
 		nodes = [...nodes];
 		sel = { type: 'node', id };
 		if (kind !== 'connector') editId = id;
 	}
 
 	function delSel() {
+		// мультивибір — видалити всі виділені вузли та дотичні ребра
+		if (selNodes.size > 1) {
+			remember();
+			const ids = selNodes;
+			nodes = nodes.filter((n) => !ids.has(n.id));
+			edges = edges.filter((e) => !ids.has(e.fromId) && !ids.has(e.toId));
+			selNodes = new Set();
+			sel = null;
+			return;
+		}
 		if (!sel) return;
 		remember();
 		if (sel.type === 'node') {
@@ -394,139 +488,104 @@
 		return 'А';
 	}
 
-	// Розділення: клік-на-блок → схема рветься надвоє парою конекторів «X».
-	// Блок із усіма нащадками (разом із їхніми ребрами!) їде в окрему колонку
-	// праворуч; на стику в частині-1 стає конектор-вихід «X», перед блоком —
-	// конектор-вхід «X».
-	function splitAt(nodeId) {
-		const node = nodeById(nodeId);
-		if (!node) return;
+	// Виділені вузли → окрема група (= окрема вихідна схема). Порожні групи прибираємо.
+	function groupSelection() {
+		if (selNodes.size < 1) return;
 		remember();
-		const letter = nextLetter();
-		// нащадки вперед: додаємо тільки ті блоки, в які можна потрапити ЛИШЕ через цей вузол (strict descendants)
-		const set = new Set([nodeId]);
-		let changed = true;
-		while (changed) {
-			changed = false;
-			for (const e of edges) {
-				if (e.fromId && e.toId && set.has(e.fromId) && !set.has(e.toId)) {
-					let hasOutsideIncoming = false;
-					for (const inE of edges) {
-						if (inE.toId === e.toId && !set.has(inE.fromId)) {
-							hasOutsideIncoming = true;
-							break;
-						}
-					}
-					if (!hasOutsideIncoming) {
-						set.add(e.toId);
-						changed = true;
-					}
-				}
-			}
-		}
-		// зсув частини-2 у чисту колонку праворуч
-		let maxX = -Infinity,
-			sx = Infinity,
-			sy = Infinity;
-		for (const n of nodes) maxX = Math.max(maxX, n.x + n.w);
-		for (const n of nodes) if (set.has(n.id)) ((sx = Math.min(sx, n.x)), (sy = Math.min(sy, n.y)));
-		const offX = maxX + 90 - sx;
-		const offY = 100 - sy; // верх частини-2 ~ під конектором-входом
-		const ox0 = node.x,
-			oy0 = node.y; // ОРИГІНАЛЬНЕ місце блоку (для конектора-виходу)
-		// рухаємо вузли І їхні внутрішні ребра
-		for (const n of nodes) if (set.has(n.id)) ((n.x += offX), (n.y += offY));
-		for (const e of edges) if (set.has(e.fromId) && set.has(e.toId)) for (const p of e.points) ((p.x += offX), (p.y += offY));
-		// конектори: вихід на місці блоку (частина-1), вхід над переміщеним блоком
-		const exit = { id: 'n' + nid++, kind: 'connector', x: ox0 + node.w / 2 - 23, y: oy0, w: 46, h: 46, text: letter };
-		const entry = { id: 'n' + nid++, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y - 92, w: 46, h: 46, text: letter };
-		nodes.push(exit, entry);
-		// межові ребра: вхідні в блок із частини-1 → у конектор-вихід; інші межові — рероут
-		for (const e of edges) {
-			const fin = set.has(e.fromId),
-				tin = set.has(e.toId);
-			if (fin === tin) continue;
-			if (e.toId === nodeId && !fin) {
-				e.toId = exit.id;
-			}
-			const a = nodeById(e.fromId),
-				b = nodeById(e.toId);
-			if (a && b) ((e.points = portRoute(a, b)), (e.manual = false));
-		}
-		const p = portRoute(entry, node);
-		edges.push({ id: 'e' + eid++, points: p, label: '', lx: p[0].x + 8, ly: p[0].y - 8, arrowless: false, fromId: entry.id, toId: nodeId, manual: false });
+		const k = gseq++;
+		const gid = 'g' + k;
+		groups.push({ id: gid, name: '', color: GROUP_COLORS[k % GROUP_COLORS.length] });
+		for (const n of nodes) if (selNodes.has(n.id)) n.group = gid;
+		const used = new Set(nodes.map((n) => n.group));
+		groups = groups.filter((g) => used.has(g.id));
 		nodes = [...nodes];
-		edges = [...edges];
+		selNodes = new Set();
 		sel = null;
 	}
 
+	// Об'єднати схеми, яких торкається виділення, в одну (найлівішу — зберегти позицію/колір).
+	// Зливаємо ГРУПИ цілком (досить зачепити по одному блоку зі схеми). Ребра між ними
+	// стають внутрішніми; явні конектори-блоки (з минулих розбивок) лишаються — їх можна стерти.
+	function mergeSelection() {
+		const gset = selGroups;
+		if (gset.size < 2) return;
+		remember();
+		const target = [...gset].sort((a, b) => minXOfGroup(a) - minXOfGroup(b))[0];
+		for (const n of nodes) if (gset.has(n.group)) n.group = target;
+		const used = new Set(nodes.map((n) => n.group));
+		groups = groups.filter((g) => used.has(g.id));
+		nodes = [...nodes];
+		selNodes = new Set();
+		sel = null;
+	}
+
+	// nodeIdAt/groupOfPoint — до якої групи (схеми) належить точка ребра. Без авто-
+	// детекції компонентів: групи задає користувач, тут лише розкладаємо ребра по них.
+	function nodeIdAt(pt) {
+		for (const n of nodes) if (pt.x >= n.x - 8 && pt.x <= n.x + n.w + 8 && pt.y >= n.y - 8 && pt.y <= n.y + n.h + 8) return n.id;
+		return null;
+	}
+	function groupOfPoint(pt) {
+		const id = nodeIdAt(pt);
+		if (id) return nodeById(id).group;
+		let best = null, bd = Infinity; // junction (стик) — найближча за центром фігура
+		for (const n of nodes) { const d = (pt.x - (n.x + n.w / 2)) ** 2 + (pt.y - (n.y + n.h / 2)) ** 2; if (d < bd) { bd = d; best = n.group; } }
+		return best;
+	}
+
+	// save — одна вихідна схема НА ГРУПУ. Жодної авто-фрагментації: розкладка строго
+	// за group вузлів. Ребро йде в групу свого кінця.
 	function save() {
-		// Знаходимо зв'язані компоненти
-		const adj = {};
-		for (const n of nodes) adj[n.id] = [];
+		// Робоча копія (стан редактора не чіпаємо). Крос-групове ребро рвемо парою
+		// конекторів: вихід «X» у групі-джерелі, вхід «X» у групі-приймачі.
+		const wn = nodes.map((n) => ({ ...n }));
+		const byId = new Map(wn.map((n) => [n.id, n]));
+		const grpOf = (id, pt) => byId.get(id)?.group ?? groupOfPoint(pt);
+		const used = new Set(wn.filter((n) => n.kind === 'connector').map((n) => n.text));
+		let li = 0;
+		const freshLetter = () => {
+			while (li < ABC.length && used.has(ABC[li])) li++;
+			const c = ABC[li] ?? 'А';
+			used.add(c); li++;
+			return c;
+		};
+		const we = [];
+		let cid = nid;
 		for (const e of edges) {
-			if (e.fromId && e.toId) {
-				adj[e.fromId].push(e.toId);
-				adj[e.toId].push(e.fromId);
-			}
+			const sp = e.points[0], tp = e.points[e.points.length - 1];
+			const gf = grpOf(e.fromId, sp), gt = grpOf(e.toId, tp);
+			if (gf === gt || gf == null || gt == null) { we.push(e); continue; }
+			const letter = freshLetter();
+			const src = byId.get(e.fromId), dst = byId.get(e.toId);
+			const exit = { id: 'c' + cid++, group: gf, kind: 'connector', x: (src ? src.x + src.w / 2 : sp.x) - 23, y: src ? src.y + src.h + 24 : sp.y, w: 46, h: 46, text: letter };
+			const entry = { id: 'c' + cid++, group: gt, kind: 'connector', x: (dst ? dst.x + dst.w / 2 : tp.x) - 23, y: dst ? dst.y - 70 : tp.y - 46, w: 46, h: 46, text: letter };
+			wn.push(exit, entry); byId.set(exit.id, exit); byId.set(entry.id, entry);
+			we.push({ points: src ? portRoute(src, exit) : [sp, { x: exit.x + 23, y: exit.y }], fromId: e.fromId, toId: exit.id, label: e.label, arrowless: e.arrowless });
+			we.push({ points: dst ? portRoute(entry, dst) : [{ x: entry.x + 23, y: entry.y + 46 }, tp], fromId: entry.id, toId: dst.id });
 		}
-		
-		const visited = new Set();
-		const components = [];
-		for (const n of nodes) {
-			if (!visited.has(n.id)) {
-				const compNodes = new Set();
-				const q = [n.id];
-				visited.add(n.id);
-				compNodes.add(n.id);
-				
-				while (q.length) {
-					const cur = q.shift();
-					for (const neighbor of adj[cur] || []) {
-						if (!visited.has(neighbor)) {
-							visited.add(neighbor);
-							compNodes.add(neighbor);
-							q.push(neighbor);
-						}
-					}
-				}
-				components.push(compNodes);
-			}
+		const buckets = new Map();
+		const bucket = (g) => { if (!buckets.has(g)) buckets.set(g, { nodes: [], edges: [] }); return buckets.get(g); };
+		for (const n of wn) bucket(n.group).nodes.push(n);
+		for (const e of we) {
+			const g = byId.get(e.fromId)?.group ?? byId.get(e.toId)?.group ?? grpOf(null, e.points[0]);
+			if (g != null) bucket(g).edges.push(e);
 		}
-
-		// Сортуємо компоненти за позицією X (зліва направо), щоб зберегти порядок частин
-		components.sort((a, b) => {
-			let minXa = Infinity, minXb = Infinity;
-			for (const n of nodes) {
-				if (a.has(n.id)) minXa = Math.min(minXa, n.x);
-				if (b.has(n.id)) minXb = Math.min(minXb, n.x);
-			}
-			return minXa - minXb;
-		});
-
-		const out = components.map(comp => {
-			const compNodes = nodes.filter(n => comp.has(n.id));
-			const compEdges = edges.filter(e => comp.has(e.fromId) && comp.has(e.toId));
-			
+		const out = [...buckets.entries()].filter(([, b]) => b.nodes.length).map(([gid, b]) => {
 			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-			const acc = (x, y) => { 
-				minX = Math.min(minX, x); minY = Math.min(minY, y); 
-				maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); 
-			};
-			for (const n of compNodes) { acc(n.x, n.y); acc(n.x + n.w, n.y + n.h); }
-			for (const e of compEdges) for (const p of e.points) acc(p.x, p.y);
-			
+			const acc = (x, y) => { minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); };
+			for (const n of b.nodes) { acc(n.x, n.y); acc(n.x + n.w, n.y + n.h); }
+			for (const e of b.edges) for (const p of e.points) acc(p.x, p.y);
 			if (!isFinite(minX)) { minX = minY = 0; maxX = maxY = 100; }
 			const dx = MARGIN - minX, dy = MARGIN - minY;
-			
 			return {
-				shapes: compNodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
-				edges: compEdges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
+				_minX: minX,
+				name: groups.find((g) => g.id === gid)?.name || undefined,
+				shapes: b.nodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
+				edges: b.edges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
 				w: maxX - minX + 2 * MARGIN,
 				h: maxY - minY + 2 * MARGIN
 			};
-		});
-
+		}).sort((a, b) => a._minX - b._minX).map(({ _minX, ...rest }) => rest);
 		onsave?.(out.length === 1 ? out[0] : out);
 	}
 
@@ -576,10 +635,13 @@
 				<button onclick={() => addNode(kind, w, h)} class="shrink-0 rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">+ {label}</button>
 			{/each}
 			<div class="mx-1 h-5 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></div>
-			{#if sel?.type === 'node' && nodeById(sel.id)?.kind !== 'connector'}
-				<button onclick={() => splitAt(sel.id)} class="shrink-0 rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розділити</button>
+			{#if selNodes.size > 0}
+				<button onclick={groupSelection} class="shrink-0 rounded border border-emerald-300 px-2 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950">⊞ Окрема схема ({selNodes.size})</button>
 			{/if}
-			<button onclick={delSel} disabled={!sel} class="shrink-0 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
+			{#if selGroups.size > 1}
+				<button onclick={mergeSelection} class="shrink-0 rounded border border-violet-300 px-2 py-1 text-xs font-medium text-violet-700 transition hover:bg-violet-50 dark:border-violet-800 dark:text-violet-400 dark:hover:bg-violet-950">⊟ Об'єднати схеми ({selGroups.size})</button>
+			{/if}
+			<button onclick={delSel} disabled={!sel && selNodes.size === 0} class="shrink-0 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
 			<button onclick={undo} title="Скасувати" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↶</button>
 			<button onclick={redo} title="Повторити" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↷</button>
 		</div>
@@ -608,6 +670,15 @@
 		</defs>
 		<rect width="100%" height="100%" fill="url(#ed-grid)" />
 		<g bind:this={gEl} transform="translate({view.x},{view.y}) scale({view.scale})">
+			<!-- рамки груп (кожна = окрема вихідна схема) -->
+			{#each groupFrames as gf (gf.name + ',' + gf.x)}
+				<rect x={gf.x} y={gf.y} width={gf.w} height={gf.h} rx="12" fill={gf.color} fill-opacity="0.04" stroke={gf.color} stroke-width={1.5 / view.scale} stroke-dasharray="8 5" opacity="0.75" pointer-events="none" />
+				<text x={gf.x + 12} y={gf.y + 17} font-size="13" font-weight="bold" fill={gf.color} pointer-events="none">{gf.name}</text>
+			{/each}
+			<!-- рамка-ласо -->
+			{#if lasso}
+				<rect x={Math.min(lasso.x0, lasso.x1)} y={Math.min(lasso.y0, lasso.y1)} width={Math.abs(lasso.x1 - lasso.x0)} height={Math.abs(lasso.y1 - lasso.y0)} fill="#2563eb" fill-opacity="0.08" stroke="#2563eb" stroke-width={1 / view.scale} stroke-dasharray="5 4" pointer-events="none" />
+			{/if}
 			<!-- ребра -->
 			{#each edges as e (e.id)}
 				<!-- товста невидима «хіт-зона» для зручного кліку -->
@@ -647,17 +718,17 @@
 			{#each nodes as n (n.id)}
 				<g class="cursor-move" onpointerdown={(ev) => nodeDown(ev, n)} ondblclick={() => { remember(); editId = n.id; }} role="presentation">
 					{#if n.kind === 'process' || n.kind === 'subprogram'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 						{#if n.kind === 'subprogram'}
 							<line x1={n.x + 9} y1={n.y} x2={n.x + 9} y2={n.y + n.h} stroke="currentColor" stroke-width="1.5" />
 							<line x1={n.x + n.w - 9} y1={n.y} x2={n.x + n.w - 9} y2={n.y + n.h} stroke="currentColor" stroke-width="1.5" />
 						{/if}
 					{:else if n.kind === 'terminator'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 					{:else if n.kind === 'connector'}
-						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 					{:else}
-						<polygon points={poly(n)} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<polygon points={poly(n)} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 					{/if}
 
 					{#if editId === n.id}
@@ -688,6 +759,6 @@
 	</div>
 
 	<p class="border-t border-slate-200 bg-white px-4 py-1.5 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-900">
-		Тягни фон — рух полотна · колесо — масштаб · клік по стрілці — редагувати її вузли · сині порти — тягни нову стрілку · подвійний клік — текст · ✂ — розділити схему
+		Тягни фон — рух полотна · Shift+тяг — рамка-ласо · Shift+клік — додати у вибір · ⊞ — виділене в окрему схему · ⊟ — об'єднати зачеплені схеми · колесо — масштаб · подвійний клік — текст
 	</p>
 </div>

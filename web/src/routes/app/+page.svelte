@@ -68,6 +68,7 @@
 	let showSettings = $state(false);
 	let sTab = $state('struct'); // struct | text | export
 	let editingFn = $state(null); // схема, відкрита у візуальному редакторі
+	let editingAll = $state(false); // усі схеми на одному полотні (ручне переділення)
 	let fullscreenFn = $state(null); // схема, відкрита на весь екран
 	let mobileTab = $state('code'); // code | schema (для мобільного вигляду)
 	let activeMenu = $state(null); // ID відкритого випадаючого меню (для мобільних)
@@ -121,6 +122,24 @@
 		
 		editingFn = null;
 		mobileTab = 'schema';
+	}
+
+	// Збереження з режиму «всі схеми на одному полотні»: масив схем (одна на групу)
+	// повністю замінює список функцій. Назви беремо з груп, інакше — старі по порядку.
+	function onEditorSaveAll(dOrArray) {
+		trackEvent('edit_diagram_save');
+		const arr = Array.isArray(dOrArray) ? dOrArray : [dOrArray];
+		const base = funcs[0]?.diagram ?? {};
+		funcs = arr.map((d, i) => ({
+			name: d.name || funcs[i]?.name || `Схема ${i + 1}`,
+			caption: funcs[i]?.caption ?? '',
+			figNum: s.figStart + i,
+			diagram: { ...base, shapes: d.shapes, edges: d.edges, w: d.w, h: d.h }
+		}));
+		renumber();
+		editingAll = false;
+		mobileTab = 'schema';
+		showToast(`Збережено: ${funcs.length} схем(и)`);
 	}
 
 	// Налаштування (галочки/списки) -> опції рушія.
@@ -580,6 +599,9 @@
 						</div>
 					</div>
 				</div>
+				{#if funcs.length > 1}
+					<button onclick={() => { vibrate(20); editingAll = true; }} title="Усі схеми на одному полотні — переділити блоки між схемами" class="flex items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50/50 px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/50">✎ Редагувати всі</button>
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -690,6 +712,8 @@
 
 {#if editingFn}
 	<DiagramEditor diagram={editingFn.diagram} onsave={onEditorSave} oncancel={() => (editingFn = null)} />
+{:else if editingAll}
+	<DiagramEditor diagrams={funcs.map((f) => ({ name: f.name, diagram: f.diagram }))} onsave={onEditorSaveAll} oncancel={() => (editingAll = false)} />
 {/if}
 
 {#if fullscreenFn}
