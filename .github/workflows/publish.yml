@@ -1,0 +1,39 @@
+name: Publish rombik-engine to npm
+
+# Запуск: кнопкою (Actions → цей workflow → Run workflow) АБО при публікації GitHub Release.
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # npm provenance — значок «зібрано з цього репо/коміту»
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: esbuild binary
+        run: npm rebuild esbuild
+
+      - name: Tests (rombik-engine)
+        run: npm test --workspace rombik-engine
+
+      # prepublishOnly сам збере dist/. --provenance вимагає id-token: write.
+      - name: Publish to npm
+        run: npm publish --workspace rombik-engine --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
