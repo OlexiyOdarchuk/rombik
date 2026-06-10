@@ -418,7 +418,9 @@
 		remember();
 		const c = toWorld(gEl.ownerSVGElement.getBoundingClientRect().left + 300, gEl.ownerSVGElement.getBoundingClientRect().top + 200);
 		const id = 'n' + nid++;
-		nodes.push({ id, kind, x: c.x, y: c.y, w, h, text: kind === 'connector' ? nextLetter() : 'текст' });
+		// група: від виділеного вузла, інакше остання/перша наявна (щоб блок не «осиротів»)
+		const grp = (sel?.type === 'node' && nodeById(sel.id)?.group) ?? groups[groups.length - 1]?.id ?? 'g0';
+		nodes.push({ id, group: grp, kind, x: c.x, y: c.y, w, h, text: kind === 'connector' ? nextLetter() : 'текст' });
 		nodes = [...nodes];
 		sel = { type: 'node', id };
 		if (kind !== 'connector') editId = id;
@@ -487,6 +489,7 @@
 		const node = nodeById(nodeId);
 		if (!node) return;
 		remember();
+		const origGroup = node.group; // група, з якої виносимо частину-2
 		const letter = nextLetter();
 		// нащадки вперед: додаємо тільки ті блоки, в які можна потрапити ЛИШЕ через цей вузол (strict descendants)
 		const set = new Set([nodeId]);
@@ -519,12 +522,16 @@
 		const offY = 100 - sy; // верх частини-2 ~ під конектором-входом
 		const ox0 = node.x,
 			oy0 = node.y; // ОРИГІНАЛЬНЕ місце блоку (для конектора-виходу)
-		// рухаємо вузли І їхні внутрішні ребра
-		for (const n of nodes) if (set.has(n.id)) ((n.x += offX), (n.y += offY));
+		// переміщена частина → НОВА група (= окрема вихідна схема); конектори її «зшивають»
+		const k = gseq++;
+		const newG = 'g' + k;
+		groups.push({ id: newG, name: '', color: GROUP_COLORS[k % GROUP_COLORS.length] });
+		// рухаємо вузли (і даємо їм нову групу) І їхні внутрішні ребра
+		for (const n of nodes) if (set.has(n.id)) ((n.x += offX), (n.y += offY), (n.group = newG));
 		for (const e of edges) if (set.has(e.fromId) && set.has(e.toId)) for (const p of e.points) ((p.x += offX), (p.y += offY));
-		// конектори: вихід на місці блоку (частина-1), вхід над переміщеним блоком
-		const exit = { id: 'n' + nid++, kind: 'connector', x: ox0 + node.w / 2 - 23, y: oy0, w: 46, h: 46, text: letter };
-		const entry = { id: 'n' + nid++, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y - 92, w: 46, h: 46, text: letter };
+		// конектори: вихід на місці блоку (частина-1, стара група), вхід над переміщеним блоком (нова)
+		const exit = { id: 'n' + nid++, group: origGroup, kind: 'connector', x: ox0 + node.w / 2 - 23, y: oy0, w: 46, h: 46, text: letter };
+		const entry = { id: 'n' + nid++, group: newG, kind: 'connector', x: node.x + node.w / 2 - 23, y: node.y - 92, w: 46, h: 46, text: letter };
 		nodes.push(exit, entry);
 		// межові ребра: вхідні в блок із частини-1 → у конектор-вихід; інші межові — рероут
 		for (const e of edges) {
@@ -542,6 +549,7 @@
 		edges.push({ id: 'e' + eid++, points: p, label: '', lx: p[0].x + 8, ly: p[0].y - 8, arrowless: false, fromId: entry.id, toId: nodeId, manual: false });
 		nodes = [...nodes];
 		edges = [...edges];
+		groups = [...groups];
 		sel = null;
 	}
 
