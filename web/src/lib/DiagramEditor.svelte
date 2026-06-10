@@ -584,7 +584,7 @@
 			const g = groupOfPoint(e.points[0]) ?? groupOfPoint(e.points[e.points.length - 1]);
 			if (g != null) bucket(g).edges.push(e);
 		}
-		const out = [...buckets.values()].filter((b) => b.nodes.length).map((b) => {
+		const out = [...buckets.entries()].filter(([, b]) => b.nodes.length).map(([gid, b]) => {
 			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 			const acc = (x, y) => { minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); };
 			for (const n of b.nodes) { acc(n.x, n.y); acc(n.x + n.w, n.y + n.h); }
@@ -593,6 +593,7 @@
 			const dx = MARGIN - minX, dy = MARGIN - minY;
 			return {
 				_minX: minX,
+				name: groups.find((g) => g.id === gid)?.name || undefined,
 				shapes: b.nodes.map((n) => ({ kind: n.kind, x: n.x + dx, y: n.y + dy, w: n.w, h: n.h, text: n.text })),
 				edges: b.edges.map((e) => ({ points: e.points.map((p) => ({ x: p.x + dx, y: p.y + dy })), label: e.label || undefined, arrowless: e.arrowless || undefined })),
 				w: maxX - minX + 2 * MARGIN,
