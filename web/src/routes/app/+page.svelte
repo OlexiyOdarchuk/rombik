@@ -78,17 +78,64 @@ begin
     writeln('Незадовільно');
 end.`;
 
-	let code = $state(SAMPLE_PYTHON);
-	let language = $state('python'); // 'python' | 'cpp' | 'c' | 'pascal'
-
 	const SAMPLES = { python: SAMPLE_PYTHON, cpp: SAMPLE_CPP, c: SAMPLE_C, pascal: SAMPLE_PASCAL };
-	let lastLanguage = language;
+
+	// --- share-link + автозбереження ---
+	const SAVE_KEY = 'rombik:v1';
+	function bytesToB64(bytes) {
+		let str = '';
+		for (let i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
+		return btoa(str);
+	}
+	function encodeShare(obj) {
+		return bytesToB64(new TextEncoder().encode(JSON.stringify(obj)));
+	}
+	function decodeShare(str) {
+		const bytes = Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+		return JSON.parse(new TextDecoder().decode(bytes));
+	}
+	function loadSaved() {
+		if (typeof window === 'undefined') return null;
+		try {
+			const h = location.hash.match(/[#&]s=([^&]+)/);
+			if (h) {
+				const r = decodeShare(decodeURIComponent(h[1])); // посилання має пріоритет
+				history.replaceState(null, '', location.pathname + location.search); // одноразовий імпорт
+				return r;
+			}
+			const raw = localStorage.getItem(SAVE_KEY);
+			if (raw) return JSON.parse(raw);
+		} catch { /* зіпсований стан — ігноруємо */ }
+		return null;
+	}
+	const saved = loadSaved();
+
+	let code = $state(saved?.code ?? SAMPLE_PYTHON);
+	let language = $state(saved?.language ?? 'python'); // 'python' | 'cpp' | 'c' | 'pascal'
+	let lastLanguage = language; // = language → sample-swap не спрацює на старті
 	$effect(() => {
 		if (language !== lastLanguage) {
 			code = SAMPLES[language] ?? SAMPLE_PYTHON;
 			lastLanguage = language;
 		}
 	});
+
+	// Завантажити код прикладу/посилання, не тригернувши sample-swap.
+	function loadCode(newCode, newLang) {
+		language = newLang;
+		lastLanguage = newLang;
+		code = newCode;
+		activeMenu = null;
+	}
+
+	// Галерея готових прикладів (1 клік → код у редактор).
+	const EXAMPLES = [
+		{ name: 'Сортування бульбашкою', lang: 'python', code: `def bubble_sort(a):\n    n = len(a)\n    for i in range(n):\n        for j in range(n - i - 1):\n            if a[j] > a[j + 1]:\n                a[j], a[j + 1] = a[j + 1], a[j]\n    return a` },
+		{ name: 'Факторіал (рекурсія)', lang: 'python', code: `def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)` },
+		{ name: 'Просте число (C++)', lang: 'cpp', code: `bool isPrime(int n) {\n    if (n < 2) return false;\n    for (int i = 2; i * i <= n; i++) {\n        if (n % i == 0) return false;\n    }\n    return true;\n}` },
+		{ name: 'Сума масиву (C)', lang: 'c', code: `#include <stdio.h>\n\nint sum(int a[], int n) {\n    int s = 0;\n    for (int i = 0; i < n; i++) {\n        s += a[i];\n    }\n    return s;\n}` },
+		{ name: 'НСД, алгоритм Евкліда (Pascal)', lang: 'pascal', code: `program GCD;\nvar a, b, t: integer;\nbegin\n  readln(a, b);\n  while b <> 0 do\n  begin\n    t := b;\n    b := a mod b;\n    a := t;\n  end;\n  writeln(a);\nend.` }
+	];
 	let funcs = $state([]); // [{name, svg, diagram}]
 	let status = $state('Готовий. Натисни «Побудувати».');
 	let busy = $state(false);
@@ -190,8 +237,29 @@ end.`;
 		figStart: 1, // з якого номера нумерувати схеми
 		pngScale: 3, // якість PNG (пікселів на одиницю)
 		typstFragment: false, // Typst лише фрагмент (без преамбули) — для вставки у свій .typ
-		font: "'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif" // шрифт для SVG
+		font: "'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif", // шрифт для SVG
+		...(saved?.settings ?? {}) // відновлені налаштування (автозбереження/посилання)
 	});
+
+	// Автозбереження: код + мова + налаштування → localStorage (лише в браузері).
+	$effect(() => {
+		if (typeof localStorage === 'undefined') return;
+		try {
+			localStorage.setItem(SAVE_KEY, JSON.stringify({ code, language, settings: s }));
+		} catch { /* квота — ігноруємо */ }
+	});
+
+	// Поділитися: код+мова+налаштування в URL (#s=…), копіюємо в буфер.
+	async function shareLink() {
+		const url = `${location.origin}${location.pathname}#s=${encodeURIComponent(encodeShare({ code, language, settings: s }))}`;
+		try {
+			await navigator.clipboard.writeText(url);
+			showToast('Посилання скопійовано — кидай будь-кому');
+		} catch {
+			showToast('Не вдалося скопіювати; URL у рядку адреси', true);
+		}
+		history.replaceState(null, '', url);
+	}
 	// Пресети для швидкого заповнення вільних полів.
 	const BRANCH_PRESETS = [['Так', 'Ні'], ['Yes', 'No'], ['+', '−'], ['И', 'Н']];
 	const IO_PRESETS = [['Ввід', 'Вивід'], ['Введення', 'Виведення'], ['Ввести', 'Вивести']];
@@ -716,7 +784,20 @@ end.`;
 		<!-- code -->
 		<div class="{mobileTab === 'code' ? 'flex' : 'hidden'} lg:flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 			<div class="flex items-center justify-between border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-				<span>Код</span>
+				<div class="flex items-center gap-2">
+					<span>Код</span>
+					<div class="relative normal-case">
+						<button onclick={(e) => { e.stopPropagation(); activeMenu = activeMenu === 'examples' ? null : 'examples'; }} class="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">📋 Приклади ▾</button>
+						{#if activeMenu === 'examples'}
+							<div class="absolute left-0 top-full z-20 mt-1 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800">
+								{#each EXAMPLES as ex (ex.name)}
+									<button onclick={() => loadCode(ex.code, ex.lang)} class="block w-full px-3 py-2 text-left text-xs font-medium text-slate-700 transition hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-slate-700">{ex.name}</button>
+								{/each}
+							</div>
+						{/if}
+					</div>
+					<button onclick={shareLink} title="Скопіювати посилання на цей код+схему" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium normal-case text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">🔗 Поділитися</button>
+				</div>
 				<select bind:value={language} class="cursor-pointer bg-transparent uppercase font-bold text-slate-600 outline-none dark:text-slate-300">
 					<option value="python">Python</option>
 					<option value="cpp">C++</option>
