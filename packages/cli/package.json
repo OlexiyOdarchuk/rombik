@@ -1,6 +1,6 @@
 {
   "name": "rombik",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "CLI: код (Python/C++) → блок-схема алгоритму за ДСТУ 19.701-90 (SVG / Typst / JSON / Excalidraw).",
   "type": "module",
   "license": "MIT",
