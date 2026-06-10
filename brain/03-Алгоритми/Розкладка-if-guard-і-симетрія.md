@@ -4,30 +4,39 @@ tags: [algorithm, layout]
 
 # Розкладка if — guard і симетрія
 
-Як `ir.If` стає ромбом із двома гілками. Метод `placeIf` обирає одну з двох стратегій
-залежно від того, чи порожня якась гілка.
+Як вузол `if` IR стає ромбом із двома гілками. Метод `placeIf`
+(`packages/engine/src/layout/place.ts`) обирає одну з кількох стратегій залежно від
+того, чи порожня якась гілка та чи завершується вона.
 
-## Дві стратегії
+## Стратегії
 
-```go
-thenEmpty := len(n.Then.Stmts) == 0
-elseEmpty := len(n.Else.Stmts) == 0
+```ts
+const thenEmpty = nstmts(n.then) === 0;
+const elseEmpty = nstmts(n.else) === 0;
+const thenEnded = endsBlock(n.then);
+const elseEnded = endsBlock(n.else);
 
-if elseEmpty && !thenEmpty { return b.guard(n.Then, yes, no, +1, ...) } // праворуч
-if thenEmpty && !elseEmpty { return b.guard(n.Else, no, yes, -1, ...) } // ліворуч
+if (elseEmpty && !thenEmpty && !thenEnded) return this.guard(n.then, ...);      // вниз, вбік
+if (thenEmpty && !elseEmpty && !elseEnded) return this.guard(n.else, ...);
+if (elseEmpty && !thenEmpty &&  thenEnded) return this.guardTerm(n.then, ...);  // завершальна дія вбік
+if (thenEmpty && !elseEmpty &&  elseEnded) return this.guardTerm(n.else, ...);
 // інакше — симетрично обидві гілки
 ```
+
+Окремий ранній випадок: `if cond: break` / `if cond: continue` без else — це
+`placeJumpGuard` (лише ребро вбік до точки стрибка, без тіла).
 
 ## Симетрична розкладка (обидві гілки непорожні)
 
 Ромб ставиться по центру `cx`. Гілки розходяться вліво/вправо так, щоб **уся
 конструкція лишалась центрованою**:
 
-```go
-total := tw + hGap + ew              // ширина: ліва + проміжок + права
-thenCx := cx - total/2 + tw/2        // центр лівої гілки
-elseCx := cx + total/2 - ew/2        // центр правої
-mergeY := branchTop + max(th, eh) + mergeGap   // де гілки зливаються
+```ts
+const [tw, th] = this.branchSizeP(n.then);
+const [ew, eh] = this.branchSizeP(n.else);
+const thenCx = cx - Math.max(dw / 2 + 24, tw / 2 + hGap / 2); // центр лівої гілки
+const elseCx = cx + Math.max(dw / 2 + 24, ew / 2 + hGap / 2); // центр правої
+const mergeY = branchTop + Math.max(th, eh) + mergeGap;       // де гілки зливаються
 ```
 
 Кожну гілку малює `branch(...)`:
@@ -35,10 +44,10 @@ mergeY := branchTop + max(th, eh) + mergeGap   // де гілки зливают
 1. Ребро від **кута ромба** (ліво/право-центр) вбік до осі гілки, з підписом «Так»/«Ні».
 2. `placeBlock` тіла гілки.
 3. Якщо гілка не завершилась — ребро вниз до `mergeY` і до центру (з'єднання,
-   `Arrowless`).
+   `arrowless`).
 
-Точка виходу if = `(cx, mergeY)`. `ended` усього if = `thenEnded && elseEnded` (if
-завершує потік, лише якщо **обидві** гілки завершились).
+Точка виходу if = `(cx, mergeY)`. `ended` усього if = `te && ee` (if завершує потік,
+лише якщо **обидві** гілки завершились).
 
 ### Спецвипадок: гілка = один `break`
 
@@ -46,7 +55,7 @@ mergeY := branchTop + max(th, eh) + mergeGap   // де гілки зливают
 це ловить: малює лише ребро до кута, реєструє точку через `recordBreak`, повертає
 `ended=true`. → [[Зведення-виходів-у-Кінець]].
 
-## Guard (одна гілка порожня)
+## Guard (одна гілка порожня, друга НЕ завершується)
 
 `if cond: BODY` **без else** — типовий «вартовий». Малювати його симетрично негарно
 (порожня права гілка лишає дірку). Тому `guard`:
@@ -64,15 +73,23 @@ mergeY := branchTop + max(th, eh) + mergeGap   // де гілки зливают
 
 - **Дія — прямо вниз** по осі `cx` (природний головний шлях), підпис «Так».
 - **Порожня гілка — вбік** (на `bw/2 + hGap`) і вниз до злиття, підпис «Ні»,
-  `Arrowless`. `side=+1` праворуч, `-1` ліворуч.
+  `arrowless`. `side=+1` праворуч, `-1` ліворуч.
 - Guard **завжди** дає продовження (`ended=false`) — порожня гілка ж не завершується.
 
 Це read-краще за симетрію: головна логіка лишається на центральній осі, виняток
 відходить убік.
 
+## guardTerm (одна гілка порожня, друга ЗАВЕРШУЄТЬСЯ)
+
+`if cond: BODY` де `BODY` закінчується `return/raise/exit/break` (наприклад
+ранній-вихід-вартовий). Тут навпаки: **продовження йде прямо вниз** по `cx`, а
+завершальну гілку `guardTerm` виносить **вбік** (`actCx = cx ± max(dw/2+24, bw/2+hGap/2)`)
+і ставить її там окремою колонкою. Так головна вісь лишається для нормального потоку,
+а завершальний виняток не штовхає його вбік.
+
 ## Чому порожня гілка не резервує ширину
 
-`branchSize` повертає `(0,0)` для порожньої гілки ([[Розкладка-рекурсією-size-і-place]]).
+`branchSize` повертає `[0, 0]` для порожньої гілки ([[Розкладка-рекурсією-size-і-place]]).
 Без цього порожня гілка штовхала б непорожню вбік від осі. Завдяки нулю — guard ставить
 дію точно по центру.
 
@@ -81,3 +98,4 @@ mergeY := branchTop + max(th, eh) + mergeGap   // де гілки зливают
 - [[Layout-рушій-розкладки]]
 - [[Розкладка-рекурсією-size-і-place]]
 - [[Зведення-виходів-у-Кінець]]
+</content>

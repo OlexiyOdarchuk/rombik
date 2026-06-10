@@ -11,3 +11,15 @@ out.png
 # WASM-артефакти
 *.wasm
 !web/static/tree-sitter*.wasm
+
+# Node / workspace
+node_modules/
+*.local
+
+# Локальні чернетки
+main.py
+main.svg
+out_*.svg
+
+# Зібраний standalone CLI
+dist/

@@ -1,0 +1,908 @@
+{
+ "file": "toxic.py",
+ "lang": "python",
+ "options": {},
+ "astJSON": [
+  {
+   "name": "toxic_routing_test",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "io",
+      "text": "Ввід matrix"
+     },
+     {
+      "kind": "process",
+      "text": "result = 0"
+     },
+     {
+      "kind": "for",
+      "cond": "row ∈ matrix",
+      "body": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "if",
+         "cond": "not row",
+         "then": {
+          "kind": "block",
+          "stmts": [
+           {
+            "kind": "continue"
+           }
+          ]
+         },
+         "else": {
+          "kind": "block",
+          "stmts": []
+         }
+        },
+        {
+         "kind": "for",
+         "cond": "val ∈ row",
+         "body": {
+          "kind": "block",
+          "stmts": [
+           {
+            "kind": "if",
+            "cond": "val < 0",
+            "then": {
+             "kind": "block",
+             "stmts": [
+              {
+               "kind": "break"
+              }
+             ]
+            },
+            "else": {
+             "kind": "block",
+             "stmts": []
+            }
+           },
+           {
+            "kind": "if",
+            "cond": "val == 999",
+            "then": {
+             "kind": "block",
+             "stmts": [
+              {
+               "kind": "terminal",
+               "text": "Повернути -1"
+              }
+             ]
+            },
+            "else": {
+             "kind": "block",
+             "stmts": []
+            }
+           },
+           {
+            "kind": "if",
+            "cond": "val % 2 == 0",
+            "then": {
+             "kind": "block",
+             "stmts": [
+              {
+               "kind": "process",
+               "text": "result += val"
+              }
+             ]
+            },
+            "else": {
+             "kind": "block",
+             "stmts": [
+              {
+               "kind": "while",
+               "cond": "val > 0",
+               "body": {
+                "kind": "block",
+                "stmts": [
+                 {
+                  "kind": "process",
+                  "text": "val -= 1"
+                 },
+                 {
+                  "kind": "if",
+                  "cond": "val == 5",
+                  "then": {
+                   "kind": "block",
+                   "stmts": [
+                    {
+                     "kind": "continue"
+                    }
+                   ]
+                  },
+                  "else": {
+                   "kind": "block",
+                   "stmts": []
+                  }
+                 },
+                 {
+                  "kind": "if",
+                  "cond": "result > 100",
+                  "then": {
+                   "kind": "block",
+                   "stmts": [
+                    {
+                     "kind": "break"
+                    }
+                   ]
+                  },
+                  "else": {
+                   "kind": "block",
+                   "stmts": []
+                  }
+                 }
+                ]
+               },
+               "else": {
+                "kind": "block",
+                "stmts": []
+               }
+              }
+             ]
+            }
+           }
+          ]
+         },
+         "else": {
+          "kind": "block",
+          "stmts": [
+           {
+            "kind": "process",
+            "text": "result += 1000"
+           },
+           {
+            "kind": "continue"
+           }
+          ]
+         }
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути result"
+     }
+    ]
+   }
+  }
+ ],
+ "functions": [
+  {
+   "name": "toxic_routing_test",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 229.25,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "io",
+      "x": 229.25,
+      "y": 130,
+      "w": 130,
+      "h": 46,
+      "text": "Ввід matrix"
+     },
+     {
+      "kind": "process",
+      "x": 229.25,
+      "y": 220,
+      "w": 130,
+      "h": 46,
+      "text": "result = 0"
+     },
+     {
+      "kind": "loop",
+      "x": 204.25,
+      "y": 310,
+      "w": 180,
+      "h": 50,
+      "text": "row ∈ matrix"
+     },
+     {
+      "kind": "decision",
+      "x": 219.25,
+      "y": 404,
+      "w": 150,
+      "h": 76,
+      "text": "not row"
+     },
+     {
+      "kind": "loop",
+      "x": 204.25,
+      "y": 524,
+      "w": 180,
+      "h": 50,
+      "text": "val ∈ row"
+     },
+     {
+      "kind": "decision",
+      "x": 219.25,
+      "y": 618,
+      "w": 150,
+      "h": 76,
+      "text": "val < 0"
+     },
+     {
+      "kind": "decision",
+      "x": 219.25,
+      "y": 738,
+      "w": 150,
+      "h": 76,
+      "text": "val == 999"
+     },
+     {
+      "kind": "process",
+      "x": 328.25,
+      "y": 862,
+      "w": 130,
+      "h": 46,
+      "text": "Повернути -1"
+     },
+     {
+      "kind": "terminator",
+      "x": 328.25,
+      "y": 952,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "decision",
+      "x": 213.25,
+      "y": 1082,
+      "w": 162,
+      "h": 76,
+      "text": "val % 2 == 0"
+     },
+     {
+      "kind": "process",
+      "x": 120,
+      "y": 1206,
+      "w": 138.5,
+      "h": 46,
+      "text": "result += val"
+     },
+     {
+      "kind": "decision",
+      "x": 366.25,
+      "y": 1206,
+      "w": 150,
+      "h": 76,
+      "text": "val > 0"
+     },
+     {
+      "kind": "process",
+      "x": 376.25,
+      "y": 1326,
+      "w": 130,
+      "h": 46,
+      "text": "val -= 1"
+     },
+     {
+      "kind": "decision",
+      "x": 366.25,
+      "y": 1416,
+      "w": 150,
+      "h": 76,
+      "text": "val == 5"
+     },
+     {
+      "kind": "decision",
+      "x": 360.25,
+      "y": 1536,
+      "w": 162,
+      "h": 76,
+      "text": "result > 100"
+     },
+     {
+      "kind": "process",
+      "x": 220.75,
+      "y": 1972,
+      "w": 147,
+      "h": 46,
+      "text": "result += 1000"
+     },
+     {
+      "kind": "process",
+      "x": 212.25,
+      "y": 2106,
+      "w": 164,
+      "h": 46,
+      "text": "Повернути result"
+     },
+     {
+      "kind": "terminator",
+      "x": 229.25,
+      "y": 2196,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 86
+       },
+       {
+        "x": 294.25,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 176
+       },
+       {
+        "x": 294.25,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 266
+       },
+       {
+        "x": 294.25,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 360
+       },
+       {
+        "x": 294.25,
+        "y": 404
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 369.25,
+        "y": 442
+       },
+       {
+        "x": 425.25,
+        "y": 442
+       }
+      ],
+      "label": "Так",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 480
+       },
+       {
+        "x": 294.25,
+        "y": 524
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 574
+       },
+       {
+        "x": 294.25,
+        "y": 618
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 219.25,
+        "y": 656
+       },
+       {
+        "x": 163.25,
+        "y": 656
+       }
+      ],
+      "label": "Так",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 694
+       },
+       {
+        "x": 294.25,
+        "y": 738
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 369.25,
+        "y": 776
+       },
+       {
+        "x": 393.25,
+        "y": 776
+       },
+       {
+        "x": 393.25,
+        "y": 862
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 393.25,
+        "y": 908
+       },
+       {
+        "x": 393.25,
+        "y": 952
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 814
+       },
+       {
+        "x": 294.25,
+        "y": 1038
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 1038
+       },
+       {
+        "x": 294.25,
+        "y": 1082
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 213.25,
+        "y": 1120
+       },
+       {
+        "x": 189.25,
+        "y": 1120
+       },
+       {
+        "x": 189.25,
+        "y": 1206
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 189.25,
+        "y": 1252
+       },
+       {
+        "x": 189.25,
+        "y": 1884
+       },
+       {
+        "x": 294.25,
+        "y": 1884
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 375.25,
+        "y": 1120
+       },
+       {
+        "x": 441.25,
+        "y": 1120
+       },
+       {
+        "x": 441.25,
+        "y": 1206
+       }
+      ],
+      "label": "Ні"
+     },
+     {
+      "points": [
+       {
+        "x": 441.25,
+        "y": 1282
+       },
+       {
+        "x": 441.25,
+        "y": 1326
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 441.25,
+        "y": 1372
+       },
+       {
+        "x": 441.25,
+        "y": 1416
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 516.25,
+        "y": 1454
+       },
+       {
+        "x": 572.25,
+        "y": 1454
+       }
+      ],
+      "label": "Так",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 441.25,
+        "y": 1492
+       },
+       {
+        "x": 441.25,
+        "y": 1536
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 441.25,
+        "y": 1612
+       },
+       {
+        "x": 441.25,
+        "y": 1660
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 522.25,
+        "y": 1574
+       },
+       {
+        "x": 610.25,
+        "y": 1574
+       },
+       {
+        "x": 610.25,
+        "y": 1244
+       },
+       {
+        "x": 516.25,
+        "y": 1244
+       }
+      ],
+      "label": "Ні"
+     },
+     {
+      "points": [
+       {
+        "x": 366.25,
+        "y": 1244
+       },
+       {
+        "x": 322.25,
+        "y": 1244
+       },
+       {
+        "x": 322.25,
+        "y": 1928
+       },
+       {
+        "x": 441.25,
+        "y": 1928
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 572.25,
+        "y": 1454
+       },
+       {
+        "x": 572.25,
+        "y": 1901.6
+       },
+       {
+        "x": 610.25,
+        "y": 1901.6
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 441.25,
+        "y": 1660
+       },
+       {
+        "x": 441.25,
+        "y": 1928
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 441.25,
+        "y": 1928
+       },
+       {
+        "x": 441.25,
+        "y": 1884
+       },
+       {
+        "x": 294.25,
+        "y": 1884
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 1884
+       },
+       {
+        "x": 294.25,
+        "y": 1906
+       },
+       {
+        "x": 648.25,
+        "y": 1906
+       },
+       {
+        "x": 648.25,
+        "y": 549
+       },
+       {
+        "x": 384.25,
+        "y": 549
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 204.25,
+        "y": 549
+       },
+       {
+        "x": 82,
+        "y": 549
+       },
+       {
+        "x": 82,
+        "y": 1928
+       },
+       {
+        "x": 294.25,
+        "y": 1928
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 1928
+       },
+       {
+        "x": 294.25,
+        "y": 1972
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 163.25,
+        "y": 656
+       },
+       {
+        "x": 163.25,
+        "y": 2018
+       },
+       {
+        "x": 294.25,
+        "y": 2018
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 425.25,
+        "y": 442
+       },
+       {
+        "x": 425.25,
+        "y": 2035.6
+       },
+       {
+        "x": 686.25,
+        "y": 2035.6
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 2018
+       },
+       {
+        "x": 294.25,
+        "y": 2041.6
+       },
+       {
+        "x": 686.25,
+        "y": 2041.6
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 2018
+       },
+       {
+        "x": 294.25,
+        "y": 2040
+       },
+       {
+        "x": 686.25,
+        "y": 2040
+       },
+       {
+        "x": 686.25,
+        "y": 335
+       },
+       {
+        "x": 384.25,
+        "y": 335
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 204.25,
+        "y": 335
+       },
+       {
+        "x": 44,
+        "y": 335
+       },
+       {
+        "x": 44,
+        "y": 2062
+       },
+       {
+        "x": 294.25,
+        "y": 2062
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 2062
+       },
+       {
+        "x": 294.25,
+        "y": 2106
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 294.25,
+        "y": 2152
+       },
+       {
+        "x": 294.25,
+        "y": 2196
+       }
+      ]
+     }
+    ],
+    "w": 730.25,
+    "h": 2282,
+    "caption": "toxic_routing_test",
+    "figNum": 1
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"730\" height=\"2312\" viewBox=\"0 0 730 2312\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M294.2 86.0 L294.2 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 176.0 L294.2 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 266.0 L294.2 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 360.0 L294.2 404.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M369.2 442.0 L425.2 442.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"397.2\" y=\"433.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M294.2 480.0 L294.2 524.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 574.0 L294.2 618.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M219.2 656.0 L163.2 656.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"191.2\" y=\"647.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M294.2 694.0 L294.2 738.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M369.2 776.0 L393.2 776.0 L393.2 862.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"381.2\" y=\"767.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M393.2 908.0 L393.2 952.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 814.0 L294.2 1038.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"304.2\" y=\"926.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M294.2 1038.0 L294.2 1082.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M213.2 1120.0 L189.2 1120.0 L189.2 1206.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"201.2\" y=\"1111.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M189.2 1252.0 L189.2 1884.0 L294.2 1884.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M375.2 1120.0 L441.2 1120.0 L441.2 1206.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"408.2\" y=\"1111.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M441.2 1282.0 L441.2 1326.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"451.2\" y=\"1304.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M441.2 1372.0 L441.2 1416.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M516.2 1454.0 L572.2 1454.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"544.2\" y=\"1445.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M441.2 1492.0 L441.2 1536.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M441.2 1612.0 L441.2 1660.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"451.2\" y=\"1636.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M522.2 1574.0 L610.2 1574.0 L610.2 1244.0 L516.2 1244.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"556.2\" y=\"1565.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M366.2 1244.0 L322.2 1244.0 L322.2 1928.0 L441.2 1928.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"344.2\" y=\"1235.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M572.2 1454.0 L572.2 1901.6 L610.2 1901.6\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M441.2 1660.0 L441.2 1928.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M441.2 1928.0 L441.2 1884.0 L294.2 1884.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 1884.0 L294.2 1906.0 L648.2 1906.0 L648.2 549.0 L384.2 549.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M204.2 549.0 L82.0 549.0 L82.0 1928.0 L294.2 1928.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 1928.0 L294.2 1972.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M163.2 656.0 L163.2 2018.0 L294.2 2018.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M425.2 442.0 L425.2 2035.6 L686.2 2035.6\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 2018.0 L294.2 2041.6 L686.2 2041.6\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 2018.0 L294.2 2040.0 L686.2 2040.0 L686.2 335.0 L384.2 335.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M204.2 335.0 L44.0 335.0 L44.0 2062.0 L294.2 2062.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 2062.0 L294.2 2106.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 2152.0 L294.2 2196.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"229.2\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"247.7,130.0 359.2,130.0 340.9,176.0 229.2,176.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Ввід matrix</text><rect x=\"229.2\" y=\"220.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result = 0</text><polygon points=\"229.2,310.0 359.2,310.0 384.2,335.0 359.2,360.0 229.2,360.0 204.2,335.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"335.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">row ∈ matrix</text><polygon points=\"294.2,404.0 369.2,442.0 294.2,480.0 219.2,442.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"442.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">not row</text><polygon points=\"229.2,524.0 359.2,524.0 384.2,549.0 359.2,574.0 229.2,574.0 204.2,549.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"549.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val ∈ row</text><polygon points=\"294.2,618.0 369.2,656.0 294.2,694.0 219.2,656.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"656.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val &lt; 0</text><polygon points=\"294.2,738.0 369.2,776.0 294.2,814.0 219.2,776.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"776.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val == 999</text><rect x=\"328.2\" y=\"862.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"393.2\" y=\"885.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути -1</text><rect x=\"328.2\" y=\"952.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"393.2\" y=\"973.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><polygon points=\"294.2,1082.0 375.2,1120.0 294.2,1158.0 213.2,1120.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"1120.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val % 2 == 0</text><rect x=\"120.0\" y=\"1206.0\" width=\"138.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"189.2\" y=\"1229.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result += val</text><polygon points=\"441.2,1206.0 516.2,1244.0 441.2,1282.0 366.2,1244.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1244.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val &gt; 0</text><rect x=\"376.2\" y=\"1326.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1349.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val -= 1</text><polygon points=\"441.2,1416.0 516.2,1454.0 441.2,1492.0 366.2,1454.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1454.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val == 5</text><polygon points=\"441.2,1536.0 522.2,1574.0 441.2,1612.0 360.2,1574.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1574.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result &gt; 100</text><rect x=\"220.8\" y=\"1972.0\" width=\"147.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"1995.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result += 1000</text><rect x=\"212.2\" y=\"2106.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"2129.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути result</text><rect x=\"229.2\" y=\"2196.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"2217.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"365.1\" y=\"2300.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 1 — toxic_routing_test</text></svg>",
+   "typst": "#import \"@preview/cetz:0.3.4\"\n#set page(width: auto, height: auto, margin: 14pt)\n#set text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), )\n#set figure.caption(separator: [ — ])\n#let flowchart(body, caption: none) = figure(\n  body, caption: caption, supplement: [Рисунок], kind: \"flowchart\", numbering: \"1\",\n)\n#flowchart(caption: [#\"toxic_routing_test\"])[\n#cetz.canvas(length: 1pt, {\n  import cetz.draw: *\n  set-style(stroke: 1.5pt, fill: none)\n  line((294.2, 2196.0), (294.2, 2152.0), mark: (end: \">\"))\n  line((294.2, 2106.0), (294.2, 2062.0), mark: (end: \">\"))\n  line((294.2, 2016.0), (294.2, 1972.0), mark: (end: \">\"))\n  line((294.2, 1922.0), (294.2, 1878.0), mark: (end: \">\"))\n  line((369.2, 1840.0), (425.2, 1840.0))\n  content((397.2, 1849.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Так\"], anchor: \"center\")\n  line((294.2, 1802.0), (294.2, 1758.0), mark: (end: \">\"))\n  line((294.2, 1708.0), (294.2, 1664.0), mark: (end: \">\"))\n  line((219.2, 1626.0), (163.2, 1626.0))\n  content((191.2, 1635.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Так\"], anchor: \"center\")\n  line((294.2, 1588.0), (294.2, 1544.0), mark: (end: \">\"))\n  line((369.2, 1506.0), (393.2, 1506.0), (393.2, 1420.0), mark: (end: \">\"))\n  content((381.2, 1515.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Так\"], anchor: \"center\")\n  line((393.2, 1374.0), (393.2, 1330.0), mark: (end: \">\"))\n  line((294.2, 1468.0), (294.2, 1244.0))\n  content((304.2, 1356.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Ні\"], anchor: \"west\")\n  line((294.2, 1244.0), (294.2, 1200.0), mark: (end: \">\"))\n  line((213.2, 1162.0), (189.2, 1162.0), (189.2, 1076.0), mark: (end: \">\"))\n  content((201.2, 1171.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Так\"], anchor: \"center\")\n  line((189.2, 1030.0), (189.2, 398.0), (294.2, 398.0))\n  line((375.2, 1162.0), (441.2, 1162.0), (441.2, 1076.0), mark: (end: \">\"))\n  content((408.2, 1171.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Ні\"], anchor: \"center\")\n  line((441.2, 1000.0), (441.2, 956.0), mark: (end: \">\"))\n  content((451.2, 978.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Так\"], anchor: \"west\")\n  line((441.2, 910.0), (441.2, 866.0), mark: (end: \">\"))\n  line((516.2, 828.0), (572.2, 828.0))\n  content((544.2, 837.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Так\"], anchor: \"center\")\n  line((441.2, 790.0), (441.2, 746.0), mark: (end: \">\"))\n  line((441.2, 670.0), (441.2, 622.0), mark: (end: \">\"))\n  content((451.2, 646.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Так\"], anchor: \"west\")\n  line((522.2, 708.0), (610.2, 708.0), (610.2, 1038.0), (516.2, 1038.0), mark: (end: \">\"))\n  content((556.2, 717.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Ні\"], anchor: \"center\")\n  line((366.2, 1038.0), (322.2, 1038.0), (322.2, 354.0), (441.2, 354.0))\n  content((344.2, 1047.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 12pt)[#\"Ні\"], anchor: \"center\")\n  line((572.2, 828.0), (572.2, 380.4), (610.2, 380.4))\n  line((441.2, 622.0), (441.2, 354.0), mark: (end: \">\"))\n  line((441.2, 354.0), (441.2, 398.0), (294.2, 398.0))\n  line((294.2, 398.0), (294.2, 376.0), (648.2, 376.0), (648.2, 1733.0), (384.2, 1733.0), mark: (end: \">\"))\n  line((204.2, 1733.0), (82.0, 1733.0), (82.0, 354.0), (294.2, 354.0))\n  line((294.2, 354.0), (294.2, 310.0), mark: (end: \">\"))\n  line((163.2, 1626.0), (163.2, 264.0), (294.2, 264.0), mark: (end: \">\"))\n  line((425.2, 1840.0), (425.2, 246.4), (686.2, 246.4))\n  line((294.2, 264.0), (294.2, 240.4), (686.2, 240.4))\n  line((294.2, 264.0), (294.2, 242.0), (686.2, 242.0), (686.2, 1947.0), (384.2, 1947.0), mark: (end: \">\"))\n  line((204.2, 1947.0), (44.0, 1947.0), (44.0, 220.0), (294.2, 220.0))\n  line((294.2, 220.0), (294.2, 176.0), mark: (end: \">\"))\n  line((294.2, 130.0), (294.2, 86.0), mark: (end: \">\"))\n  rect((229.2, 2196.0), (359.2, 2238.0), radius: 21.0, fill: white)\n  content((294.2, 2217.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"Початок\"])\n  line((247.7, 2152.0), (359.2, 2152.0), (340.9, 2106.0), (229.2, 2106.0), close: true, fill: white)\n  content((294.2, 2129.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"Ввід matrix\"])\n  rect((229.2, 2016.0), (359.2, 2062.0), fill: white)\n  content((294.2, 2039.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"result = 0\"])\n  line((229.2, 1972.0), (359.2, 1972.0), (384.2, 1947.0), (359.2, 1922.0), (229.2, 1922.0), (204.2, 1947.0), close: true, fill: white)\n  content((294.2, 1947.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"row ∈ matrix\"])\n  line((294.2, 1878.0), (369.2, 1840.0), (294.2, 1802.0), (219.2, 1840.0), close: true, fill: white)\n  content((294.2, 1840.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"not row\"])\n  line((229.2, 1758.0), (359.2, 1758.0), (384.2, 1733.0), (359.2, 1708.0), (229.2, 1708.0), (204.2, 1733.0), close: true, fill: white)\n  content((294.2, 1733.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"val ∈ row\"])\n  line((294.2, 1664.0), (369.2, 1626.0), (294.2, 1588.0), (219.2, 1626.0), close: true, fill: white)\n  content((294.2, 1626.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"val < 0\"])\n  line((294.2, 1544.0), (369.2, 1506.0), (294.2, 1468.0), (219.2, 1506.0), close: true, fill: white)\n  content((294.2, 1506.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"val == 999\"])\n  rect((328.2, 1374.0), (458.2, 1420.0), fill: white)\n  content((393.2, 1397.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"Повернути -1\"])\n  rect((328.2, 1288.0), (458.2, 1330.0), radius: 21.0, fill: white)\n  content((393.2, 1309.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"Кінець\"])\n  line((294.2, 1200.0), (375.2, 1162.0), (294.2, 1124.0), (213.2, 1162.0), close: true, fill: white)\n  content((294.2, 1162.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"val % 2 == 0\"])\n  rect((120.0, 1030.0), (258.5, 1076.0), fill: white)\n  content((189.2, 1053.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"result += val\"])\n  line((441.2, 1076.0), (516.2, 1038.0), (441.2, 1000.0), (366.2, 1038.0), close: true, fill: white)\n  content((441.2, 1038.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"val > 0\"])\n  rect((376.2, 910.0), (506.2, 956.0), fill: white)\n  content((441.2, 933.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"val -= 1\"])\n  line((441.2, 866.0), (516.2, 828.0), (441.2, 790.0), (366.2, 828.0), close: true, fill: white)\n  content((441.2, 828.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"val == 5\"])\n  line((441.2, 746.0), (522.2, 708.0), (441.2, 670.0), (360.2, 708.0), close: true, fill: white)\n  content((441.2, 708.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"result > 100\"])\n  rect((220.8, 264.0), (367.8, 310.0), fill: white)\n  content((294.2, 287.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"result += 1000\"])\n  rect((212.2, 130.0), (376.2, 176.0), fill: white)\n  content((294.2, 153.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"Повернути result\"])\n  rect((229.2, 44.0), (359.2, 86.0), radius: 21.0, fill: white)\n  content((294.2, 65.0), text(font: (\"Times New Roman\", \"Liberation Serif\", \"DejaVu Serif\"), size: 14pt)[#\"Кінець\"])\n})\n]\n",
+   "excalidraw": "{\n  \"appState\": {\n    \"gridSize\": null,\n    \"viewBackgroundColor\": \"#ffffff\"\n  },\n  \"elements\": [\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r1\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 0,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 0,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 86\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r2\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 100003,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 100003,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 176\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r3\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 200006,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 200006,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 266\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r4\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 300009,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 300009,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 360\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 0,\n      \"id\": \"r5\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          56,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 400012,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 400012,\n      \"width\": 56,\n      \"x\": 369.25,\n      \"y\": 442\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r6\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Так\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 500015,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Так\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 500015,\n      \"verticalAlign\": \"middle\",\n      \"width\": 29.1,\n      \"x\": 382.7,\n      \"y\": 424.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r7\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 600018,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 600018,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 480\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r8\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 700021,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 700021,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 574\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 0,\n      \"id\": \"r9\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          56,\n          0\n        ],\n        [\n          0,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 800024,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 800024,\n      \"width\": 56,\n      \"x\": 163.25,\n      \"y\": 656\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r10\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Так\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 900027,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Так\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 900027,\n      \"verticalAlign\": \"middle\",\n      \"width\": 29.1,\n      \"x\": 176.7,\n      \"y\": 638.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r11\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1000030,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1000030,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 694\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 86,\n      \"id\": \"r12\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          24,\n          0\n        ],\n        [\n          24,\n          86\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1100033,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1100033,\n      \"width\": 24,\n      \"x\": 369.25,\n      \"y\": 776\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r13\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Так\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1200036,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Так\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1200036,\n      \"verticalAlign\": \"middle\",\n      \"width\": 29.1,\n      \"x\": 366.7,\n      \"y\": 758.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r14\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1300039,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1300039,\n      \"width\": 0,\n      \"x\": 393.25,\n      \"y\": 908\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 224,\n      \"id\": \"r15\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          224\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1400042,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1400042,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 814\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r16\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Ні\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1500045,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Ні\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1500045,\n      \"verticalAlign\": \"middle\",\n      \"width\": 21.400000000000002,\n      \"x\": 293.55,\n      \"y\": 917.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r17\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1600048,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1600048,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 1038\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 86,\n      \"id\": \"r18\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          24,\n          0\n        ],\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          86\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1700051,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1700051,\n      \"width\": 24,\n      \"x\": 189.25,\n      \"y\": 1120\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r19\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Так\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1800054,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Так\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1800054,\n      \"verticalAlign\": \"middle\",\n      \"width\": 29.1,\n      \"x\": 186.7,\n      \"y\": 1102.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 632,\n      \"id\": \"r20\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          632\n        ],\n        [\n          105,\n          632\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 1900057,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 1900057,\n      \"width\": 105,\n      \"x\": 189.25,\n      \"y\": 1252\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 86,\n      \"id\": \"r21\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          66,\n          0\n        ],\n        [\n          66,\n          86\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2000060,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2000060,\n      \"width\": 66,\n      \"x\": 375.25,\n      \"y\": 1120\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r22\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Ні\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2100063,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Ні\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2100063,\n      \"verticalAlign\": \"middle\",\n      \"width\": 21.400000000000002,\n      \"x\": 397.55,\n      \"y\": 1102.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r23\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2200066,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2200066,\n      \"width\": 0,\n      \"x\": 441.25,\n      \"y\": 1282\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r24\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Так\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2300069,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Так\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2300069,\n      \"verticalAlign\": \"middle\",\n      \"width\": 29.1,\n      \"x\": 436.7,\n      \"y\": 1295.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r25\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2400072,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2400072,\n      \"width\": 0,\n      \"x\": 441.25,\n      \"y\": 1372\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 0,\n      \"id\": \"r26\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          56,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2500075,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2500075,\n      \"width\": 56,\n      \"x\": 516.25,\n      \"y\": 1454\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r27\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Так\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2600078,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Так\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2600078,\n      \"verticalAlign\": \"middle\",\n      \"width\": 29.1,\n      \"x\": 529.7,\n      \"y\": 1436.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r28\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2700081,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2700081,\n      \"width\": 0,\n      \"x\": 441.25,\n      \"y\": 1492\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 48,\n      \"id\": \"r29\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          48\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2800084,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2800084,\n      \"width\": 0,\n      \"x\": 441.25,\n      \"y\": 1612\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r30\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Так\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 2900087,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Так\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 2900087,\n      \"verticalAlign\": \"middle\",\n      \"width\": 29.1,\n      \"x\": 436.7,\n      \"y\": 1627.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 330,\n      \"id\": \"r31\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          6,\n          330\n        ],\n        [\n          94,\n          330\n        ],\n        [\n          94,\n          0\n        ],\n        [\n          0,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3000090,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3000090,\n      \"width\": 94,\n      \"x\": 516.25,\n      \"y\": 1244\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r32\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Ні\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3100093,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Ні\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3100093,\n      \"verticalAlign\": \"middle\",\n      \"width\": 21.400000000000002,\n      \"x\": 545.55,\n      \"y\": 1556.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 684,\n      \"id\": \"r33\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          44,\n          0\n        ],\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          684\n        ],\n        [\n          119,\n          684\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3200096,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3200096,\n      \"width\": 119,\n      \"x\": 322.25,\n      \"y\": 1244\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 14,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 17.5,\n      \"id\": \"r34\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Ні\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3300099,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Ні\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3300099,\n      \"verticalAlign\": \"middle\",\n      \"width\": 21.400000000000002,\n      \"x\": 333.55,\n      \"y\": 1226.25\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 447.5999999999999,\n      \"id\": \"r35\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          447.5999999999999\n        ],\n        [\n          38,\n          447.5999999999999\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3400102,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3400102,\n      \"width\": 38,\n      \"x\": 572.25,\n      \"y\": 1454\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 268,\n      \"id\": \"r36\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          268\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3500105,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3500105,\n      \"width\": 0,\n      \"x\": 441.25,\n      \"y\": 1660\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r37\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          147,\n          44\n        ],\n        [\n          147,\n          0\n        ],\n        [\n          0,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3600108,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3600108,\n      \"width\": 147,\n      \"x\": 294.25,\n      \"y\": 1884\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 1357,\n      \"id\": \"r38\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          1335\n        ],\n        [\n          0,\n          1357\n        ],\n        [\n          354,\n          1357\n        ],\n        [\n          354,\n          0\n        ],\n        [\n          90,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3700111,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3700111,\n      \"width\": 354,\n      \"x\": 294.25,\n      \"y\": 549\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 1379,\n      \"id\": \"r39\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          122.25,\n          0\n        ],\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          1379\n        ],\n        [\n          212.25,\n          1379\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3800114,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3800114,\n      \"width\": 212.25,\n      \"x\": 82,\n      \"y\": 549\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r40\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 3900117,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 3900117,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 1928\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 1362,\n      \"id\": \"r41\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          1362\n        ],\n        [\n          131,\n          1362\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4000120,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4000120,\n      \"width\": 131,\n      \"x\": 163.25,\n      \"y\": 656\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 1593.6,\n      \"id\": \"r42\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          1593.6\n        ],\n        [\n          261,\n          1593.6\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4100123,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4100123,\n      \"width\": 261,\n      \"x\": 425.25,\n      \"y\": 442\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 23.59999999999991,\n      \"id\": \"r43\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          23.59999999999991\n        ],\n        [\n          392,\n          23.59999999999991\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4200126,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4200126,\n      \"width\": 392,\n      \"x\": 294.25,\n      \"y\": 2018\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 1705,\n      \"id\": \"r44\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          1683\n        ],\n        [\n          0,\n          1705\n        ],\n        [\n          392,\n          1705\n        ],\n        [\n          392,\n          0\n        ],\n        [\n          90,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4300129,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4300129,\n      \"width\": 392,\n      \"x\": 294.25,\n      \"y\": 335\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": null,\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 1727,\n      \"id\": \"r45\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          160.25,\n          0\n        ],\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          1727\n        ],\n        [\n          250.25,\n          1727\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4400132,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4400132,\n      \"width\": 250.25,\n      \"x\": 44,\n      \"y\": 335\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r46\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4500135,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4500135,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 2062\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"endArrowhead\": \"arrow\",\n      \"endBinding\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 44,\n      \"id\": \"r47\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          0,\n          0\n        ],\n        [\n          0,\n          44\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4600138,\n      \"startArrowhead\": null,\n      \"startBinding\": null,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"arrow\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4600138,\n      \"width\": 0,\n      \"x\": 294.25,\n      \"y\": 2152\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g47\"\n      ],\n      \"height\": 42,\n      \"id\": \"r48\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": {\n        \"type\": 3\n      },\n      \"seed\": 4700141,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4700141,\n      \"width\": 130,\n      \"x\": 229.25,\n      \"y\": 44\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g47\"\n      ],\n      \"height\": 20,\n      \"id\": \"r49\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Початок\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4800144,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Початок\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4800144,\n      \"verticalAlign\": \"middle\",\n      \"width\": 67.60000000000001,\n      \"x\": 260.45,\n      \"y\": 55\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g49\"\n      ],\n      \"height\": 46,\n      \"id\": \"r50\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          18.400000000000002,\n          0\n        ],\n        [\n          130,\n          0\n        ],\n        [\n          111.6,\n          46\n        ],\n        [\n          0,\n          46\n        ],\n        [\n          18.400000000000002,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 4900147,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"line\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 4900147,\n      \"width\": 130,\n      \"x\": 229.25,\n      \"y\": 130\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g49\"\n      ],\n      \"height\": 20,\n      \"id\": \"r51\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Ввід matrix\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5000150,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Ввід matrix\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5000150,\n      \"verticalAlign\": \"middle\",\n      \"width\": 102.80000000000001,\n      \"x\": 242.85,\n      \"y\": 143\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g51\"\n      ],\n      \"height\": 46,\n      \"id\": \"r52\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5100153,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5100153,\n      \"width\": 130,\n      \"x\": 229.25,\n      \"y\": 220\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g51\"\n      ],\n      \"height\": 20,\n      \"id\": \"r53\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"result = 0\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5200156,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"result = 0\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5200156,\n      \"verticalAlign\": \"middle\",\n      \"width\": 94,\n      \"x\": 247.25,\n      \"y\": 233\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g53\"\n      ],\n      \"height\": 50,\n      \"id\": \"r54\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          25,\n          0\n        ],\n        [\n          155,\n          0\n        ],\n        [\n          180,\n          25\n        ],\n        [\n          155,\n          50\n        ],\n        [\n          25,\n          50\n        ],\n        [\n          0,\n          25\n        ],\n        [\n          25,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5300159,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"line\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5300159,\n      \"width\": 180,\n      \"x\": 204.25,\n      \"y\": 310\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g53\"\n      ],\n      \"height\": 20,\n      \"id\": \"r55\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"row ∈ matrix\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5400162,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"row ∈ matrix\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5400162,\n      \"verticalAlign\": \"middle\",\n      \"width\": 111.60000000000001,\n      \"x\": 238.45,\n      \"y\": 325\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g55\"\n      ],\n      \"height\": 76,\n      \"id\": \"r56\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5500165,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"diamond\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5500165,\n      \"width\": 150,\n      \"x\": 219.25,\n      \"y\": 404\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g55\"\n      ],\n      \"height\": 20,\n      \"id\": \"r57\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"not row\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5600168,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"not row\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5600168,\n      \"verticalAlign\": \"middle\",\n      \"width\": 67.60000000000001,\n      \"x\": 260.45,\n      \"y\": 432\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g57\"\n      ],\n      \"height\": 50,\n      \"id\": \"r58\",\n      \"isDeleted\": false,\n      \"lastCommittedPoint\": null,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"points\": [\n        [\n          25,\n          0\n        ],\n        [\n          155,\n          0\n        ],\n        [\n          180,\n          25\n        ],\n        [\n          155,\n          50\n        ],\n        [\n          25,\n          50\n        ],\n        [\n          0,\n          25\n        ],\n        [\n          25,\n          0\n        ]\n      ],\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5700171,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"line\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5700171,\n      \"width\": 180,\n      \"x\": 204.25,\n      \"y\": 524\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g57\"\n      ],\n      \"height\": 20,\n      \"id\": \"r59\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"val ∈ row\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5800174,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"val ∈ row\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5800174,\n      \"verticalAlign\": \"middle\",\n      \"width\": 85.2,\n      \"x\": 251.65,\n      \"y\": 539\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g59\"\n      ],\n      \"height\": 76,\n      \"id\": \"r60\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 5900177,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"diamond\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 5900177,\n      \"width\": 150,\n      \"x\": 219.25,\n      \"y\": 618\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g59\"\n      ],\n      \"height\": 20,\n      \"id\": \"r61\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"val \\u003c 0\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6000180,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"val \\u003c 0\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6000180,\n      \"verticalAlign\": \"middle\",\n      \"width\": 67.60000000000001,\n      \"x\": 260.45,\n      \"y\": 646\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g61\"\n      ],\n      \"height\": 76,\n      \"id\": \"r62\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6100183,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"diamond\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6100183,\n      \"width\": 150,\n      \"x\": 219.25,\n      \"y\": 738\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g61\"\n      ],\n      \"height\": 20,\n      \"id\": \"r63\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"val == 999\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6200186,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"val == 999\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6200186,\n      \"verticalAlign\": \"middle\",\n      \"width\": 94,\n      \"x\": 247.25,\n      \"y\": 766\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g63\"\n      ],\n      \"height\": 46,\n      \"id\": \"r64\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6300189,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6300189,\n      \"width\": 130,\n      \"x\": 328.25,\n      \"y\": 862\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g63\"\n      ],\n      \"height\": 20,\n      \"id\": \"r65\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Повернути -1\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6400192,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Повернути -1\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6400192,\n      \"verticalAlign\": \"middle\",\n      \"width\": 111.60000000000001,\n      \"x\": 337.45,\n      \"y\": 875\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g65\"\n      ],\n      \"height\": 42,\n      \"id\": \"r66\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": {\n        \"type\": 3\n      },\n      \"seed\": 6500195,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6500195,\n      \"width\": 130,\n      \"x\": 328.25,\n      \"y\": 952\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g65\"\n      ],\n      \"height\": 20,\n      \"id\": \"r67\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Кінець\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6600198,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Кінець\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6600198,\n      \"verticalAlign\": \"middle\",\n      \"width\": 58.800000000000004,\n      \"x\": 363.85,\n      \"y\": 963\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g67\"\n      ],\n      \"height\": 76,\n      \"id\": \"r68\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6700201,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"diamond\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6700201,\n      \"width\": 162,\n      \"x\": 213.25,\n      \"y\": 1082\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g67\"\n      ],\n      \"height\": 20,\n      \"id\": \"r69\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"val % 2 == 0\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6800204,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"val % 2 == 0\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6800204,\n      \"verticalAlign\": \"middle\",\n      \"width\": 111.60000000000001,\n      \"x\": 238.45,\n      \"y\": 1110\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g69\"\n      ],\n      \"height\": 46,\n      \"id\": \"r70\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 6900207,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 6900207,\n      \"width\": 138.5,\n      \"x\": 120,\n      \"y\": 1206\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g69\"\n      ],\n      \"height\": 20,\n      \"id\": \"r71\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"result += val\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7000210,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"result += val\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7000210,\n      \"verticalAlign\": \"middle\",\n      \"width\": 120.4,\n      \"x\": 129.05,\n      \"y\": 1219\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g71\"\n      ],\n      \"height\": 76,\n      \"id\": \"r72\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7100213,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"diamond\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7100213,\n      \"width\": 150,\n      \"x\": 366.25,\n      \"y\": 1206\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g71\"\n      ],\n      \"height\": 20,\n      \"id\": \"r73\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"val \\u003e 0\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7200216,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"val \\u003e 0\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7200216,\n      \"verticalAlign\": \"middle\",\n      \"width\": 67.60000000000001,\n      \"x\": 407.45,\n      \"y\": 1234\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g73\"\n      ],\n      \"height\": 46,\n      \"id\": \"r74\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7300219,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7300219,\n      \"width\": 130,\n      \"x\": 376.25,\n      \"y\": 1326\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g73\"\n      ],\n      \"height\": 20,\n      \"id\": \"r75\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"val -= 1\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7400222,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"val -= 1\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7400222,\n      \"verticalAlign\": \"middle\",\n      \"width\": 76.4,\n      \"x\": 403.05,\n      \"y\": 1339\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g75\"\n      ],\n      \"height\": 76,\n      \"id\": \"r76\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7500225,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"diamond\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7500225,\n      \"width\": 150,\n      \"x\": 366.25,\n      \"y\": 1416\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g75\"\n      ],\n      \"height\": 20,\n      \"id\": \"r77\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"val == 5\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7600228,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"val == 5\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7600228,\n      \"verticalAlign\": \"middle\",\n      \"width\": 76.4,\n      \"x\": 403.05,\n      \"y\": 1444\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g77\"\n      ],\n      \"height\": 76,\n      \"id\": \"r78\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7700231,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"diamond\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7700231,\n      \"width\": 162,\n      \"x\": 360.25,\n      \"y\": 1536\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g77\"\n      ],\n      \"height\": 20,\n      \"id\": \"r79\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"result \\u003e 100\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7800234,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"result \\u003e 100\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7800234,\n      \"verticalAlign\": \"middle\",\n      \"width\": 111.60000000000001,\n      \"x\": 385.45,\n      \"y\": 1564\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g79\"\n      ],\n      \"height\": 46,\n      \"id\": \"r80\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 7900237,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 7900237,\n      \"width\": 147,\n      \"x\": 220.75,\n      \"y\": 1972\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g79\"\n      ],\n      \"height\": 20,\n      \"id\": \"r81\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"result += 1000\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 8000240,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"result += 1000\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 8000240,\n      \"verticalAlign\": \"middle\",\n      \"width\": 129.20000000000002,\n      \"x\": 229.64999999999998,\n      \"y\": 1985\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g81\"\n      ],\n      \"height\": 46,\n      \"id\": \"r82\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 8100243,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 8100243,\n      \"width\": 164,\n      \"x\": 212.25,\n      \"y\": 2106\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g81\"\n      ],\n      \"height\": 20,\n      \"id\": \"r83\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Повернути result\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 8200246,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Повернути result\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 8200246,\n      \"verticalAlign\": \"middle\",\n      \"width\": 146.8,\n      \"x\": 220.85,\n      \"y\": 2119\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"fillStyle\": \"solid\",\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g83\"\n      ],\n      \"height\": 42,\n      \"id\": \"r84\",\n      \"isDeleted\": false,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"roughness\": 1,\n      \"roundness\": {\n        \"type\": 3\n      },\n      \"seed\": 8300249,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"type\": \"rectangle\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 8300249,\n      \"width\": 130,\n      \"x\": 229.25,\n      \"y\": 2196\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [\n        \"g83\"\n      ],\n      \"height\": 20,\n      \"id\": \"r85\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Кінець\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 8400252,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Кінець\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 8400252,\n      \"verticalAlign\": \"middle\",\n      \"width\": 58.800000000000004,\n      \"x\": 264.85,\n      \"y\": 2207\n    },\n    {\n      \"angle\": 0,\n      \"backgroundColor\": \"transparent\",\n      \"boundElements\": null,\n      \"containerId\": null,\n      \"fillStyle\": \"solid\",\n      \"fontFamily\": 1,\n      \"fontSize\": 16,\n      \"frameId\": null,\n      \"groupIds\": [],\n      \"height\": 20,\n      \"id\": \"r86\",\n      \"isDeleted\": false,\n      \"lineHeight\": 1.25,\n      \"link\": null,\n      \"locked\": false,\n      \"opacity\": 100,\n      \"originalText\": \"Рисунок 1 — toxic_routing_test\",\n      \"roughness\": 1,\n      \"roundness\": null,\n      \"seed\": 8500255,\n      \"strokeColor\": \"#1e1e1e\",\n      \"strokeStyle\": \"solid\",\n      \"strokeWidth\": 1.5,\n      \"text\": \"Рисунок 1 — toxic_routing_test\",\n      \"textAlign\": \"center\",\n      \"type\": \"text\",\n      \"updated\": 1700000000000,\n      \"version\": 1,\n      \"versionNonce\": 8500255,\n      \"verticalAlign\": \"middle\",\n      \"width\": 270,\n      \"x\": 230.125,\n      \"y\": 2287\n    }\n  ],\n  \"files\": {},\n  \"source\": \"https://github.com/OlexiyOdarchuk/rombik\",\n  \"type\": \"excalidraw\",\n  \"version\": 2\n}",
+   "split": [
+    {
+     "name": "toxic_routing_test_ч1",
+     "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"218\" height=\"430\" viewBox=\"0 0 218 430\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M109.0 86.0 L109.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M109.0 176.0 L109.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M109.0 266.0 L109.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"44.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"109.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"62.4,130.0 174.0,130.0 155.6,176.0 44.0,176.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"109.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Ввід matrix</text><rect x=\"44.0\" y=\"220.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"109.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result = 0</text><circle cx=\"109.0\" cy=\"333.0\" r=\"23.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"109.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">А</text><text x=\"109.0\" y=\"418.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 1 — toxic_routing_test (частина 1 з 3)</text></svg>"
+    },
+    {
+     "name": "toxic_routing_test_ч2",
+     "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"730\" height=\"2050\" viewBox=\"0 0 730 2050\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M294.2 90.0 L294.2 134.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 184.0 L294.2 228.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M369.2 266.0 L425.2 266.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"397.2\" y=\"257.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M294.2 304.0 L294.2 348.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 398.0 L294.2 442.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M219.2 480.0 L163.2 480.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"191.2\" y=\"471.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M294.2 518.0 L294.2 562.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M369.2 600.0 L393.2 600.0 L393.2 686.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"381.2\" y=\"591.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M393.2 732.0 L393.2 776.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M294.2 638.0 L294.2 862.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"304.2\" y=\"750.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M294.2 862.0 L294.2 906.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M213.2 944.0 L189.2 944.0 L189.2 1030.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"201.2\" y=\"935.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M189.2 1076.0 L189.2 1708.0 L294.2 1708.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M375.2 944.0 L441.2 944.0 L441.2 1030.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"408.2\" y=\"935.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M441.2 1106.0 L441.2 1150.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"451.2\" y=\"1128.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M441.2 1196.0 L441.2 1240.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M516.2 1278.0 L572.2 1278.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"544.2\" y=\"1269.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M441.2 1316.0 L441.2 1360.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M441.2 1436.0 L441.2 1484.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"451.2\" y=\"1460.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M522.2 1398.0 L610.2 1398.0 L610.2 1068.0 L516.2 1068.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"556.2\" y=\"1389.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M366.2 1068.0 L322.2 1068.0 L322.2 1752.0 L441.2 1752.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"344.2\" y=\"1059.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M572.2 1278.0 L572.2 1725.6 L610.2 1725.6\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M441.2 1484.0 L441.2 1752.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M441.2 1752.0 L441.2 1708.0 L294.2 1708.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 1708.0 L294.2 1730.0 L648.2 1730.0 L648.2 373.0 L384.2 373.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M204.2 373.0 L82.0 373.0 L82.0 1752.0 L294.2 1752.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 1752.0 L294.2 1796.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M163.2 480.0 L163.2 1842.0 L294.2 1842.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M425.2 266.0 L425.2 1859.6 L686.2 1859.6\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 1842.0 L294.2 1865.6 L686.2 1865.6\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 1842.0 L294.2 1864.0 L686.2 1864.0 L686.2 159.0 L384.2 159.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M204.2 159.0 L44.0 159.0 L44.0 1886.0 L294.2 1886.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M294.2 1886.0 L294.2 1930.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><circle cx=\"294.2\" cy=\"67.0\" r=\"23.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"67.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">А</text><polygon points=\"229.2,134.0 359.2,134.0 384.2,159.0 359.2,184.0 229.2,184.0 204.2,159.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"159.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">row ∈ matrix</text><polygon points=\"294.2,228.0 369.2,266.0 294.2,304.0 219.2,266.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"266.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">not row</text><polygon points=\"229.2,348.0 359.2,348.0 384.2,373.0 359.2,398.0 229.2,398.0 204.2,373.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"373.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val ∈ row</text><polygon points=\"294.2,442.0 369.2,480.0 294.2,518.0 219.2,480.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"480.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val &lt; 0</text><polygon points=\"294.2,562.0 369.2,600.0 294.2,638.0 219.2,600.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"600.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val == 999</text><rect x=\"328.2\" y=\"686.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"393.2\" y=\"709.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути -1</text><rect x=\"328.2\" y=\"776.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"393.2\" y=\"797.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><polygon points=\"294.2,906.0 375.2,944.0 294.2,982.0 213.2,944.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"944.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val % 2 == 0</text><rect x=\"120.0\" y=\"1030.0\" width=\"138.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"189.2\" y=\"1053.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result += val</text><polygon points=\"441.2,1030.0 516.2,1068.0 441.2,1106.0 366.2,1068.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1068.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val &gt; 0</text><rect x=\"376.2\" y=\"1150.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1173.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val -= 1</text><polygon points=\"441.2,1240.0 516.2,1278.0 441.2,1316.0 366.2,1278.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1278.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">val == 5</text><polygon points=\"441.2,1360.0 522.2,1398.0 441.2,1436.0 360.2,1398.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"441.2\" y=\"1398.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result &gt; 100</text><rect x=\"220.8\" y=\"1796.0\" width=\"147.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"1819.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result += 1000</text><circle cx=\"294.2\" cy=\"1953.0\" r=\"23.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"294.2\" y=\"1953.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Б</text><text x=\"365.1\" y=\"2038.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 2 — toxic_routing_test (частина 2 з 3)</text></svg>"
+    },
+    {
+     "name": "toxic_routing_test_ч3",
+     "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"252\" height=\"340\" viewBox=\"0 0 252 340\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M126.0 90.0 L126.0 134.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M126.0 180.0 L126.0 224.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><circle cx=\"126.0\" cy=\"67.0\" r=\"23.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"126.0\" y=\"67.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Б</text><rect x=\"44.0\" y=\"134.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"126.0\" y=\"157.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути result</text><rect x=\"61.0\" y=\"224.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"126.0\" y=\"245.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"126.0\" y=\"328.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 3 — toxic_routing_test (частина 3 з 3)</text></svg>"
+    }
+   ]
+  }
+ ]
+}

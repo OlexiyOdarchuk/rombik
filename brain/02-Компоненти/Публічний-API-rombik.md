@@ -2,73 +2,96 @@
 tags: [component, api, facade]
 ---
 
-# Публічний API (pkg/rombik)
+# Публічний API (@rombik/engine)
 
-**Пакет:** `pkg/rombik` · **Файл:** `rombik.go`
+**Пакет:** `@rombik/engine` · **Модуль:** `index.ts` (`packages/engine/src/index.ts`)
+**Оркестрація:** `build.ts`
 
-Високорівневий **фасад**: об'єднує парсер, розкладку й усі рендери в кілька зручних
-викликів. Це точка входу для **бібліотечного** використання (`go get` цього модуля в
-інший проєкт). CLI і WASM теж спираються на ці ж пакети.
+Публічний бар'єр рушія: `index.ts` ре-експортує типи й функції всіх внутрішніх модулів,
+а `build.ts` склеює парсер → розкладку → рендери в кілька зручних викликів. Це точка
+входу для споживачів (CLI, веб, інші пакети). Рушій — **чистий TS без DOM**.
 
-## Типи
+## Що експортує index.ts
 
-```go
-type Options = layout.Options       // ті самі перемикачі, що й розкладка ([[Опції-рендера]])
-
-type Result struct {
-    Name    string
-    Diagram *diagram.Diagram
-}
+```ts
+// модель геометрії
+export type { Diagram, Shape, Edge, Point, Kind } from './diagram.ts';
+export { captionLine, labelAnchor } from './diagram.ts';
+// IR
+export type { Node, Func, Block, If, For, While } from './ir.ts';
+// AST-контракт
+export type { AstNode, AstFunc } from './astjson.ts';
+export { fromJson } from './astjson.ts';
+// опції + розкладка
+export type { Options } from './layout/options.ts';
+export { layoutProgram } from './layout/place.ts';
+// оркестрація
+export { fromAst, fromTree, splitFromAst, splitByHeight, type Result } from './build.ts';
+// парсер
+export { parseTree, type TSNode, type TSTree, type Lang } from './parser/treesitter.ts';
+// рендери
+export { render as renderSvg, renderAll as renderSvgAll } from './render/svg.ts';
+export { render as renderTypst, renderAll as renderTypstAll,
+         fragment as renderTypstFragment, fragmentAll as renderTypstFragmentAll } from './render/typst.ts';
+export { render as renderExcalidraw, renderAll as renderExcalidrawAll } from './render/excalidraw.ts';
 ```
 
-## Конструктори (код → схеми)
+## Тип Result
 
-```go
-func FromPython(code string, opts Options) ([]Result, error) // потребує python3 (не WASM)
-func FromAST(astJSON []byte, opts Options) ([]Result, error) // AST дає Tree-sitter — працює в WASM
-func SplitFromAST(astJSON []byte, opts Options, name string, maxH float64) ([]Result, error) // розбиття довгої схеми на частини через конектори
-func FromIR(funcs []ir.Func, opts Options) []Result          // для тих, хто будує ir сам
+```ts
+export interface Result { name: string; diagram: Diagram; }
 ```
 
-Усі троє йдуть через внутрішній `build`, який на кожну функцію кличе
-[[Layout-рушій-розкладки|layout.Build]] і **засіває підпис**: `Caption` = ім'я функції,
-`FigNum` = порядковий номер (1..N), `CapWord` = опція. → [[Diagram-модель-геометрії]].
+## Конструктори (код/AST → схеми) — build.ts
+
+```ts
+function fromTree(tree: TSTree, lang: Lang, opts?: Options): Result[]   // повний шлях код→схема в TS
+function fromAst(astJSON: string | AstFunc[], opts?: Options): Result[] // з готового AST-JSON
+function splitFromAst(astJSON, opts, name, maxH): Result[]              // розбити довгу схему на частини
+function splitByHeight(f: Func, opts, maxH): Result[]                   // те саме на рівні IR-Func
+```
+
+- `fromTree` = `parseTree` → `fromJson` → `buildResults`. Це наскрізний шлях
+  «дерево tree-sitter (Python/C++) → схеми» цілком у TS.
+- `fromAst` стартує з уже розпарсеного [[Чому-AST-JSON-як-контракт|AST-JSON]].
+- Усі йдуть через внутрішній `buildResults`, який на кожну функцію кличе
+  [[Layout-рушій-розкладки|layoutProgram]] і **засіває підпис**: `caption` = ім'я
+  функції, `figNum` = порядковий номер (1..N), `capWord` = опція. → [[Diagram-модель-геометрії]].
+
+### Розбиття довгих схем
+
+`splitByHeight(f, opts, maxH)` жадібно ріже тіло функції на частини висотою ≤ `maxH`;
+на стиках вставляє пару конекторів-`Connector` (вихід попередньої частини → вхід
+наступної, літери `А`,`Б`,…) і виставляє `noStart`/`noEnd`, щоб термінатори були лише
+на краях. Якщо схема вміщається — одна частина. → [[IR-проміжне-представлення]].
 
 ## Рендери на результаті
 
-```go
-func (r Result) SVG() string                       // → svg.Render
-func (r Result) Typst() string                     // → typst.Render
-func (r Result) PDF() ([]byte, error)              // → raster.PDF (нативно)
-func (r Result) PNG(scale float64) ([]byte, error) // → raster.PNG (нативно)
-func (r Result) Excalidraw() string                // → excalidraw.Render (нативно)
+`Result.diagram` віддають у будь-який рендер з `index.ts`:
+
+```ts
+renderSvg(r.diagram)         // SVG-рядок
+renderTypst(r.diagram)       // .typ (CeTZ)
+renderExcalidraw(r.diagram)  // .excalidraw
 ```
 
-Один `Result` → будь-який із п'яти форматів. Жодного зовнішнього бінарника.
+PNG/PDF — **не в рушії**: їх дає браузер (SVG→canvas+jsPDF). → [[Растровий-рендер-PNG-PDF]].
 
-## Приклад
+## Парність із Go
 
-```go
-res, _ := rombik.FromPython(code, rombik.Options{SingleEnd: true})
-for _, f := range res {
-    os.WriteFile(f.Name+".svg", []byte(f.SVG()), 0o644)
-    png, _ := f.PNG(3)
-    os.WriteFile(f.Name+".png", png, 0o644)
-}
-```
+Алгоритм layout/рендерів портовано з Go **байт-у-байт**; парність стережуть
+**golden-тести** (`packages/engine/test/golden`, запуск через `node:test`).
 
-## Чому фасад
+## Чому такий бар'єр
 
-- **Зручність:** бібліотечному споживачу не треба знати про `astjson`, `layout`,
-  окремі рендери — лише `From*` + методи `Result`.
-- **Єдине засівання підпису:** логіка «ім'я функції → Caption, номер → FigNum» в одному
-  місці, а не дублюється в CLI/WASM.
-- **Межі лишаються чисті:** фасад нічого не додає до ядра — лише склеює. CLI і WASM
-  можуть і не користуватися ним, а звертатися до пакетів напряму (так і роблять заради
-  тонкого контролю). → [[Розділення-відповідальностей]].
+- **Зручність:** споживачу не треба знати про `astjson`, `layout`, окремі рендери —
+  лише `from*` + рендер-функції на `diagram`.
+- **Єдине засівання підпису:** логіка «ім'я функції → caption, номер → figNum» в одному
+  місці (`buildResults`), а не дублюється у CLI/вебі.
+- **Чисті межі:** `index.ts` нічого не додає до ядра — лише ре-експортує. → [[Розділення-відповідальностей]].
 
 ## Пов'язане
 
 - [[Layout-рушій-розкладки]] · [[Diagram-модель-геометрії]]
 - [[SVG-рендерер]] · [[Typst-рендер]] · [[Растровий-рендер-PNG-PDF]]
-- [[CLI-довідник]] · [[WASM-міст]]
+- [[CLI-довідник]] · [[Браузерний-рушій]]

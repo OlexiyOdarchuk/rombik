@@ -4,73 +4,81 @@ tags: [usage, cli]
 
 # CLI — довідник
 
-**Команда:** `cmd/rombik` · `go run ./cmd/rombik [прапорці]`
+**Команда:** `tools/rombik.mjs` — Node-скрипт на тому самому TS-рушії
+(`@rombik/engine`). Жодного Go-бінарника й `python3`: парсинг робить web-tree-sitter
+(wasm), розкладку та рендер — рушій. → [[Браузерний-рушій]].
 
-Перетворює Python-файл на блок-схему. Формат виводу — за розширенням `-o`. PNG і PDF —
-**нативні** (без зовнішніх бінарників). → [[Растровий-рендер-PNG-PDF]].
+Запуск (з кореня монорепо):
 
-## Прапорці
-
-| Прапорець | Тип | Типово | Призначення |
-|-----------|-----|--------|-------------|
-| `-py FILE` | string | `""` | Python-файл (без нього — демо). |
-| `-o FILE` | string | `out.svg` | Вихід. Розширення → формат: `.svg`/`.png`/`.pdf`/`.typ`/`.json`/`.excalidraw`. |
-| `-fn NAME` | string | `""` | Малювати лише функцію з цим іменем. |
-| `-calls-plain` | bool | `false` | Виклики підпрограм → звичайний прямокутник (`CallAsProcess`). |
-| `-single-end` | bool | `false` | Один спільний «Кінець» (`SingleEnd`). |
-| `-scale N` | float | `2` | Щільність PNG (пікселів на одиницю). |
-| `-caption S` | string | `""` | Підпис схеми (інакше — ім'я функції; `«-»` — без підпису). |
-| `-fignum N` | int | `0` | Номер «Рисунок N» (0 — за порядком функцій). |
-| `-figword S` | string | `""` | Слово підпису: «Рисунок» (замовч.), «Рис.» тощо. |
-| `-capformat S` | string | `""` | Шаблон, напр. `«{num}. {text}»` (замовч. `«{word} {num} — {text}»`). |
-
-`-calls-plain`/`-single-end` — підмножина [[Опції-рендера]]; решта структурних опцій
-(слова I/O, тексти термінаторів, StripTypes, ReturnAsIO) доступні через WASM/фронтенд.
-Підпис — [[Diagram-модель-геометрії|поля Caption/FigNum/CapWord/CapFormat]].
-
-## Формати виводу (`write`)
-
-```
-.json → json.MarshalIndent(diagram)   — сира геометрія
-.png  → raster.PNG(d, scale)          — НАТИВНИЙ растр (tdewolff/canvas, без rsvg)
-.pdf  → raster.PDF / raster.PDFAll    — НАТИВНИЙ PDF (без typst-бінарника)
-.typ  → typst.Render / RenderAll      — вихідний код Typst (CeTZ)
-.excalidraw → excalidraw.Render / All — формат Excalidraw (JSON)
-інше  → svg.Render                    — SVG-текст
+```bash
+npm run cli -- examples/grade.py            # → npm run cli викликає скрипт
+node --experimental-strip-types tools/rombik.mjs examples/grade.py
+./tools/rombik.mjs examples/grade.py        # після chmod +x
 ```
 
-> [!note] rsvg-convert більше НЕ потрібен
-> Раніше `.png` йшов через `rsvg-convert`. Тепер PNG і PDF малюються нативно в Go. У
-> коментарях файлу ще лишилися згадки rsvg — це історія, код їх не кличе.
+Standalone-варіант (без `node_modules`/TS-флагів) — [[Збірка-і-запуск|build:cli]]:
+
+```bash
+npm run build:cli            # → dist/rombik.mjs (+ 3 wasm поруч)
+node dist/rombik.mjs examples/grade.py -o grade.svg
+```
+
+Вхід — **файл** або `-` (читати stdin). Вихід — у `-o FILE` або в stdout (без `-o`).
+
+## Опції
+
+Розбираються через `node:util` `parseArgs`. Підтримуються довгі й короткі форми.
+
+| Опція | Тип | Типово | Призначення |
+|-------|-----|--------|-------------|
+| `-o, --out FILE` | string | stdout | Файл виводу. Без нього — пишемо в stdout. Кілька функцій → `FILE_<імʼя>.<ext>`. `-o -` теж stdout. |
+| `-t, --format FMT` | string | `svg` | `svg` \| `typ` (=`typst`) \| `json` \| `excalidraw`. |
+| `-l, --lang LANG` | string | за розширенням | `py` \| `cpp`. Без нього мова визначається розширенням (`.cpp/.cc/.cxx/.hpp/.h/.cs` → C++, інакше Python; для stdin — Python). |
+| `--fn NAME` | string | усі | Малювати лише функцію `NAME`. |
+| `--single-end` | bool | `false` | Один спільний «Кінець» (`SingleEnd`) замість локального на кожен вихід. → [[Зведення-виходів-у-Кінець]]. |
+| `--split N` | string/число | — | Розбити схему на частини, не вищі за `N` (одиниць висоти), з конекторами. Без `--fn` бере першу функцію файлу. |
+| `-h, --help` | bool | `false` | Довідка. |
+
+> [!note] Підмножина опцій рушія
+> CLI відкриває лише `--single-end` зі структурних [[Опції-рендера|Options]]. Решта
+> (слова I/O, тексти термінаторів, `stripTypes`, `returnAsIO`, `callAsProcess`,
+> підпис/`capWord`) задаються програмно через рушій або у [[Фронтенд-SvelteKit|вебі]].
+
+## Формати виводу
+
+`-t` обирає рендерер рушія напряму (`tools/rombik.mjs`):
+
+```
+svg            → renderSvg(diagram)          — SVG-текст
+typ | typst    → renderTypst(diagram)        — вихідний код Typst (CeTZ)
+excalidraw     → renderExcalidraw(diagram)   — .excalidraw (JSON)
+json           → JSON.stringify(diagram)     — сира геометрія
+```
+
+> [!warning] PNG/PDF у CLI поки нема
+> Растеризація живе у браузері (SVG → `<canvas>` → PNG; PDF через jsPDF) і залежить
+> від DOM/canvas, тож у Node-CLI її немає. Доступні `svg`/`typ`/`json`/`excalidraw`.
+> PNG/PDF — лише у [[Фронтенд-SvelteKit|вебі]].
 
 ## Кілька функцій
 
-- **Одна** функція (або відфільтрована `-fn`) → точно у `-o`.
-- **Кілька** функцій:
-  - `.pdf`, `.typ` і `.excalidraw` → **один спільний документ** (`PDFAll`/`RenderAll`, наскрізна нумерація);
-  - інші формати → файли `<основа>_<функція>.<ext>`.
+- **Одна** функція (або відфільтрована `--fn`) у `-o` → точно в указаний файл.
+- **Кілька** функцій із `-o FILE.ext` → окремі файли `FILE_<функція>.ext`.
+- Без `-o` усі схеми йдуть у stdout підряд.
 
 ## Приклади
 
 ```bash
-go run ./cmd/rombik                                        # демо → out.svg
-go run ./cmd/rombik -py examples/grade.py -o grade.svg
-go run ./cmd/rombik -py examples/grade.py -o grade.png -scale 3
-go run ./cmd/rombik -py examples/course.py -o course.pdf   # усі функції → один PDF
-go run ./cmd/rombik -py examples/course.py -o course.typ   # Typst для вставки в курсову
-go run ./cmd/rombik -py examples/course.py -o course.excalidraw # Excalidraw-формат
-go run ./cmd/rombik -py examples/course.py -fn matrix_gen -o m.svg
-go run ./cmd/rombik -py f.py -figword "Рис." -capformat "{word} {num}. {text}" -o s.pdf
+npm run cli -- examples/grade.py -o grade.svg
+npm run cli -- examples/course.py --fn matrix_gen -o m.svg
+npm run cli -- prog.cpp -t typ > prog.typ
+cat prog.py | npm run cli -- - -t json
+node dist/rombik.mjs examples/course.py -t excalidraw -o course.excalidraw
+node dist/rombik.mjs examples/course.py --split 1200 --fn matrix_gen -o m.svg
 ```
-
-## Залежності рантайму
-
-- **`python3` 3.9+** — обов'язково для CLI (рідний `ast`).
-- PNG/PDF/SVG/Typst — **нічого зовнішнього** (усе в Go-бінарнику). Готові бінарники на
-  6 платформ — у GitHub Releases ([[Збірка-і-запуск]]).
 
 ## Пов'язане
 
 - [[Опції-рендера]] · [[Підтримувані-конструкції-Python]]
-- [[Растровий-рендер-PNG-PDF]] · [[Typst-рендер]]
+- [[Збірка-і-запуск]] · [[Браузерний-рушій]]
 - [[Публічний-API-rombik]] · [[Конвеєр-обробки]]

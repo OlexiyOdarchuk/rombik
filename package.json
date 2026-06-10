@@ -1,0 +1,21 @@
+{
+  "name": "rombik",
+  "private": true,
+  "type": "module",
+  "description": "rombik — код у блок-схему за ДСТУ 19.701-90. Монорепо: рушій (@rombik/engine) + веб (SvelteKit).",
+  "workspaces": [
+    "packages/*",
+    "web"
+  ],
+  "scripts": {
+    "test": "npm test --workspace @rombik/engine",
+    "typecheck": "npm run typecheck --workspace @rombik/engine",
+    "dev": "npm run dev --workspace web",
+    "build:web": "npm run build --workspace web",
+    "cli": "node --experimental-strip-types tools/rombik.mjs",
+    "build:cli": "node tools/build-cli.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}

@@ -1,52 +1,28 @@
-// Рушій у браузері, без сервера:
-//   web-tree-sitter парсить код і формує AST-JSON
-//   rombik.wasm (Go) бере AST-JSON + опції -> {functions:[{name, svg, diagram}]}
+// Рушій у браузері, без сервера й без Go-WASM:
+//   web-tree-sitter парсить код → Tree
+//   @rombik/engine (чистий TS) бере Tree → схеми → SVG / Typst / Excalidraw
+// PNG/PDF поки через лінивий растер-WASM (заміниться браузерним canvas).
 import { base } from '$app/paths';
-import { parseTreeToAstJson } from './parser.js';
+import {
+	parseTree, fromAst, splitFromAst,
+	renderSvg, renderSvgAll as engRenderSvgAll,
+	renderTypst as engRenderTypst, renderTypstAll as engRenderTypstAll, renderTypstFragment, renderTypstFragmentAll,
+	renderExcalidraw as engRenderExcalidraw, renderExcalidrawAll as engRenderExcalidrawAll,
+} from '@rombik/engine';
 
-let initPromise = null; // ініціалізація один раз
+let initPromise = null;
 let parser = null;
-let langs = {}; // 'python' -> Language, 'cpp' -> Language
+let langs = {}; // 'python' | 'cpp' -> Language
 
-function loadScript(src) {
-	return new Promise((resolve, reject) => {
-		const s = document.createElement('script');
-		s.src = src;
-		s.onload = resolve;
-		s.onerror = () => reject(new Error('не вдалося завантажити ' + src));
-		document.head.appendChild(s);
-	});
-}
-
-async function instantiateWasm(resp, importObject) {
-	if (WebAssembly.instantiateStreaming) {
-		try {
-			return (await WebAssembly.instantiateStreaming(resp, importObject)).instance;
-		} catch (e) {
-			console.warn('WASM streaming failed, fallback to arrayBuffer', e);
-		}
-	}
-	const bytes = await (await resp).arrayBuffer();
-	return (await WebAssembly.instantiate(bytes, importObject)).instance;
-}
-
-// onProgress(stage) — для індикатора.
+// init: лише tree-sitter (рушій тепер чистий TS, Go-wasm не потрібен).
 async function init(onProgress) {
 	onProgress?.('Завантаження Tree-sitter…');
 	const modulePath = `${base}/tree-sitter.js`;
 	const { Parser, Language } = await import(/* @vite-ignore */ modulePath);
-	await Parser.init({
-		locateFile: () => `${base}/tree-sitter.wasm`
-	});
+	await Parser.init({ locateFile: () => `${base}/tree-sitter.wasm` });
 	parser = new Parser();
 	langs.python = await Language.load(`${base}/tree-sitter-python.wasm`);
 	langs.cpp = await Language.load(`${base}/tree-sitter-cpp.wasm`);
-
-	onProgress?.('Завантаження рушія…');
-	await loadScript(`${base}/wasm_exec.js`);
-	const go = new globalThis.Go();
-	const instance = await instantiateWasm(fetch(`${base}/rombik.wasm`), go.importObject);
-	go.run(instance); // НЕ await: main блокується на select{}, лишаючись живим
 }
 
 /** Готує середовище (ідемпотентно). Можна викликати заздалегідь для прогріву. */
@@ -55,151 +31,155 @@ export function warmup(onProgress) {
 	return initPromise;
 }
 
-/**
- * generate(code, options) -> { functions:[{name, svg, diagram}] } або { error }.
- */
+let lastAst = null; // AST останньої генерації (для розбивки)
+
+/** generate(code, options) -> { functions:[{name, svg, diagram}], warning? } | { error }. */
 export async function generate(code, options = {}, onProgress) {
 	await warmup(onProgress);
 	onProgress?.('Будую схему…');
-
 	try {
-		const langStr = options.lang === 'cpp' ? 'cpp' : 'python';
-		parser.setLanguage(langs[langStr]);
+		const lang = options.lang === 'cpp' ? 'cpp' : 'python';
+		parser.setLanguage(langs[lang]);
 		const tree = parser.parse(code);
-		
-		const astJSON = parseTreeToAstJson(tree, langStr);
-		lastAst = astJSON; // тримаємо для розбивки (потрібен AST, не лише diagram)
-		const res = JSON.parse(globalThis.rombikGenerate(astJSON, JSON.stringify(options)));
-		
+		lastAst = parseTree(tree, lang);
+		const functions = fromAst(lastAst, options).map((r) => ({
+			name: r.name, diagram: r.diagram, svg: renderSvg(r.diagram),
+		}));
+		const res = { functions };
 		if (tree.rootNode.hasError) {
-			res.warning = "У коді є синтаксичні помилки. Деякі блоки можуть бути згенеровані неправильно.";
+			res.warning = 'У коді є синтаксичні помилки. Деякі блоки можуть бути згенеровані неправильно.';
 		}
-		
 		return res;
 	} catch (e) {
 		return { error: 'рушій: ' + (e?.message ?? e) };
 	}
 }
 
-let lastAst = null;
-
-/** Ріже схему функції на зв'язані частини (кнопка «Розбити на частини»).
- *  Повертає { parts:[{name,caption,figNum,svg,typst,diagram}] } або { error }. */
+/** Ріже схему функції на зв'язані частини (кнопка «Розбити на частини»). */
 export function splitSchema(name, maxH, options = {}) {
 	if (!lastAst) return { error: 'спершу побудуй схему' };
 	try {
-		return JSON.parse(globalThis.rombikSplit(lastAst, JSON.stringify(options), name, maxH));
+		const parts = splitFromAst(lastAst, options, name, maxH).map((r) => ({
+			name: r.name, caption: r.diagram.caption, figNum: r.diagram.figNum,
+			svg: renderSvg(r.diagram), typst: engRenderTypst(r.diagram), diagram: r.diagram,
+		}));
+		return { parts };
 	} catch (e) {
 		return { error: 'розбивка: ' + (e?.message ?? e) };
 	}
 }
 
-/**
- * Дешевий ре-рендер однієї схеми після зміни підпису (без розбору коду).
- * cap = { caption, figNum, capWord }. Повертає { svg, typst } або { error }.
- */
+/** Дешевий ре-рендер однієї схеми після зміни підпису. cap = { caption, figNum, capWord, capFormat }. */
 export function renderCaption(diagram, cap) {
 	try {
-		return JSON.parse(globalThis.rombikRenderOne(JSON.stringify(diagram), JSON.stringify(cap)));
+		const d = { ...diagram, ...cap };
+		return { svg: renderSvg(d), typst: engRenderTypst(d) };
 	} catch (e) {
 		return { error: 'ре-рендер: ' + (e?.message ?? e) };
 	}
 }
 
-// --- Нативний PNG/PDF (важкий raster-wasm, вантажиться лениво) ---
-// Окремий Go-WASM (tdewolff/canvas) ~16 МБ — тягнемо ЛИШЕ на першу вимогу
-// експорту PNG/PDF, щоб не роздувати початкове завантаження.
-let rasterPromise = null;
-
-function loadRaster(onProgress) {
-	if (!rasterPromise)
-		rasterPromise = (async () => {
-			onProgress?.('Завантаження рушія PNG/PDF…');
-			if (!globalThis.Go) await loadScript(`${base}/wasm_exec.js`);
-			const go = new globalThis.Go();
-			const instance = await instantiateWasm(fetch(`${base}/rombik-raster.wasm`), go.importObject);
-			go.run(instance); // НЕ await: main блокується на select{}
-		})();
-	return rasterPromise;
-}
-
-function b64ToBytes(b64) {
-	const bin = atob(b64);
-	const bytes = new Uint8Array(bin.length);
-	for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-	return bytes;
-}
-
-/** Нативний PDF схеми (Uint8Array). cap = { caption, figNum, capWord, capFormat }. */
-export async function renderPdf(diagram, cap, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPdf(JSON.stringify(diagram), JSON.stringify(cap)));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.pdf);
-}
-
-/** Нативний PNG схеми (Uint8Array). scale — пікселів на одиницю. */
-export async function renderPng(diagram, cap, scale, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPng(JSON.stringify(diagram), JSON.stringify(cap), scale));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.png);
-}
-
 /** Typst однієї схеми. fragment=true → лише cetz.canvas (без преамбули). */
 export function renderTypst(diagram, fragment = false) {
-	const res = JSON.parse(globalThis.rombikTypstOne(JSON.stringify(diagram), fragment));
-	if (res.error) throw new Error(res.error);
-	return res.typst;
+	return fragment ? renderTypstFragment(diagram) : engRenderTypst(diagram);
 }
 
-/** Один Typst з УСІХ схем. fragment=true → лише canvas-блоки (без преамбули). */
+/** Один Typst з УСІХ схем. fragment=true → лише canvas-блоки. */
 export function renderTypstAll(diagrams, fragment = false) {
-	const res = JSON.parse(globalThis.rombikTypstAll(JSON.stringify(diagrams), fragment));
-	if (res.error) throw new Error(res.error);
-	return res.typst;
+	return fragment ? renderTypstFragmentAll(diagrams) : engRenderTypstAll(diagrams);
 }
 
 /** Один SVG з УСІХ схем (вертикально). */
 export function renderSvgAll(diagrams) {
-	const res = JSON.parse(globalThis.rombikSvgAll(JSON.stringify(diagrams)));
-	if (res.error) throw new Error(res.error);
-	return res.svg;
+	return engRenderSvgAll(diagrams);
 }
 
 /** Схема у форматі .excalidraw (для excalidraw.com). */
 export function renderExcalidraw(diagram) {
-	const res = JSON.parse(globalThis.rombikExcalidraw(JSON.stringify(diagram)));
-	if (res.error) throw new Error(res.error);
-	return res.excalidraw;
+	return engRenderExcalidraw(diagram);
 }
 
 /** Усі схеми в одному .excalidraw. */
 export function renderExcalidrawAll(diagrams) {
-	const res = JSON.parse(globalThis.rombikExcalidrawAll(JSON.stringify(diagrams)));
-	if (res.error) throw new Error(res.error);
-	return res.excalidraw;
+	return engRenderExcalidrawAll(diagrams);
+}
+
+// --- PNG/PDF у браузері (SVG→canvas), без Go-WASM ---
+// SVG рендерить рушій (TS), а растеризацію робить сам браузер: <img> зі SVG →
+// <canvas> → PNG; PDF — той самий растр посторінково через jsPDF (лінивий import).
+
+function svgDims(svg) {
+	const m = svg.match(/width="([\d.]+)" height="([\d.]+)"/);
+	return m ? { w: parseFloat(m[1]), h: parseFloat(m[2]) } : { w: 800, h: 600 };
+}
+
+// svgToCanvas: SVG-рядок → <canvas> у масштабі scale (білий фон, як у Go-растрі).
+async function svgToCanvas(svg, scale) {
+	const { w, h } = svgDims(svg);
+	const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+	try {
+		const img = new Image();
+		await new Promise((res, rej) => {
+			img.onload = () => res();
+			img.onerror = () => rej(new Error('не вдалося растеризувати SVG'));
+			img.src = url;
+		});
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.max(1, Math.round(w * scale));
+		canvas.height = Math.max(1, Math.round(h * scale));
+		const ctx = canvas.getContext('2d');
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.setTransform(scale, 0, 0, scale, 0, 0);
+		ctx.drawImage(img, 0, 0, w, h);
+		return { canvas, w, h };
+	} finally {
+		URL.revokeObjectURL(url);
+	}
+}
+
+async function canvasToBytes(canvas) {
+	const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+	return new Uint8Array(await blob.arrayBuffer());
+}
+
+// svgsToPdf: кожен SVG — окрема сторінка PDF (растр високої щільності у jsPDF).
+async function svgsToPdf(svgs, scale = 3) {
+	const { jsPDF } = await import('jspdf');
+	let pdf = null;
+	for (const svg of svgs) {
+		const { canvas, w, h } = await svgToCanvas(svg, scale);
+		const orient = w > h ? 'l' : 'p';
+		if (!pdf) pdf = new jsPDF({ unit: 'pt', format: [w, h], orientation: orient });
+		else pdf.addPage([w, h], orient);
+		pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+	}
+	if (!pdf) pdf = new jsPDF();
+	return new Uint8Array(pdf.output('arraybuffer'));
+}
+
+/** PNG схеми (Uint8Array). cap = { caption, figNum, capWord, capFormat }; scale — щільність. */
+export async function renderPng(diagram, cap, scale = 2, onProgress) {
+	onProgress?.('Рендер PNG…');
+	const { canvas } = await svgToCanvas(renderSvg({ ...diagram, ...cap }), scale);
+	return canvasToBytes(canvas);
 }
 
 /** Один PNG з УСІХ схем (Uint8Array). */
-export async function renderPngAll(diagrams, scale, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPngAll(JSON.stringify(diagrams), scale));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.png);
+export async function renderPngAll(diagrams, scale = 2, onProgress) {
+	onProgress?.('Рендер PNG…');
+	const { canvas } = await svgToCanvas(engRenderSvgAll(diagrams), scale);
+	return canvasToBytes(canvas);
 }
 
-/** Один багатосторінковий PDF з УСІХ схем (Uint8Array). */
+/** PDF схеми (Uint8Array). */
+export async function renderPdf(diagram, cap, onProgress) {
+	onProgress?.('Рендер PDF…');
+	return svgsToPdf([renderSvg({ ...diagram, ...cap })]);
+}
+
+/** Багатосторінковий PDF з УСІХ схем (Uint8Array). */
 export async function renderPdfAll(diagrams, onProgress) {
-	await loadRaster(onProgress);
-	const res = JSON.parse(globalThis.rombikPdfAll(JSON.stringify(diagrams)));
-	if (res.error) throw new Error(res.error);
-	return b64ToBytes(res.pdf);
-}
-
-// Витягуємо людську суть із трейсбеку Python (останній рядок — «SyntaxError: …»).
-function cleanPyError(msg) {
-	const lines = msg.trim().split('\n').filter(Boolean);
-	const last = lines[lines.length - 1] || msg;
-	return last.replace(/^\s*/, '');
+	onProgress?.('Рендер PDF…');
+	return svgsToPdf(diagrams.map((d) => renderSvg(d)));
 }

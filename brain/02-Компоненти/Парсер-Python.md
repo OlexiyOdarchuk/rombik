@@ -4,115 +4,98 @@ tags: [component, parser]
 
 # Парсер Python
 
-**Пакет:** `pkg/parser/python` · **Файли:** `parser.py` (логіка), `python.go` (обгортка)
+**Модуль:** `parser/treesitter.ts` (`packages/engine/src/parser/treesitter.ts`)
 
-Перетворює Python-код на [[Чому-AST-JSON-як-контракт|AST-JSON]]. Використовує
-**рідний Python `ast`** — найточніший парсер Python, без власного лексера й без cgo.
+Перетворює дерево **tree-sitter** на [[Чому-AST-JSON-як-контракт|AST-JSON]]. Один
+фронтенд для **двох мов одразу** — Python І C++. Раніше було два окремі парсери (CLI на
+`python3 ast`+`parser.py` і браузерний `parser.js`) — **обидва видалено**; після
+міграції Go→TS лишився **єдиний** парсер на tree-sitter.
 
-## python.go — обгортка
+> Назва файлу нотатки лишилася «Парсер-Python», але контент — про спільний
+> tree-sitter-парсер Python+C++.
 
-Три експортовані функції:
+## Експорт
 
-```go
-func Script() string              // текст parser.py (тільки для CLI)
-func AST(code string) ([]byte, error)      // код → сирий AST-JSON
-func ParseAll(code string) ([]ir.Func, error) // код → AST-JSON → ir
+```ts
+export function parseTree(tree: TSTree, lang: Lang): AstFunc[]
+export interface TSNode { type; text; isNamed; childCount; namedChildCount;
+                          child(i); childForFieldName(name); namedChildren }
+export interface TSTree { rootNode: TSNode }
+export type Lang = 'python' | 'cpp'
 ```
 
-- `parser.py` вшитий у бінарник через `//go:embed parser.py` — нема залежності від
-  шляху на диску.
-- `AST` запускає `python3 -c <parser.py>`, код подає у **stdin**, читає stdout.
-  Помилку парсингу (stderr) загортає в зрозуміле повідомлення.
-- `ParseAll` = `AST` + `astjson.FromJSON`. Це точка входу для CLI.
-- **Вимога рантайму:** `python3` 3.9+ (заради `ast.unparse`).
-
-## parser.py — як працює
-
-Один файл, що працює у двох середовищах:
-
-- **CLI:** читає `sys.stdin`, друкує JSON у stdout.
-- **Браузер:** Pyodide замінено на Tree-sitter, тому цей код там не використовується.
-  бере з глобальної `_out`.
-
-Розпізнавання середовища — у кінці файлу:
-
-```python
-try:
-    src                      # (Legacy/CLI fallback)
-except NameError:
-    src = sys.stdin.read()   # CLI
-```
+- `parseTree(tree, lang)` — головна точка входу: дерево tree-sitter + мова → масив
+  схем `AstFunc[]`.
+- `TSNode`/`TSTree` — **мінімальний структурний інтерфейс** вузла tree-sitter (сумісний
+  із `web-tree-sitter` Node), щоб рушій не залежав від конкретної версії пакета й не
+  мав DOM-залежностей.
+- `lang` керує мово-специфічними гілками: `isPy`/`isCpp`.
 
 > [!warning] Безпека
-> `ast.parse` лише **розбирає** синтаксис — код НЕ виконується. Безпечно годувати
-> публічним вводом (саме тому браузерна версія не боїться чужого коду).
+> tree-sitter лише **розбирає** синтаксис — код НЕ виконується. Тому безпечно
+> годувати парсер довільним публічним вводом.
 
-### Збір функцій
+## Збір функцій
 
-```python
-collect(mod.body, funcs)   # рекурсивно, зокрема вкладені def; у класи НЕ заходимо
-defined = {fn.name for fn in funcs}   # заповнюємо ДО розбору тіл
-```
+Перед розбором тіл — два проходи:
 
-`defined` потрібен, щоб відрізнити **виклик власної функції** (→ підпрограма) від
-звичайного виразу. Тому його збирають першим проходом.
+- `collectDefinedFunctions(root, defined)` — рекурсивно збирає імена всіх
+  `function_definition` (для C++ розкручує `declarator` до `function_declarator`).
+  `defined` потрібен, щоб відрізнити **виклик власної функції** (→ підпрограма) від
+  звичайного виразу.
+- `collect(node)` — обходить корінь: кожен `function_definition` → окремий `AstFunc`;
+  усе поза функціями збирається в `mainStmts`.
 
-Кожна функція → окремий `Func` у виході. Якщо є код поза функціями — він іде окремою
-схемою з іменем `main` (або `програма`, якщо `main` уже зайнятий).
+Якщо є код поза функціями — він іде окремою схемою з іменем `main` (або `програма`,
+якщо `main` уже зайнятий). Якщо схем нема взагалі — повертається порожня `main`.
 
 ### Параметри як ввід
 
-```python
-def funcblock(fn):
-    b = block(fn.body)
-    params = [a.arg for a in fn.args.args]
-    if params:
-        b["stmts"].insert(0, io("Ввід " + ", ".join(params)))
-    return b
+```ts
+if (paramsText) b.stmts.unshift({ kind: 'io', text: 'Ввід ' + oneline(paramsText) });
 ```
 
-Це конвенція курсової схеми: параметри функції показуємо вхідним паралелограмом.
+Параметри функції показуємо вхідним паралелограмом (конвенція курсової схеми). Імена
+параметрів витягуються по-різному для Python (`parameters` → identifier/`name`) і C++
+(`function_declarator` → `parameters` → `declarator`).
 
-### Відображення конструкцій
+## Відображення конструкцій
 
-Повна таблиця — у [[Підтримувані-конструкції-Python]]. Ключові рішення `parser.py`:
+Повна таблиця — у [[Підтримувані-конструкції-Python]]. Ключові рішення `stmt()`:
 
-| Python | AST-JSON kind | Нюанс |
+| Конструкція | AST-JSON kind | Нюанс |
 |--------|---------------|-------|
-| `input(...)` (як значення присвоєння) | `io` «Ввід …» | `has_input` шукає `input` будь-де у виразі |
-| `print(...)` | `io` «Вивід …» | рядки → «…», порожній `print()` → «Вивід порожнього рядка» |
-| `for i in range(a,b,c)` | `for` | `forspec`: «i = a, b-1, c»; кінець = `stop-1` (range напіввідкритий) |
-| `while True: … if C: break` (останнім) | `dowhile` | післяумова; `Cond` = умова break |
+| `input(...)` / C++ `cin >>` як значення присвоєння/декларації | `io` «Ввід …» | `hasInputNode` шукає `input`/`cin` будь-де у виразі |
+| `print(...)` / `cout << …` | `io` «Вивід …» | рядки → «…», порожній `print()` → «Вивід порожнього рядка» |
+| `for i in range(a,b,c)` (Py) | `for` | spec: «i = a, b-1, c»; `endof` робить `stop-1` (range напіввідкритий) |
+| C++ `for(init; cond; upd)` | `for` | spec складається з init/cond/update |
+| `while True: … if C: break` (останнім) | `dowhile` | післяумова; `cond` = умова break (`breakIfNode`) |
 | `while True:` (break десь усередині) | `infloop` | без ромба-умови |
-| `while C:` / `for …:` | `while`/`for` | + поле `else` (гілка `for/else`, `while/else`) |
-| `continue` | `continue` | стрибок на заголовок циклу (без фігури) |
-| `match/case` | `if` (ланцюг) | 3.10+; патерни value/singleton/or/as → умови `if` |
-| `return v` / `raise e` / `exit()` | `terminal` | «Повернути v» / «Помилка: e» / «Вихід» |
-| `x = моя_функція()` | `call` | лише якщо `моя_функція in defined` |
+| `while C:` / `for …:` | `while`/`for` | + поле `else` (гілка `for/else`, `while/else`, `unwrapElse`) |
+| C++ `do { … } while(C)` | `dowhile` | післяумова напряму |
+| `break` / `continue` | `break`/`continue` | стрибок без фігури |
+| `match/case` (Py) / `switch/case` (C++) | `if` (ланцюг) | патерни/мітки → каскад `if` (`buildCascade`) |
+| `return v` / `raise`/`throw` / `exit()` | `terminal` | «Повернути v» / «Помилка: e» / «Вихід» |
+| `x = моя_функція()` | `call` | лише якщо `defined.has(funcName)` |
 | `with ... :` | `block` | «відкрити: …» + тіло |
-| `try/except` | `block` | прозоро: тіло `try+else`, обробку винятків опускаємо |
+| `try/except` (+ `catch`/`finally`) | `block` | тіло try + обробники як вкладені `if «Виняток?»` |
 
-> **Нове:** `continue`, `for/else`, `while/else`, `match` (як `if`-ланцюг). Повна
-> таблиця й нюанси — [[Підтримувані-конструкції-Python]].
+## Дрібниці форматування
 
-### Дрібниці форматування
-
-- **`oneline` + MAXLEN=64** — будь-який текст у блок зводиться в один рядок і
+- **`oneline` + `MAXLEN=64`** — будь-який текст у блоці зводиться в один рядок і
   обрізається «…», щоб не ламати геометрію.
-- **`fstr`** — f-рядки показуються читабельно: `f"сума {x}"` → `сума {x}`.
-- **`arg`** — рядкові аргументи беруться в лапки «…».
-- **`endof`** — кінець `range`: для літерала рахує `n-1`, для `X+1` дає `X`, інакше
-  `expr - 1`.
+- **`formatArg`** — рядкові аргументи беруться в лапки «…»; f-рядки лишаються читабельні.
+- **`endof`** — верхня межа `range`: для літерала рахує `n-1`, для `X+1` дає `X`,
+  інакше `expr - 1`.
+- **C++ `cout`/`cin`** — регулярками розбираються ланцюжки `<<`/`>>` у читабельний
+  текст вводу/виводу.
 
-### Що ігнорується (`SKIP`)
+## Що ігнорується
 
-```python
-SKIP = (ast.Pass, ast.Import, ast.ImportFrom,
-        ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-```
-
-Плюс докстрінги (`is_docstring`). Вкладені `def`/`class` у тілі не малюються — вони
-йдуть **окремими схемами** (а класи взагалі пропускаються як зайвий шум).
+`stmt()` повертає `null` (фігура не малюється) для докстрінгів/рядкових виразів,
+`comment`, `import`/`import_from`/`preproc_include`/`preproc_def`, а також вкладених
+`function_definition`/`class_definition` — вкладені `def` йдуть **окремими схемами**
+(через рекурсивний `collect`), класи пропускаються як зайвий шум.
 
 ## Пов'язане
 

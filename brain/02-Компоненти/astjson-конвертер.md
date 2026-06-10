@@ -4,80 +4,77 @@ tags: [component, parser]
 
 # astjson — конвертер
 
-**Пакет:** `pkg/parser/astjson` · **Файл:** `astjson.go`
+**Модуль:** `astjson.ts` (`packages/engine/src/astjson.ts`)
 
 Єдина точка перетворення **[[Чому-AST-JSON-як-контракт|AST-JSON]] → [[IR-проміжне-представлення|IR]]**.
-Спільна для всіх мов і середовищ — і для `python3` (CLI), і для Tree-sitter (браузер).
+Спільна для всіх мов: будь-який фронтенд парсера (нині — tree-sitter для Python і C++)
+видає цей формат, а тут — єдина конвертація в IR.
 
 ## Типи на дроті
 
-```go
-type Node struct {
-    Kind  string `json:"kind"`
-    Text  string `json:"text"`   // process/io/call/terminal
-    Cond  string `json:"cond"`   // if/for/while/dowhile (для for — Spec)
-    Stmts []Node `json:"stmts"`  // block
-    Then  *Node  `json:"then"`
-    Else  *Node  `json:"else"`
-    Body  *Node  `json:"body"`
+```ts
+export interface AstNode {
+  kind: string;
+  text?: string;          // process/io/call/terminal
+  cond?: string;          // if/for/while/dowhile (для for — це spec)
+  stmts?: AstNode[];      // block
+  then?: AstNode | null;
+  else?: AstNode | null;
+  body?: AstNode | null;
 }
-type Func struct {
-    Name  string `json:"name"`
-    Block Node   `json:"block"`
-}
+export interface AstFunc { name: string; block: AstNode; }
 ```
 
-Пласка структура з усіма можливими полями; `Kind` — рядок-дискримінатор. Чому не
-десеріалізувати одразу в `ir` — пояснено в [[Чому-AST-JSON-як-контракт]].
+Пласка структура з усіма можливими полями; `kind` — рядок-дискримінатор. Чому не
+будувати одразу `ir` — пояснено в [[Чому-AST-JSON-як-контракт]].
 
-## Три функції
+## Дві функції
 
-### `FromJSON(data []byte) ([]ir.Func, error)`
+### `fromJson(data: string | AstFunc[]): Func[]`
 
-Точка входу. Розбирає JSON-масив `Func`, кожен зводить у `ir.Func`:
+Точка входу. Приймає JSON-рядок або вже розпарсений масив `AstFunc`, кожен зводить у
+`ir.Func`:
 
-```go
-res = append(res, ir.Func{Name: fns[i].Name, Body: ToBlock(&fns[i].Block)})
+```ts
+fns.map((f) => ({ name: f.name, body: toBlock(f.block) }));
 ```
 
-Це **те, що кличе WASM** напряму (`cmd/wasm`), і те, у що впадає `python.ParseAll`.
+Це те, у що впадає вихід `parseTree` (через `fromTree`/`fromAst` у [[Публічний-API-rombik|build.ts]]).
 
-### `ToBlock(n *Node) *ir.Block`
+### `toBlock(n): Block`
 
 Зводить вузол-блок у `ir.Block`. Важлива деталь — **інлайнінг вкладених блоків**:
 
-```go
-if c.Kind == "block" {
-    b.Stmts = append(b.Stmts, ToBlock(c).Stmts...)  // розгортаємо, а не вкладаємо
-    continue
-}
+```ts
+if (c.kind === 'block') stmts.push(...toBlock(c).stmts);  // розгортаємо, а не вкладаємо
+else { const node = toNode(c); if (node) stmts.push(node); }
 ```
 
-Це потрібно, бо `parser.py` загортає `with`/`try` у проміжні `block`-вузли —
+Це потрібно, бо парсер загортає `with`/`try`/`match` у проміжні `block`-вузли —
 розкладка не має бачити цю штучну вкладеність.
 
-### `ToNode(n *Node) ir.Node`
+### `toNode(n): Node | null` (внутрішня)
 
-Switch по `Kind` → конкретний тип `ir`:
+Switch по `kind` → конкретний варіант union `ir.Node`:
 
 ```
-process → ir.Process   io → ir.IO        terminal → ir.Terminal
-call → ir.Call         if → ir.If        for → ir.For{Spec, Body, Else}
-while → ir.While{Cond, Body, Else}        dowhile → ir.DoWhile   infloop → ir.InfLoop
-break → ir.Break       continue → ir.Continue   (інше → nil, тихо пропускається)
+process → Process   io → IO       terminal → Terminal   call → Call
+if → If             for → For{spec, body, else}        while → While{cond, body, else}
+dowhile → DoWhile   infloop → InfLoop  break → Break    continue → Continue
+(інше → null, тихо пропускається)
 ```
 
 Зверни увагу:
-- для `for` поле JSON зветься `Cond`, а в `ir.For` — `Spec` («змінна = початок, кінець,
-  крок»). Конвертер це мапить.
-- `for`/`while` тепер несуть і **`Else`** (гілка `for/else`/`while/else`) — береться з
-  поля `n.Else`. → [[IR-проміжне-представлення]].
-- `continue` додано разом із `break` (обидва — стрибки без фігури).
-- `match` сюди не доходить окремим видом: парсер зводить його в ланцюг `if`.
+- для `for` поле AST-JSON зветься `cond`, а в `ir.For` — `spec` («змінна = початок,
+  кінець, крок»). Конвертер це мапить.
+- `for`/`while` несуть **`else`** (гілка `for/else`/`while/else`) — береться з
+  `n.else`. → [[IR-проміжне-представлення]].
+- `break`/`continue` — обидва стрибки без фігури.
+- `match`/`switch` сюди не доходять окремим видом: парсер зводить їх у ланцюг `if`.
 
 ## Пов'язане
 
 - [[Чому-AST-JSON-як-контракт]]
 - [[IR-проміжне-представлення]]
 - [[Парсер-Python]]
-- [[WASM-міст]]
+- [[Публічний-API-rombik]]

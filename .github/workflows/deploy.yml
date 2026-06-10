@@ -21,30 +21,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Run tests
-        run: go test ./...
-
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      # Збираємо рушій у WASM + копіюємо parser.py і wasm_exec.js у static/.
-      - name: Build WASM engine
-        run: ./web/build-wasm.sh
+      - name: Install deps (npm workspace)
+        run: npm ci
+
+      - name: Engine tests (@rombik/engine)
+        run: npm test --workspace @rombik/engine
 
       - name: Build static site
-        working-directory: web
         run: |
-          npm ci
           npm rebuild esbuild   # npm 11 блокує install-скрипти; esbuild потребує бінарник
-          npm run build
+          npm run build --workspace web
 
       - uses: actions/upload-pages-artifact@v3
         with:
