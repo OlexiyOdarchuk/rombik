@@ -30,8 +30,8 @@ jobs:
       - name: Install deps (npm workspace)
         run: npm ci
 
-      - name: Engine tests (@rombik/engine)
-        run: npm test --workspace @rombik/engine
+      - name: Engine tests (rombik-engine)
+        run: npm test --workspace rombik-engine
 
       - name: Build static site
         run: |

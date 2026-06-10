@@ -1,6 +1,6 @@
 // Рушій у браузері, без сервера й без Go-WASM:
 //   web-tree-sitter парсить код → Tree
-//   @rombik/engine (чистий TS) бере Tree → схеми → SVG / Typst / Excalidraw
+//   rombik-engine (чистий TS) бере Tree → схеми → SVG / Typst / Excalidraw
 // PNG/PDF поки через лінивий растер-WASM (заміниться браузерним canvas).
 import { base } from '$app/paths';
 import {
@@ -8,7 +8,7 @@ import {
 	renderSvg, renderSvgAll as engRenderSvgAll,
 	renderTypst as engRenderTypst, renderTypstAll as engRenderTypstAll, renderTypstFragment, renderTypstFragmentAll,
 	renderExcalidraw as engRenderExcalidraw, renderExcalidrawAll as engRenderExcalidrawAll,
-} from '@rombik/engine';
+} from 'rombik-engine';
 
 let initPromise = null;
 let parser = null;

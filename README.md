@@ -5,7 +5,7 @@
 rombik перетворює код на **Python та C++** на акуратну блок-схему алгоритму
 (ГОСТ/ДСТУ 19.701-90 — той самий стандарт, що вимагають у курсових і лабораторних).
 Працює **повністю у браузері**, без сервера: код нікуди не надсилається. Рушій —
-чистий **TypeScript** (`@rombik/engine`), тож тим самим кодом можна користуватись
+чистий **TypeScript** (`rombik-engine`), тож тим самим кодом можна користуватись
 і в Node-скриптах.
 
 ```python
@@ -58,7 +58,7 @@ def grade(score):
 Потрібен лише **Node 22+**. Монорепо на npm-workspaces.
 
 ```bash
-npm install            # з кореня — лінкує @rombik/engine у веб
+npm install            # з кореня — лінкує rombik-engine у веб
 npm run dev            # http://localhost:5173
 npm run build:web      # статика у web/build/
 ```
@@ -68,13 +68,13 @@ npm run build:web      # статика у web/build/
 
 ---
 
-## Бібліотека / скриптинг (`@rombik/engine`)
+## Бібліотека / скриптинг (`rombik-engine`)
 
 Чистий TS, без DOM/фреймворку — працює у браузері, Node, будь-де. Парсинг дає
 tree-sitter (Tree), далі все в рушії:
 
 ```ts
-import { fromTree, renderSvg, splitFromAst } from '@rombik/engine';
+import { fromTree, renderSvg, splitFromAst } from 'rombik-engine';
 // tree — результат web-tree-sitter (Python/C++)
 const figs = fromTree(tree, 'python', { singleEnd: true });
 for (const f of figs) writeFileSync(`${f.name}.svg`, renderSvg(f.diagram));
@@ -135,7 +135,7 @@ Diagram   (фігури з координатами + ребра-ламані + 
 ## Структура репозиторію
 
 ```
-packages/engine/        @rombik/engine — TS-рушій (без DOM/фреймворку)
+packages/engine/        rombik-engine — TS-рушій (без DOM/фреймворку)
   src/
     parser/treesitter   tree-sitter → AST-JSON (Python + C++)
     astjson · ir        AST-JSON → IR (логічне дерево)
@@ -173,6 +173,6 @@ npm run dev                           # дев-сервер вебу
 
 ## Залежності
 
-- **Рушій (`@rombik/engine`):** нуль рантайм-залежностей (чистий TS). Тести —
+- **Рушій (`rombik-engine`):** нуль рантайм-залежностей (чистий TS). Тести —
   `web-tree-sitter` (граматики) + вбудований `node:test`.
 - **Веб:** SvelteKit (Svelte 5) + Tailwind v4, CodeMirror, `web-tree-sitter`, `jspdf`.

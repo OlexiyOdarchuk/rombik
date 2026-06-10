@@ -8,7 +8,7 @@ tags: [moc, home]
 на блок-схему алгоритму за ДСТУ 19.701-90. Усе на **TypeScript**, у браузері й Node.
 
 > [!info] Проєкт переписано з Go на TypeScript
-> Рушій = `@rombik/engine` (чистий TS, `packages/engine/src/`), веб = SvelteKit,
+> Рушій = `rombik-engine` (чистий TS, `packages/engine/src/`), веб = SvelteKit,
 > PNG/PDF = браузерний canvas, CLI = `tools/rombik.mjs` (Node). Go, python3, Go-WASM-
 > рушій і tdewolff/canvas **видалено**. Алгоритми розкладки портовані БАЙТ-У-БАЙТ
 > (парність стережуть golden-тести). Документацію нижче оновлено під цю реальність;
@@ -56,7 +56,7 @@ tags: [moc, home]
 
 ### 04 — Веб
 
-- [[Браузерний-рушій]] — tree-sitter + прямий TS-імпорт `@rombik/engine`
+- [[Браузерний-рушій]] — tree-sitter + прямий TS-імпорт `rombik-engine`
 - [[Фронтенд-SvelteKit]] — CodeMirror, редактор схеми, експорт
 - [[WASM-міст]] — тепер без Go-WASM: єдиний wasm — граматики tree-sitter (парсер)
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --experimental-strip-types
-// rombik CLI — код → блок-схема, на тому самому TS-рушії (@rombik/engine).
+// rombik CLI — код → блок-схема, на тому самому TS-рушії (rombik-engine).
 // Запуск:  node --experimental-strip-types tools/rombik.mjs <файл> [опції]
 //    або:  ./tools/rombik.mjs <файл> [опції]   (після chmod +x)
 //    або:  npm run cli -- <файл> [опції]
@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Parser, Language } from 'web-tree-sitter';
-import { fromTree, parseTree, splitFromAst, renderSvg, renderTypst, renderExcalidraw } from '@rombik/engine';
+import { fromTree, parseTree, splitFromAst, renderSvg, renderTypst, renderExcalidraw } from 'rombik-engine';
 
 // wasm-граматики: біля скрипта (зібраний dist/) або у web/static (dev із кореня).
 const selfDir = dirname(fileURLToPath(import.meta.url));

@@ -2,9 +2,9 @@
 tags: [component, api, facade]
 ---
 
-# Публічний API (@rombik/engine)
+# Публічний API (rombik-engine)
 
-**Пакет:** `@rombik/engine` · **Модуль:** `index.ts` (`packages/engine/src/index.ts`)
+**Пакет:** `rombik-engine` · **Модуль:** `index.ts` (`packages/engine/src/index.ts`)
 **Оркестрація:** `build.ts`
 
 Публічний бар'єр рушія: `index.ts` ре-експортує типи й функції всіх внутрішніх модулів,

@@ -14,7 +14,7 @@ tags: [web, frontend]
   опцій), `$derived` (результати генерації), `$effect` (синхронізація тем та CodeMirror).
 - **Tailwind v4** (`@tailwindcss/vite`) — стилі, з підтримкою темної теми.
 - **CodeMirror 6** — редактор коду Python/C++ (підсвітка, нумерація, дужки).
-- Рантайм-рушій — **Tree-sitter (парсер) + `@rombik/engine` (прямий TS-імпорт)**
+- Рантайм-рушій — **Tree-sitter (парсер) + `rombik-engine` (прямий TS-імпорт)**
   ([[Браузерний-рушій]]).
 
 ## Структура
@@ -23,7 +23,7 @@ tags: [web, frontend]
 web/src/
 ├── app.html, app.css        Tailwind + токени теми (--color-paper тощо)
 ├── lib/
-│   ├── engine.js            клей: Tree-sitter + @rombik/engine (TS-рушій)
+│   ├── engine.js            клей: Tree-sitter + rombik-engine (TS-рушій)
 │   ├── CodeEditor.svelte     CodeMirror 6 (Python та C++); тема через Compartment
 │   ├── DiagramEditor.svelte  картка схеми: прев'ю, експорт, редагування підпису
 │   ├── ThemeToggle.svelte    перемикач світла/темна
@@ -35,13 +35,13 @@ web/src/
     └── app/+page.svelte     редактор
 ```
 
-Парсер тепер усередині `@rombik/engine` (`parseTree`) — окремого `parser.js` у `web/`
+Парсер тепер усередині `rombik-engine` (`parseTree`) — окремого `parser.js` у `web/`
 немає. Граматики Tree-sitter (`tree-sitter*.wasm`) лежать у `web/static/`. Збірка
 автоматизована й розгортається через **GitHub Actions**. → [[Збірка-і-запуск]].
 
 > [!note] vite та workspace-рушій
-> `vite.config` має `optimizeDeps.exclude: ['@rombik/engine', 'web-tree-sitter']`:
-> `@rombik/engine` — workspace-джерело (TS), його треба обробляти як source, а не
+> `vite.config` має `optimizeDeps.exclude: ['rombik-engine', 'web-tree-sitter']`:
+> `rombik-engine` — workspace-джерело (TS), його треба обробляти як source, а не
 > пребандлити; `web-tree-sitter` застосунок не імпортує напряму (бере статичний
 > `tree-sitter.js`), а в npm-workspace він hoisted у корінь — пребандл падав ENOENT.
 
@@ -77,7 +77,7 @@ web/src/
 ## Потік у редакторі
 
 1. Вибір мови та код + опції → `engine.generate` → Tree-sitter парсить, `parseTree`
-   конвертує, `@rombik/engine` (`fromAst`) розкладає, `renderSvg` рендерить
+   конвертує, `rombik-engine` (`fromAst`) розкладає, `renderSvg` рендерить
    ([[Браузерний-рушій]]).
 2. Результат `{functions:[{name, svg, diagram}], warning?}` → `svg` у DOM.
 3. Правка підпису → `renderCaption` (дешевий ре-рендер, без парсингу).

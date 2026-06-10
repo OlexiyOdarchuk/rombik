@@ -1,4 +1,4 @@
-# @rombik/engine
+# rombik-engine
 
 Рушій **rombik**: код (**Python / C++**) → блок-схема алгоритму за **ДСТУ 19.701‑90**.
 Чистий **TypeScript**, нуль рантайм-залежностей, без DOM і фреймворків. Дає геометрію
@@ -9,7 +9,7 @@
 ```
 
 ```bash
-npm install @rombik/engine web-tree-sitter
+npm install rombik-engine web-tree-sitter
 ```
 
 > Розбір коду — через `web-tree-sitter` (WASM-граматики `tree-sitter-python` /
@@ -19,7 +19,7 @@ npm install @rombik/engine web-tree-sitter
 
 ```js
 import { Parser, Language } from 'web-tree-sitter';
-import { fromTree, renderSvg } from '@rombik/engine';
+import { fromTree, renderSvg } from 'rombik-engine';
 
 await Parser.init();
 const parser = new Parser();

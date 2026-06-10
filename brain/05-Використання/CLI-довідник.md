@@ -5,7 +5,7 @@ tags: [usage, cli]
 # CLI — довідник
 
 **Команда:** `tools/rombik.mjs` — Node-скрипт на тому самому TS-рушії
-(`@rombik/engine`). Жодного Go-бінарника й `python3`: парсинг робить web-tree-sitter
+(`rombik-engine`). Жодного Go-бінарника й `python3`: парсинг робить web-tree-sitter
 (wasm), розкладку та рендер — рушій. → [[Браузерний-рушій]].
 
 Запуск (з кореня монорепо):

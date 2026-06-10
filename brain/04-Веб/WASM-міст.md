@@ -8,7 +8,7 @@ tags: [web, component]
 > Раніше рушій у браузері був **Go**, скомпільований у два WASM-модулі (легкий
 > `rombik.wasm` для SVG/Typst + важкий `rombik-raster.wasm` для PNG/PDF), і `engine.js`
 > був мостом Go↔JS через `wasm_exec.js`. **Після міграції на TypeScript Go-WASM немає
-> зовсім.** Рушій — це звичайний TS-пакет `@rombik/engine`, що бандлиться vite разом із
+> зовсім.** Рушій — це звичайний TS-пакет `rombik-engine`, що бандлиться vite разом із
 > застосунком. ЄДИНИЙ WASM, що лишився, — **граматики Tree-sitter** (`web-tree-sitter`),
 > і це **парсер**, а не рушій.
 
@@ -17,13 +17,13 @@ tags: [web, component]
 | Частина | Що це | WASM? |
 |---------|-------|-------|
 | **Парсер** | `web-tree-sitter` + граматики `tree-sitter-python/cpp.wasm` | так (граматики) |
-| **Рушій** | `@rombik/engine` (TypeScript: layout + рендери) | ні, чистий TS |
+| **Рушій** | `rombik-engine` (TypeScript: layout + рендери) | ні, чистий TS |
 
 Парсер дає синтаксичне дерево `Tree`; рушій бере його й видає
 [[Diagram-модель-геометрії|Diagram]] та формати. Межа між ними — AST
 ([[Чому-AST-JSON-як-контракт]], [[Розділення-відповідальностей]]).
 
-## Рушій `@rombik/engine`
+## Рушій `rombik-engine`
 
 Пакет `packages/engine` (`exports` → `src/index.ts`). Публічні точки входу замість
 колишніх глобальних `rombik*`-функцій:
@@ -52,8 +52,8 @@ PNG; PDF — той самий растр посторінково через **
 
 ## Vite-нюанс
 
-`optimizeDeps.exclude: ['@rombik/engine', 'web-tree-sitter']`:
-- `@rombik/engine` — workspace-джерело (TS), обробляється як source, не пребандлиться;
+`optimizeDeps.exclude: ['rombik-engine', 'web-tree-sitter']`:
+- `rombik-engine` — workspace-джерело (TS), обробляється як source, не пребандлиться;
 - `web-tree-sitter` hoisted у корінь монорепо (застосунок бере статичний
   `tree-sitter.js`), тож пребандл vite падав ENOENT у `web/node_modules`.
 

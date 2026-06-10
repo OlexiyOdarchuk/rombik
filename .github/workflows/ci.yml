@@ -26,11 +26,11 @@ jobs:
       - name: esbuild binary
         run: npm rebuild esbuild # npm 11 блокує install-скрипти; esbuild потребує бінарник
 
-      - name: Tests + coverage (@rombik/engine)
-        run: npm run coverage --workspace @rombik/engine
+      - name: Tests + coverage (rombik-engine)
+        run: npm run coverage --workspace rombik-engine
 
-      - name: Typecheck (@rombik/engine)
-        run: npm run typecheck --workspace @rombik/engine
+      - name: Typecheck (rombik-engine)
+        run: npm run typecheck --workspace rombik-engine
 
       - name: Build web (smoke)
         run: npm run build --workspace web

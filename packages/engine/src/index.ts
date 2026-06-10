@@ -1,4 +1,4 @@
-// @rombik/engine — публічний API рушія: код/AST → блок-схема за ДСТУ.
+// rombik-engine — публічний API рушія: код/AST → блок-схема за ДСТУ.
 export type { Diagram, Shape, Edge, Point, Kind } from './diagram.ts';
 export { captionLine, labelAnchor } from './diagram.ts';
 export type { Node, Func, Block, If, For, While } from './ir.ts';
