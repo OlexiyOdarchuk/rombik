@@ -23,6 +23,7 @@ async function init(onProgress) {
 	parser = new Parser();
 	langs.python = await Language.load(`${base}/tree-sitter-python.wasm`);
 	langs.cpp = await Language.load(`${base}/tree-sitter-cpp.wasm`);
+	langs.pascal = await Language.load(`${base}/tree-sitter-pascal.wasm`);
 }
 
 /** Готує середовище (ідемпотентно). Можна викликати заздалегідь для прогріву. */
@@ -39,7 +40,8 @@ export async function generate(code, options = {}, onProgress) {
 	onProgress?.('Будую схему…');
 	try {
 		// C — підмножина C++: та сама граматика й гілка парсера (lang='cpp').
-		const lang = options.lang === 'cpp' || options.lang === 'c' ? 'cpp' : 'python';
+		const lang = options.lang === 'pascal' ? 'pascal'
+			: options.lang === 'cpp' || options.lang === 'c' ? 'cpp' : 'python';
 		parser.setLanguage(langs[lang]);
 		const tree = parser.parse(code);
 		lastAst = parseTree(tree, lang);

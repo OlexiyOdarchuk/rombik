@@ -14,7 +14,8 @@
 
 	const isDark = () => document.documentElement.classList.contains('dark');
 	const themeExt = () => (isDark() ? oneDark : []);
-	const langExt = () => (lang === 'cpp' ? cpp() : python());
+	// Pascal — без власного режиму CodeMirror; без підсвітки (краще, ніж хибна python).
+	const langExt = () => (lang === 'cpp' ? cpp() : lang === 'pascal' ? [] : python());
 
 
 	onMount(() => {

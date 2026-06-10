@@ -17,7 +17,7 @@ export interface TSNode {
   readonly namedChildren: TSNode[];
 }
 export interface TSTree { rootNode: TSNode; }
-export type Lang = 'python' | 'cpp';
+export type Lang = 'python' | 'cpp' | 'pascal';
 
 const MAXLEN = 64;
 function oneline(t: string | null | undefined): string {
@@ -115,10 +115,123 @@ function formatArg(argNode: TSNode): string {
   return argNode.text;
 }
 
+// parsePascal — окрема гілка для Pascal (синтаксис зовсім інший: begin/end, := ,
+// procedure/function, for..to..do, while..do, repeat..until, case..of, writeln/readln).
+function parsePascal(root: TSNode, defined: Set<string>): AstFunc[] {
+  const program = root.type === 'program' ? root : (root.namedChildren.find((c) => c.type === 'program') ?? root);
+  const funcs: AstFunc[] = [];
+  const e = (n: TSNode | null) => (n ? oneline(n.text.replace(/:=/g, '=')) : '');
+  const noK = (n: TSNode) => n.namedChildren.filter((c) => !c.type.startsWith('k')); // відкинути keyword-вузли
+  const blockify = (node: AstNode | null): AstNode => (node && node.kind === 'block' ? node : { kind: 'block', stmts: node ? [node] : [] });
+  const pArgs = (call: TSNode): string => {
+    const a = call.namedChildren.find((c) => c.type === 'exprArgs');
+    if (!a || a.namedChildCount === 0) return '';
+    return a.namedChildren.map((arg) => oneline(arg.text.replace(/'([^']*)'/g, '«$1»'))).join(' ');
+  };
+
+  // імена процедур/функцій → для розпізнавання викликів як підпрограм
+  for (const dp of program.namedChildren.filter((c) => c.type === 'defProc')) {
+    const nn = dp.namedChildren.find((c) => c.type === 'declProc')?.namedChildren.find((c) => c.type === 'identifier');
+    if (nn) defined.add(nn.text);
+  }
+
+  function pStmt(s: TSNode | null): AstNode | null {
+    if (!s) return null;
+    if (s.type === 'statement') return pStmt(s.namedChildren[0] ?? null);
+    if (s.type === 'comment') return null;
+    if (s.type === 'block' || s.type === 'statements') return pBlock(s);
+    if (s.type === 'exprCall') {
+      const name = s.namedChildren[0]?.text ?? '';
+      if (/^write(ln)?$/i.test(name)) return { kind: 'io', text: oneline('Вивід ' + pArgs(s)) };
+      if (/^read(ln)?$/i.test(name)) return { kind: 'io', text: oneline('Ввід ' + pArgs(s)) };
+      if (name && defined.has(name)) return { kind: 'call', text: e(s) };
+      return { kind: 'process', text: e(s) };
+    }
+    if (s.type === 'assignment') return { kind: 'process', text: e(s) };
+    if (s.type === 'if' || s.type === 'ifElse') {
+      const p = noK(s); // [cond, then, (else)]
+      return { kind: 'if', cond: e(p[0]), then: blockify(pStmt(p[1])), else: p[2] ? blockify(pStmt(p[2])) : { kind: 'block', stmts: [] } };
+    }
+    if (s.type === 'while') {
+      const p = noK(s); // [cond, body]
+      return { kind: 'while', cond: e(p[0]), body: blockify(pStmt(p[1])), else: { kind: 'block', stmts: [] } };
+    }
+    if (s.type === 'for') {
+      const p = noK(s); // [assignment(i:=start), endExpr, body]
+      const downto = s.namedChildren.some((c) => c.type === 'kDownto');
+      const asg = p[0];
+      const v = asg?.namedChildren[0]?.text ?? 'i';
+      const start = asg?.namedChildren[asg.namedChildCount - 1]?.text ?? '?';
+      const end = p[1]?.text ?? '?';
+      return { kind: 'for', cond: oneline(`${v} = ${start}, ${end}, ${downto ? '-1' : '1'}`), body: blockify(pStmt(p[2])), else: { kind: 'block', stmts: [] } };
+    }
+    if (s.type === 'repeat') {
+      const p = noK(s); // [statements, untilCond]
+      return { kind: 'dowhile', cond: oneline('не (' + e(p[1]) + ')'), body: blockify(pStmt(p[0])) };
+    }
+    if (s.type === 'case') {
+      const subj = noK(s).find((c) => c.type !== 'caseCase');
+      const subjText = subj ? subj.text : '?';
+      const cases = s.namedChildren.filter((c) => c.type === 'caseCase');
+      const elseIdx = s.namedChildren.findIndex((c) => c.type === 'kElse');
+      const elseStmt = elseIdx >= 0 ? (s.namedChildren[elseIdx + 1] ?? null) : null;
+      const build = (i: number): AstNode => {
+        if (i >= cases.length) return elseStmt ? blockify(pStmt(elseStmt)) : { kind: 'block', stmts: [] };
+        const cc = cases[i];
+        const label = cc.namedChildren.find((c) => c.type === 'caseLabel');
+        const body = cc.namedChildren.find((c) => c.type === 'statement' || c.type === 'block' || c.type === 'statements') ?? null;
+        const vals = label ? label.namedChildren.map((l) => l.text) : [];
+        const cond = vals.map((v) => `${subjText} = ${v}`).join(' || ');
+        return cond ? { kind: 'if', cond: oneline(cond), then: blockify(pStmt(body)), else: blockify(build(i + 1)) } : blockify(pStmt(body));
+      };
+      return build(0);
+    }
+    return { kind: 'process', text: e(s) };
+  }
+
+  function pBlock(node: TSNode | null): AstNode {
+    if (!node) return { kind: 'block', stmts: [] };
+    const stmts: AstNode[] = [];
+    for (const c of node.namedChildren) {
+      if (c.type.startsWith('k')) continue;
+      const m = pStmt(c);
+      if (m) stmts.push(m);
+    }
+    return { kind: 'block', stmts };
+  }
+
+  for (const dp of program.namedChildren.filter((c) => c.type === 'defProc')) {
+    const decl = dp.namedChildren.find((c) => c.type === 'declProc');
+    const body = dp.namedChildren.find((c) => c.type === 'block');
+    const name = decl?.namedChildren.find((c) => c.type === 'identifier')?.text ?? 'unknown';
+    const b = pBlock(body ?? null);
+    const args = decl?.namedChildren.find((c) => c.type === 'declArgs');
+    if (args) {
+      const params: string[] = [];
+      for (const da of args.namedChildren.filter((c) => c.type === 'declArg'))
+        for (const id of da.namedChildren.filter((c) => c.type === 'identifier')) params.push(id.text);
+      if (params.length) (b.stmts ??= []).unshift({ kind: 'io', text: 'Ввід ' + oneline(params.join(', ')) });
+    }
+    funcs.push({ name, block: b });
+  }
+
+  const mainBlock = program.namedChildren.filter((c) => c.type === 'block').pop();
+  if (mainBlock) {
+    const mb = pBlock(mainBlock);
+    if (mb.stmts?.length) {
+      const modName = program.namedChildren.find((c) => c.type === 'moduleName');
+      funcs.push({ name: modName ? oneline(modName.text) : 'main', block: mb });
+    }
+  }
+  return funcs;
+}
+
 // parseTree — головна функція: tree-sitter Tree + мова → масив схем (AstFunc).
 export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
   const defined = new Set<string>();
   collectDefinedFunctions(tree.rootNode, defined);
+
+  if (lang === 'pascal') return parsePascal(tree.rootNode, defined);
 
   const isCpp = lang === 'cpp';
   const isPy = lang === 'python';

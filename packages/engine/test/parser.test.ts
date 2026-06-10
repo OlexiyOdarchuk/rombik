@@ -17,7 +17,8 @@ const cache: Record<string, any> = {};
 async function parserFor(lang: Lang) {
   if (!cache[lang]) {
     const p = new ts.Parser();
-    p.setLanguage(await ts.Language.load(join(web, 'static', lang === 'cpp' ? 'tree-sitter-cpp.wasm' : 'tree-sitter-python.wasm')));
+    const wasm = lang === 'cpp' ? 'tree-sitter-cpp.wasm' : lang === 'pascal' ? 'tree-sitter-pascal.wasm' : 'tree-sitter-python.wasm';
+    p.setLanguage(await ts.Language.load(join(web, 'static', wasm)));
     cache[lang] = p;
   }
   return cache[lang];
@@ -154,4 +155,27 @@ test('C++: operator та деструктор мають правильні ім
   assert.ok(op.some((f: any) => f.name === 'V::operator+'), 'operator+ → unknown');
   const dt = JSON.parse(await astJson('class F { public: F(){} ~F(){ cout << 1; } };'));
   assert.deepEqual(dt.map((f: any) => f.name), ['F::F', 'F::~F']);
+});
+
+// --- Pascal ---
+test('Pascal: процедури/функції + головна програма → окремі схеми', async () => {
+  const ast = JSON.parse(await astJson('program P;\nfunction sq(x: integer): integer;\nbegin\n  sq := x*x;\nend;\nbegin\n  writeln(sq(3));\nend.', 'pascal'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['sq', 'P']);
+});
+
+test('Pascal: writeln/readln → вивід/ввід, := → дія', async () => {
+  const ast = JSON.parse(await astJson('program P;\nvar n: integer;\nbegin\n  readln(n);\n  n := n + 1;\n  writeln(n);\nend.', 'pascal'));
+  const j = JSON.stringify(ast);
+  assert.match(j, /"Ввід n"/);
+  assert.match(j, /"n = n \+ 1"/); // := перетворено на =
+  assert.match(j, /Вивід .*n/);
+});
+
+test('Pascal: for/while/repeat/case дають керівні вузли', async () => {
+  const forA = JSON.parse(await astJson('program P;\nvar i: integer;\nbegin\n  for i := 1 to 10 do writeln(i);\nend.', 'pascal'));
+  assert.match(JSON.stringify(forA), /"kind":"for".*"i = 1, 10, 1"/);
+  const rep = JSON.parse(await astJson('program P;\nvar n: integer;\nbegin\n  repeat n := n+1; until n >= 5;\nend.', 'pascal'));
+  assert.match(JSON.stringify(rep), /"kind":"dowhile".*не \(n >= 5\)/);
+  const cas = JSON.parse(await astJson('program P;\nvar n: integer;\nbegin\n  case n of\n    1: writeln(1);\n    2: writeln(2);\n  end;\nend.', 'pascal'));
+  assert.match(JSON.stringify(cas), /"kind":"if".*n = 1/);
 });

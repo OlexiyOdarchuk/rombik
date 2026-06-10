@@ -21,7 +21,7 @@ const { values, positionals } = parseArgs({
   options: {
     out:          { type: 'string',  short: 'o' },                 // вихід (default: stdout)
     format:       { type: 'string',  short: 't', default: 'svg' }, // svg | typ | json | excalidraw
-    lang:         { type: 'string',  short: 'l' },                 // py | cpp | c (default: за розширенням)
+    lang:         { type: 'string',  short: 'l' },                 // py | cpp | c | pas (default: за розширенням)
     fn:           { type: 'string' },                              // лише функція з цим іменем
     'single-end': { type: 'boolean', default: false },             // один спільний Кінець
     split:        { type: 'string' },                              // розбити на частини ≤ N (висоти)
@@ -30,7 +30,7 @@ const { values, positionals } = parseArgs({
 });
 
 function help() {
-  console.log(`rombik — код (Python/C++) → блок-схема ДСТУ 19.701-90
+  console.log(`rombik — код (Python/C++/Pascal) → блок-схема ДСТУ 19.701-90
 
 Використання:
   rombik <файл> [опції]        ( '-' = читати stdin )
@@ -38,7 +38,7 @@ function help() {
 Опції:
   -o, --out FILE     вихід (без нього — stdout); кілька функцій → FILE_<імʼя>.<ext>
   -t, --format FMT   svg | typ | json | excalidraw            (типово svg)
-  -l, --lang LANG    py | cpp | c                              (типово за розширенням)
+  -l, --lang LANG    py | cpp | c | pas                        (типово за розширенням)
       --fn NAME      малювати лише функцію NAME
       --single-end   один спільний «Кінець» (інакше — на кожен return/raise)
       --split N      розбити схему на частини, не вищі за N
@@ -61,15 +61,19 @@ const src = file === '-' ? readFileSync(0, 'utf8') : readFileSync(file, 'utf8');
 const ext = file === '-' ? '' : extname(file).toLowerCase();
 // C — підмножина C++: парситься тією ж граматикою (lang='cpp').
 const cppExt = ['.cpp', '.cc', '.cxx', '.hpp', '.h', '.cs', '.c'];
+const pasExt = ['.pas', '.pp', '.lpr'];
 const lang = values.lang === 'py' ? 'python'
   : values.lang === 'cpp' || values.lang === 'c' ? 'cpp'
-  : cppExt.includes(ext) ? 'cpp' : 'python';
+  : values.lang === 'pas' || values.lang === 'pascal' ? 'pascal'
+  : cppExt.includes(ext) ? 'cpp'
+  : pasExt.includes(ext) ? 'pascal' : 'python';
+const grammarFile = { cpp: 'tree-sitter-cpp.wasm', pascal: 'tree-sitter-pascal.wasm', python: 'tree-sitter-python.wasm' }[lang];
 
 // У зібраному dist/ ядро web-tree-sitter лежить поруч (locateFile); у dev його
 // знаходить node_modules сам.
 await Parser.init(existsSync(join(grammars, 'web-tree-sitter.wasm')) ? { locateFile: (f) => join(grammars, f) } : undefined);
 const parser = new Parser();
-parser.setLanguage(await Language.load(join(grammars, lang === 'cpp' ? 'tree-sitter-cpp.wasm' : 'tree-sitter-python.wasm')));
+parser.setLanguage(await Language.load(join(grammars, grammarFile)));
 const tree = parser.parse(src);
 const opts = { singleEnd: values['single-end'] };
 

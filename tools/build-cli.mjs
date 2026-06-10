@@ -21,4 +21,5 @@ chmodSync(out, 0o755);
 copyFileSync(join(root, 'node_modules/web-tree-sitter/web-tree-sitter.wasm'), join(dist, 'web-tree-sitter.wasm'));
 copyFileSync(join(root, 'web/static/tree-sitter-python.wasm'), join(dist, 'tree-sitter-python.wasm'));
 copyFileSync(join(root, 'web/static/tree-sitter-cpp.wasm'), join(dist, 'tree-sitter-cpp.wasm'));
+  copyFileSync(join(root, 'web/static/tree-sitter-pascal.wasm'), join(dist, 'tree-sitter-pascal.wasm'));
 console.log('Зібрано: dist/rombik.mjs (+ 3 wasm)');

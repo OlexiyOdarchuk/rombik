@@ -65,13 +65,27 @@ void grade(int score) {
     }
 }`;
 
-	let code = $state(SAMPLE_PYTHON);
-	let language = $state('python'); // 'python' | 'cpp' | 'c'
+	const SAMPLE_PASCAL = `program Grade;
+var score, total: integer;
+begin
+  readln(score);
+  total := score + 5;
+  if total >= 90 then
+    writeln('Відмінно')
+  else if total >= 60 then
+    writeln('Задовільно')
+  else
+    writeln('Незадовільно');
+end.`;
 
+	let code = $state(SAMPLE_PYTHON);
+	let language = $state('python'); // 'python' | 'cpp' | 'c' | 'pascal'
+
+	const SAMPLES = { python: SAMPLE_PYTHON, cpp: SAMPLE_CPP, c: SAMPLE_C, pascal: SAMPLE_PASCAL };
 	let lastLanguage = language;
 	$effect(() => {
 		if (language !== lastLanguage) {
-			code = language === 'cpp' ? SAMPLE_CPP : language === 'c' ? SAMPLE_C : SAMPLE_PYTHON;
+			code = SAMPLES[language] ?? SAMPLE_PYTHON;
 			lastLanguage = language;
 		}
 	});
@@ -636,6 +650,7 @@ void grade(int score) {
 					<option value="python">Python</option>
 					<option value="cpp">C++</option>
 					<option value="c">C</option>
+					<option value="pascal">Pascal</option>
 				</select>
 			</div>
 			<div class="min-h-0 flex-1 overflow-hidden rounded-b-xl">
