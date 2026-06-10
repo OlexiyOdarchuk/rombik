@@ -728,8 +728,12 @@ func (b *build) placeLoopGuard(g *ir.If, cx, headHalf, headCy, headBottom float6
 	exit, ended := b.placeBlock(g.Then, cx, actTop)
 
 	// Колонки дуг — за реальним краєм УСЬОГО тіла, щоб дуга повернення не різала
-	// бічні обходи внутрішніх guard-ів.
+	// бічні обходи внутрішніх guard-ів. Але й не ближче за кут ЗАГОЛОВКА (він буває
+	// ширший за тіло): інакше колона дуги стає майже впритул до вершини заголовка,
+	// завершальний горизонтальний сегмент майже нульовий — і вістря «ламається».
 	right, left := b.bodyExtent(startS, startE, cx)
+	right = max(right, cx+headHalf)
+	left = min(left, cx-headHalf)
 	backX := right + arcGap
 	if ended {
 		// Дія завершується (break/return): назад вертатись нема чому, тож «Ні» САМ
@@ -918,6 +922,8 @@ func (b *build) placeInfLoop(n *ir.InfLoop, cx, top float64) diagram.Point {
 // заголовка) і дугу виходу (лівий кут заголовка → ліворуч → вниз → центр).
 func (b *build) loopArcs(cx, headHalf, headCy float64, startS, startE int, bodyBottom float64, exitLabel string, conts []diagram.Point) diagram.Point {
 	right, left := b.bodyExtent(startS, startE, cx)
+	right = max(right, cx+headHalf) // дуга огинає і ширший за тіло заголовок (див. placeLoopGuard)
+	left = min(left, cx-headHalf)
 	backX := right + arcGap
 	leftX := left - arcGap
 	contY := bodyBottom + vGap
