@@ -55,6 +55,37 @@ function getCallName(node) {
     return null;
 }
 
+// endof — верхня межа range як «stop - 1», зі згортанням «X + 1» → «X» і числових
+// констант (range(n) → 0, n-1). Дзеркалить endof() з parser.py (щоб веб і CLI збігались).
+function endof(node) {
+    if (!node) return "?";
+    if (node.type === "integer") {
+        const n = parseInt(node.text, 10);
+        if (!Number.isNaN(n)) return String(n - 1);
+    }
+    if (node.type === "binary_operator") {
+        const op = node.childForFieldName("operator");
+        const right = node.childForFieldName("right");
+        const left = node.childForFieldName("left");
+        if (op && op.text === "+" && right && right.text === "1" && left) return left.text;
+    }
+    return node.text + " - 1";
+}
+
+// isTrueNode/breakIfNode — для розпізнавання «while True» (нескінченний цикл) та
+// ідіоми післяумови «while True: … if C: break» (do-while). Дзеркалить is_true/break_if з parser.py.
+function isTrueNode(n) {
+    return !!n && (n.type === "true" || (n.type === "integer" && n.text === "1"));
+}
+function breakIfNode(st) {
+    if (!st || st.type !== "if_statement" || st.childForFieldName("alternative")) return null;
+    const body = st.childForFieldName("consequence");
+    if (!body) return null;
+    const kids = body.namedChildren.filter(c => c.type !== "comment");
+    if (kids.length === 1 && kids[0].type === "break_statement") return st.childForFieldName("condition");
+    return null;
+}
+
 function formatArg(argNode) {
     if (argNode.type === "string") {
          let text = argNode.text;
@@ -107,7 +138,20 @@ export function parseTreeToAstJson(tree, lang) {
         if (s.type === "while_statement") {
             const cond = s.childForFieldName("condition");
             const body = s.childForFieldName("body");
-            
+
+            // while True: … — нескінченний цикл (без ромба); якщо останнє «if C: break»
+            // — це цикл з післяумовою (do-while). Як у parser.py.
+            if (isPy && isTrueNode(cond) && body) {
+                const stmts = body.namedChildren.filter(c => c.type !== "comment");
+                const last = stmts[stmts.length - 1];
+                const brkCond = breakIfNode(last);
+                if (brkCond) {
+                    return { kind: "dowhile", cond: oneline(brkCond.text),
+                        body: { kind: "block", stmts: stmts.slice(0, -1).map(stmt).filter(Boolean) } };
+                }
+                return { kind: "infloop", body: block(body) };
+            }
+
             let condText = cond ? cond.text : "?";
             if (isCpp && condText.startsWith("(") && condText.endsWith(")")) {
                 condText = condText.substring(1, condText.length - 1);
@@ -135,11 +179,11 @@ export function parseTreeToAstJson(tree, lang) {
                             const argNodes = args.namedChildren;
                             const leftText = left ? left.text : "?";
                             if (argNodes.length === 1) {
-                                condText = `${leftText} = 0, ${argNodes[0].text} - 1, 1`;
+                                condText = `${leftText} = 0, ${endof(argNodes[0])}, 1`;
                             } else if (argNodes.length === 2) {
-                                condText = `${leftText} = ${argNodes[0].text}, ${argNodes[1].text} - 1, 1`;
+                                condText = `${leftText} = ${argNodes[0].text}, ${endof(argNodes[1])}, 1`;
                             } else if (argNodes.length >= 3) {
-                                condText = `${leftText} = ${argNodes[0].text}, ${argNodes[1].text} - 1, ${argNodes[2].text}`;
+                                condText = `${leftText} = ${argNodes[0].text}, ${endof(argNodes[1])}, ${argNodes[2].text}`;
                             }
                         }
                     }
@@ -367,6 +411,8 @@ export function parseTreeToAstJson(tree, lang) {
         if (s.type === "expression_statement") {
             const expr = s.namedChildren[0];
             if (!expr) return { kind: "process", text: oneline(s.text.replace(";", "")) };
+            // голий рядок-літерал (докстрінг/коментар) — не малюємо (як is_docstring у parser.py)
+            if (expr.type === "string" || expr.type === "concatenated_string") return null;
 
             if (isCpp && (expr.type === "binary_expression" || expr.type === "shift_expression")) {
                 let text = expr.text.trim();
@@ -514,10 +560,18 @@ export function parseTreeToAstJson(tree, lang) {
             } else if (isPy) {
                 let p = node.childForFieldName("parameters");
                 if (p) {
-                    paramsText = p.text;
-                    if (paramsText.startsWith("(") && paramsText.endsWith(")")) {
-                        paramsText = paramsText.substring(1, paramsText.length - 1);
+                    // лише імена параметрів, без тип-анотацій і значень за замовчуванням
+                    // (як [a.arg for a in fn.args.args] у parser.py): «matrix», не «matrix: T».
+                    const names = [];
+                    for (const pc of p.namedChildren) {
+                        if (pc.type === "comment") continue;
+                        if (pc.type === "identifier") { names.push(pc.text); continue; }
+                        const nm = pc.childForFieldName("name");
+                        if (nm) { names.push(nm.text); continue; }
+                        const id = pc.namedChildren.find(c => c.type === "identifier");
+                        names.push(id ? id.text : pc.text);
                     }
+                    paramsText = names.join(", ");
                 }
             }
             
@@ -529,6 +583,14 @@ export function parseTreeToAstJson(tree, lang) {
             }
             
             funcs.push({ name: fnName, block: b });
+
+            // вкладені функції — кожна окремою схемою (як collect(s.body) у parser.py).
+            // block() уже прибрав їх із тіла батька; тут лише додаємо як власні фігури.
+            if (bodyNode && bodyNode.type === "block") {
+                for (const k of bodyNode.namedChildren) {
+                    if (k.type === "function_definition") collect(k);
+                }
+            }
         } else {
             const mapped = stmt(node);
             if (mapped && mapped.kind !== "block") {
