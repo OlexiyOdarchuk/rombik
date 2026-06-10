@@ -184,6 +184,13 @@ test('mainOnlyTerminators: main → Початок/Кінець, підпрог�
   assert.deepEqual(term(on[1]), ['Вхід', 'Вихід']); // підпрограма
 });
 
+test('Python: pass та «...» не малюються (no-op заглушки)', async () => {
+  const ast = JSON.parse(await astJson('def f(x):\n    if x > 0:\n        pass\n    else:\n        print(x)\n', 'python'));
+  assert.ok(!/"pass"/.test(JSON.stringify(ast)), 'pass протік у схему');
+  const ell = JSON.parse(await astJson('def g():\n    ...\n', 'python'));
+  assert.deepEqual(ell[0].block.stmts, []); // лише «...» → порожнє тіло
+});
+
 // --- Pascal ---
 test('Pascal: процедури/функції + головна програма → окремі схеми', async () => {
   const ast = JSON.parse(await astJson('program P;\nfunction sq(x: integer): integer;\nbegin\n  sq := x*x;\nend;\nbegin\n  writeln(sq(3));\nend.', 'pascal'));
