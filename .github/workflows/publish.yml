@@ -33,7 +33,14 @@ jobs:
         run: npm test --workspace rombik-engine
 
       # prepublishOnly сам збере dist/. --provenance вимагає id-token: write.
-      - name: Publish to npm
-        run: npm publish --workspace rombik-engine --provenance --access public
+      # Пропускаємо, якщо ця версія вже опублікована (щоб реліз/повтор не падали 403).
+      - name: Publish to npm (idempotent)
+        run: |
+          VER=$(node -p "require('./packages/engine/package.json').version")
+          if npm view "rombik-engine@$VER" version >/dev/null 2>&1; then
+            echo "rombik-engine@$VER вже на npm — пропускаю публікацію."
+          else
+            npm publish --workspace rombik-engine --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
