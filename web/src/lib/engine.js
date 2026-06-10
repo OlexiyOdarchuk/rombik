@@ -26,9 +26,14 @@ async function init(onProgress) {
 	langs.pascal = await Language.load(`${base}/tree-sitter-pascal.wasm`);
 }
 
-/** Готує середовище (ідемпотентно). Можна викликати заздалегідь для прогріву. */
+/** Готує середовище (ідемпотентно). При збої скидаємо кеш — щоб «Спробувати ще» спрацював. */
 export function warmup(onProgress) {
-	if (!initPromise) initPromise = init(onProgress);
+	if (!initPromise) {
+		initPromise = init(onProgress).catch((e) => {
+			initPromise = null; // не кешувати помилку (напр. 503 GitHub Pages) — дозволити повтор
+			throw e;
+		});
+	}
 	return initPromise;
 }
 

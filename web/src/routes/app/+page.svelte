@@ -258,13 +258,24 @@ end.`;
 		funcs = [...funcs];
 	};
 
-	// Прогріваємо середовище заздалегідь (вантажиться Pyodide ~6 МБ).
-	onMount(() => {
+	// Прогріваємо середовище (вантажаться граматики tree-sitter). При збої (напр. 503
+	// GitHub Pages) — дружнє повідомлення + можливість повторити (envFailed → кнопка).
+	let envReady = $state(false);
+	let envFailed = $state(false);
+	function loadEnv() {
+		envFailed = false;
+		errored = false;
+		status = 'Завантаження…';
 		warmup((s) => (status = s)).then(
-			() => (status = 'Готовий. Натисни «Побудувати».'),
-			(e) => ((errored = true), (status = 'Не вдалося завантажити середовище: ' + e))
+			() => ((envReady = true), (status = 'Готовий. Натисни «Побудувати».')),
+			() => {
+				envFailed = true;
+				errored = true;
+				status = 'Не вдалося завантажити рушій — можливо, тимчасовий збій (GitHub Pages). Спробуйте ще раз.';
+			}
 		);
-	});
+	}
+	onMount(loadEnv);
 
 	async function build() {
 		vibrate(40);
@@ -774,8 +785,11 @@ end.`;
 			</div>
 		</div>
 	</div>
-	<p class="mt-4 flex items-center gap-2 px-1 text-sm text-slate-500 dark:text-slate-400">
-		{status}
+	<p class="mt-4 flex items-center gap-2 px-1 text-sm {errored ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}">
+		<span>{status}</span>
+		{#if envFailed}
+			<button onclick={loadEnv} class="rounded-md border border-red-300 px-2 py-0.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950">↻ Спробувати ще</button>
+		{/if}
 	</p>
 </div>
 
