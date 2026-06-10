@@ -7,8 +7,8 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "strict": true,
-    "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "types": ["node"],
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true

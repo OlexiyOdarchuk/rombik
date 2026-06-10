@@ -1,7 +1,7 @@
 {
   "name": "@rombik/engine",
   "version": "0.1.0",
-  "description": "Перетворення коду (Python/C++) на блок-схему алгоритму за ДСТУ 19.701-90. Чистий TS, без DOM/фреймворку.",
+  "description": "Перетворення коду (Python/C++) на блок-схему алгоритму за ДСТУ 19.701-90.",
   "type": "module",
   "private": true,
   "exports": {
@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^25.9.2",
     "typescript": "^5.7.0"
   }
 }
