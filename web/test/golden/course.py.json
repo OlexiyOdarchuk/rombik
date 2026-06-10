@@ -1,0 +1,3573 @@
+{
+ "file": "course.py",
+ "lang": "py",
+ "options": {},
+ "astJSON": [
+  {
+   "name": "input_variables",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "if",
+      "cond": "amount < 1",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "terminal",
+         "text": "Помилка: ValueError(\"the number of elements (amount) must be >=…"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "process",
+      "text": "actual_cols = cols if cols > 0 else amount"
+     },
+     {
+      "kind": "process",
+      "text": "result: list[list[T]] = []"
+     },
+     {
+      "kind": "process",
+      "text": "needed_rows = rows"
+     },
+     {
+      "kind": "process",
+      "text": "for r in range(needed_rows): while True: if message == \"DEFAULT…"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути result"
+     }
+    ]
+   }
+  },
+  {
+   "name": "process_line",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "parts = line.split()"
+     },
+     {
+      "kind": "if",
+      "cond": "len(parts) < expected_count",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "terminal",
+         "text": "Помилка: ValueError( f\"not enough data; expected {expected_coun…"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "process",
+      "text": "parts = parts[:expected_count]"
+     },
+     {
+      "kind": "block",
+      "stmts": [
+       {
+        "kind": "process",
+        "text": "parsed = [convert_func(p) for p in parts]"
+       },
+       {
+        "kind": "if",
+        "cond": "Виняток Exception as e?",
+        "then": {
+         "kind": "block",
+         "stmts": [
+          {
+           "kind": "terminal",
+           "text": "Помилка: ValueError(e)"
+          }
+         ]
+        },
+        "else": {
+         "kind": "block",
+         "stmts": []
+        }
+       }
+      ]
+     },
+     {
+      "kind": "process",
+      "text": "for i, val in enumerate(parsed): if digit_count > 0: clean_str …"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути parsed"
+     }
+    ]
+   }
+  },
+  {
+   "name": "main",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "io",
+      "text": "Вивід «--- Курсова робота ---»"
+     },
+     {
+      "kind": "io",
+      "text": "Вивід «--- Варіант 21 ---»"
+     },
+     {
+      "kind": "process",
+      "text": "tasks = [ (\"Завдання 1\", first_task, float, 3), (\"Завдання 2\", …"
+     },
+     {
+      "kind": "process",
+      "text": "for title, func, data_type, args_count in tasks: print(f\"\\n--- …"
+     },
+     {
+      "kind": "io",
+      "text": "Вивід «\\n--- Завдання 5 ---»"
+     },
+     {
+      "kind": "call",
+      "text": "fifth_task()"
+     }
+    ]
+   }
+  },
+  {
+   "name": "first_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "if",
+      "cond": "x <= 0",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "io",
+         "text": "Вивід «Помилка: x має бути більше 0 для обчислення ln(x)»"
+        },
+        {
+         "kind": "terminal",
+         "text": "Повернути 0"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "process",
+      "text": "term1: float = y - z"
+     },
+     {
+      "kind": "process",
+      "text": "numerator: float = y - (z ** (y - z))"
+     },
+     {
+      "kind": "process",
+      "text": "denominator: float = 1 + x**2"
+     },
+     {
+      "kind": "process",
+      "text": "ln_x: float = math.log(x)"
+     },
+     {
+      "kind": "process",
+      "text": "f: float = term1 * (numerator / denominator) + ln_x"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути f"
+     }
+    ]
+   }
+  },
+  {
+   "name": "second_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "a: float = 3.1"
+     },
+     {
+      "kind": "if",
+      "cond": "x > 1",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "terminal",
+         "text": "Повернути math.sqrt(a + math.log10(x))"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "if",
+      "cond": "abs(x) < 1",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "terminal",
+         "text": "Повернути math.asin(x)"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "terminal",
+         "text": "Повернути x**a"
+        }
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "third_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "strategies: list[tuple[str, Callable[[float], float]]] = [ (\"Ви…"
+     },
+     {
+      "kind": "process",
+      "text": "result: list[float] = []"
+     },
+     {
+      "kind": "process",
+      "text": "for name, func in strategies: localResult = func(x) result.appe…"
+     },
+     {
+      "kind": "process",
+      "text": "for i in range(len(result)): if not math.isclose(result[i], res…"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути result[0]"
+     }
+    ]
+   }
+  },
+  {
+   "name": "for_cycle_third_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "sum: float = 0.0"
+     },
+     {
+      "kind": "process",
+      "text": "k: int = 1"
+     },
+     {
+      "kind": "process",
+      "text": "for k in range(1, 7): sum += math.sin(0.17 * (x**k)) / ((2 * k)…"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути sum"
+     }
+    ]
+   }
+  },
+  {
+   "name": "while_cycle_third_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "sum: float = 0.0"
+     },
+     {
+      "kind": "process",
+      "text": "k: int = 1"
+     },
+     {
+      "kind": "while",
+      "cond": "k < 7",
+      "body": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "process",
+         "text": "sum += math.sin(0.17 * (x**k)) / ((2 * k) + x)"
+        },
+        {
+         "kind": "process",
+         "text": "k += 1"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути sum"
+     }
+    ]
+   }
+  },
+  {
+   "name": "while_true_cycle_third_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "sum: float = 0.0"
+     },
+     {
+      "kind": "process",
+      "text": "k: int = 1"
+     },
+     {
+      "kind": "while",
+      "cond": "True",
+      "body": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "process",
+         "text": "sum += math.sin(0.17 * (x**k)) / ((2 * k) + x)"
+        },
+        {
+         "kind": "process",
+         "text": "k += 1"
+        },
+        {
+         "kind": "if",
+         "cond": "k >= 7",
+         "then": {
+          "kind": "block",
+          "stmts": [
+           {
+            "kind": "break"
+           }
+          ]
+         },
+         "else": {
+          "kind": "block",
+          "stmts": []
+         }
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути sum"
+     }
+    ]
+   }
+  },
+  {
+   "name": "fourth_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "terminal",
+      "text": "Повернути sum([i for i in [random.randint(0, 50) for _ in range…"
+     }
+    ]
+   }
+  },
+  {
+   "name": "fifth_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "height, width = 5, 5"
+     },
+     {
+      "kind": "call",
+      "text": "matrix = create_matrix_fifth_task(height, width)"
+     },
+     {
+      "kind": "call",
+      "text": "vector = create_vector_fifth_task(matrix)"
+     },
+     {
+      "kind": "io",
+      "text": "Вивід «Створена матриця:»"
+     },
+     {
+      "kind": "call",
+      "text": "print_matrix_fifth_task(matrix)"
+     },
+     {
+      "kind": "io",
+      "text": "Вивід «\\nСтворений вектор:»"
+     },
+     {
+      "kind": "call",
+      "text": "print_vector_fifth_task(vector)"
+     }
+    ]
+   }
+  },
+  {
+   "name": "create_matrix_fifth_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "matrix = Matrix1Based[float](height, width)"
+     },
+     {
+      "kind": "process",
+      "text": "for i in range(1, height + 1): for j in range(1, width + 1): va…"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути matrix"
+     }
+    ]
+   }
+  },
+  {
+   "name": "create_vector_fifth_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "vector: list[float] = []"
+     },
+     {
+      "kind": "process",
+      "text": "for i in range(1, matrix.rows + 1, 2): row_sum = 0.0 for j in r…"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути vector"
+     }
+    ]
+   }
+  },
+  {
+   "name": "print_matrix_fifth_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "io",
+      "text": "Вивід порожнього рядка"
+     },
+     {
+      "kind": "io",
+      "text": "Вивід matrix"
+     }
+    ]
+   }
+  },
+  {
+   "name": "print_vector_fifth_task",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "formatted_elements: list[str] = [f\"{item:.3f}\" for item in vect…"
+     },
+     {
+      "kind": "io",
+      "text": "Вивід *formatted_elements"
+     }
+    ]
+   }
+  },
+  {
+   "name": "vika",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "io",
+      "text": "Ввід n"
+     },
+     {
+      "kind": "process",
+      "text": "a = []"
+     },
+     {
+      "kind": "process",
+      "text": "for i in range(n): a.append(random.randint(-10, 10))"
+     },
+     {
+      "kind": "io",
+      "text": "Вивід «Список:» a"
+     },
+     {
+      "kind": "process",
+      "text": "neg_a = -1"
+     },
+     {
+      "kind": "process",
+      "text": "neg_b = -1"
+     },
+     {
+      "kind": "process",
+      "text": "for i in range(n): if a[i] < 0: if neg_a == -1: neg_a = i elif …"
+     },
+     {
+      "kind": "if",
+      "cond": "neg_a == -1 or neg_b == -1",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "io",
+         "text": "Вивід «У списку менше двох від'ємних елементів»"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "process",
+         "text": "s = 0"
+        },
+        {
+         "kind": "process",
+         "text": "for i in range(neg_a + 1, neg_b): s = s + a[i]"
+        },
+        {
+         "kind": "io",
+         "text": "Вивід «Сума між першим та другим від'ємними:» s"
+        }
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "програма",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "if",
+      "cond": "__name__ == \"__main__\"",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "call",
+         "text": "main()"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     }
+    ]
+   }
+  }
+ ],
+ "functions": [
+  {
+   "name": "input_variables",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "decision",
+      "x": 255,
+      "y": 130,
+      "w": 150,
+      "h": 76,
+      "text": "amount < 1"
+     },
+     {
+      "kind": "process",
+      "x": 358,
+      "y": 254,
+      "w": 572,
+      "h": 46,
+      "text": "Помилка: ValueError(\"the number of elements (amount) must be >=…"
+     },
+     {
+      "kind": "terminator",
+      "x": 579,
+      "y": 344,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "process",
+      "x": 137.5,
+      "y": 474,
+      "w": 385,
+      "h": 46,
+      "text": "actual_cols = cols if cols > 0 else amount"
+     },
+     {
+      "kind": "process",
+      "x": 205.5,
+      "y": 564,
+      "w": 249,
+      "h": 46,
+      "text": "result: list[list[T]] = []"
+     },
+     {
+      "kind": "process",
+      "x": 239.5,
+      "y": 654,
+      "w": 181,
+      "h": 46,
+      "text": "needed_rows = rows"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 744,
+      "w": 572,
+      "h": 46,
+      "text": "for r in range(needed_rows): while True: if message == \"DEFAULT…"
+     },
+     {
+      "kind": "process",
+      "x": 248,
+      "y": 834,
+      "w": 164,
+      "h": 46,
+      "text": "Повернути result"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 924,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 405,
+        "y": 168
+       },
+       {
+        "x": 644,
+        "y": 168
+       },
+       {
+        "x": 644,
+        "y": 254
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 644,
+        "y": 300
+       },
+       {
+        "x": 644,
+        "y": 344
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 206
+       },
+       {
+        "x": 330,
+        "y": 430
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 430
+       },
+       {
+        "x": 330,
+        "y": 474
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 520
+       },
+       {
+        "x": 330,
+        "y": 564
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 610
+       },
+       {
+        "x": 330,
+        "y": 654
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 700
+       },
+       {
+        "x": 330,
+        "y": 744
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 790
+       },
+       {
+        "x": 330,
+        "y": 834
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 880
+       },
+       {
+        "x": 330,
+        "y": 924
+       }
+      ]
+     }
+    ],
+    "w": 974,
+    "h": 1010,
+    "caption": "input_variables",
+    "figNum": 1
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"974\" height=\"1040\" viewBox=\"0 0 974 1040\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M405.0 168.0 L644.0 168.0 L644.0 254.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"439.0\" y=\"159.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M644.0 300.0 L644.0 344.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 206.0 L330.0 430.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"340.0\" y=\"318.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M330.0 430.0 L330.0 474.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 520.0 L330.0 564.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 610.0 L330.0 654.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 700.0 L330.0 744.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 790.0 L330.0 834.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 880.0 L330.0 924.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"330.0,130.0 405.0,168.0 330.0,206.0 255.0,168.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"168.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">amount &lt; 1</text><rect x=\"358.0\" y=\"254.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"644.0\" y=\"277.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Помилка: ValueError(&quot;the number of elements (amount) must be &gt;=…</text><rect x=\"579.0\" y=\"344.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"644.0\" y=\"365.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><rect x=\"137.5\" y=\"474.0\" width=\"385.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"497.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">actual_cols = cols if cols &gt; 0 else amount</text><rect x=\"205.5\" y=\"564.0\" width=\"249.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"587.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result: list[list[T]] = []</text><rect x=\"239.5\" y=\"654.0\" width=\"181.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"677.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">needed_rows = rows</text><rect x=\"44.0\" y=\"744.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"767.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for r in range(needed_rows): while True: if message == &quot;DEFAULT…</text><rect x=\"248.0\" y=\"834.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"857.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути result</text><rect x=\"265.0\" y=\"924.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"945.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"487.0\" y=\"1028.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 1 — input_variables</text></svg>"
+  },
+  {
+   "name": "process_line",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 231,
+      "y": 130,
+      "w": 198,
+      "h": 46,
+      "text": "parts = line.split()"
+     },
+     {
+      "kind": "decision",
+      "x": 185.25,
+      "y": 220,
+      "w": 289.5,
+      "h": 76,
+      "text": "len(parts) < expected_count"
+     },
+     {
+      "kind": "process",
+      "x": 358,
+      "y": 344,
+      "w": 572,
+      "h": 46,
+      "text": "Помилка: ValueError( f\"not enough data; expected {expected_coun…"
+     },
+     {
+      "kind": "terminator",
+      "x": 579,
+      "y": 434,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "process",
+      "x": 188.5,
+      "y": 564,
+      "w": 283,
+      "h": 46,
+      "text": "parts = parts[:expected_count]"
+     },
+     {
+      "kind": "process",
+      "x": 141.75,
+      "y": 654,
+      "w": 376.5,
+      "h": 46,
+      "text": "parsed = [convert_func(p) for p in parts]"
+     },
+     {
+      "kind": "decision",
+      "x": 202.25,
+      "y": 744,
+      "w": 255.5,
+      "h": 76,
+      "text": "Виняток Exception as e?"
+     },
+     {
+      "kind": "process",
+      "x": 374.25,
+      "y": 868,
+      "w": 215,
+      "h": 46,
+      "text": "Помилка: ValueError(e)"
+     },
+     {
+      "kind": "terminator",
+      "x": 416.75,
+      "y": 958,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 1088,
+      "w": 572,
+      "h": 46,
+      "text": "for i, val in enumerate(parsed): if digit_count > 0: clean_str …"
+     },
+     {
+      "kind": "process",
+      "x": 248,
+      "y": 1178,
+      "w": 164,
+      "h": 46,
+      "text": "Повернути parsed"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 1268,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 474.75,
+        "y": 258
+       },
+       {
+        "x": 644,
+        "y": 258
+       },
+       {
+        "x": 644,
+        "y": 344
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 644,
+        "y": 390
+       },
+       {
+        "x": 644,
+        "y": 434
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 296
+       },
+       {
+        "x": 330,
+        "y": 520
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 520
+       },
+       {
+        "x": 330,
+        "y": 564
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 610
+       },
+       {
+        "x": 330,
+        "y": 654
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 700
+       },
+       {
+        "x": 330,
+        "y": 744
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 457.75,
+        "y": 782
+       },
+       {
+        "x": 481.75,
+        "y": 782
+       },
+       {
+        "x": 481.75,
+        "y": 868
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 481.75,
+        "y": 914
+       },
+       {
+        "x": 481.75,
+        "y": 958
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 820
+       },
+       {
+        "x": 330,
+        "y": 1044
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 1044
+       },
+       {
+        "x": 330,
+        "y": 1088
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 1134
+       },
+       {
+        "x": 330,
+        "y": 1178
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 1224
+       },
+       {
+        "x": 330,
+        "y": 1268
+       }
+      ]
+     }
+    ],
+    "w": 974,
+    "h": 1354,
+    "caption": "process_line",
+    "figNum": 2
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"974\" height=\"1384\" viewBox=\"0 0 974 1384\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M474.8 258.0 L644.0 258.0 L644.0 344.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"508.8\" y=\"249.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M644.0 390.0 L644.0 434.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 296.0 L330.0 520.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"340.0\" y=\"408.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M330.0 520.0 L330.0 564.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 610.0 L330.0 654.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 700.0 L330.0 744.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M457.8 782.0 L481.8 782.0 L481.8 868.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"469.8\" y=\"773.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M481.8 914.0 L481.8 958.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 820.0 L330.0 1044.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"340.0\" y=\"932.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M330.0 1044.0 L330.0 1088.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 1134.0 L330.0 1178.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 1224.0 L330.0 1268.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"231.0\" y=\"130.0\" width=\"198.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">parts = line.split()</text><polygon points=\"330.0,220.0 474.8,258.0 330.0,296.0 185.2,258.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"258.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">len(parts) &lt; expected_count</text><rect x=\"358.0\" y=\"344.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"644.0\" y=\"367.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Помилка: ValueError( f&quot;not enough data; expected {expected_coun…</text><rect x=\"579.0\" y=\"434.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"644.0\" y=\"455.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><rect x=\"188.5\" y=\"564.0\" width=\"283.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"587.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">parts = parts[:expected_count]</text><rect x=\"141.8\" y=\"654.0\" width=\"376.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"677.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">parsed = [convert_func(p) for p in parts]</text><polygon points=\"330.0,744.0 457.8,782.0 330.0,820.0 202.2,782.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"782.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Виняток Exception as e?</text><rect x=\"374.2\" y=\"868.0\" width=\"215.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"481.8\" y=\"891.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Помилка: ValueError(e)</text><rect x=\"416.8\" y=\"958.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"481.8\" y=\"979.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><rect x=\"44.0\" y=\"1088.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"1111.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i, val in enumerate(parsed): if digit_count &gt; 0: clean_str …</text><rect x=\"248.0\" y=\"1178.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"1201.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути parsed</text><rect x=\"265.0\" y=\"1268.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"1289.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"487.0\" y=\"1372.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 2 — process_line</text></svg>"
+  },
+  {
+   "name": "main",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "io",
+      "x": 188.5,
+      "y": 130,
+      "w": 283,
+      "h": 46,
+      "text": "Вивід «--- Курсова робота ---»"
+     },
+     {
+      "kind": "io",
+      "x": 205.5,
+      "y": 220,
+      "w": 249,
+      "h": 46,
+      "text": "Вивід «--- Варіант 21 ---»"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 310,
+      "w": 572,
+      "h": 46,
+      "text": "tasks = [ (\"Завдання 1\", first_task, float, 3), (\"Завдання 2\", …"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 400,
+      "w": 572,
+      "h": 46,
+      "text": "for title, func, data_type, args_count in tasks: print(f\"\\n--- …"
+     },
+     {
+      "kind": "io",
+      "x": 197,
+      "y": 490,
+      "w": 266,
+      "h": 46,
+      "text": "Вивід «\\n--- Завдання 5 ---»"
+     },
+     {
+      "kind": "subprogram",
+      "x": 265,
+      "y": 580,
+      "w": 130,
+      "h": 46,
+      "text": "fifth_task()"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 670,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 266
+       },
+       {
+        "x": 330,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 356
+       },
+       {
+        "x": 330,
+        "y": 400
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 446
+       },
+       {
+        "x": 330,
+        "y": 490
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 536
+       },
+       {
+        "x": 330,
+        "y": 580
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 626
+       },
+       {
+        "x": 330,
+        "y": 670
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 756,
+    "caption": "main",
+    "figNum": 3
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"786\" viewBox=\"0 0 660 786\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 266.0 L330.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 356.0 L330.0 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 446.0 L330.0 490.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 536.0 L330.0 580.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 626.0 L330.0 670.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"206.9,130.0 471.5,130.0 453.1,176.0 188.5,176.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «--- Курсова робота ---»</text><polygon points=\"223.9,220.0 454.5,220.0 436.1,266.0 205.5,266.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «--- Варіант 21 ---»</text><rect x=\"44.0\" y=\"310.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">tasks = [ (&quot;Завдання 1&quot;, first_task, float, 3), (&quot;Завдання 2&quot;, …</text><rect x=\"44.0\" y=\"400.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"423.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for title, func, data_type, args_count in tasks: print(f&quot;\\n--- …</text><polygon points=\"215.4,490.0 463.0,490.0 444.6,536.0 197.0,536.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"513.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «\\n--- Завдання 5 ---»</text><rect x=\"265.0\" y=\"580.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"274.0\" y1=\"580.0\" x2=\"274.0\" y2=\"626.0\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"386.0\" y1=\"580.0\" x2=\"386.0\" y2=\"626.0\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"603.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">fifth_task()</text><rect x=\"265.0\" y=\"670.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"691.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"774.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 3 — main</text></svg>"
+  },
+  {
+   "name": "first_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 209.75,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "decision",
+      "x": 199.75,
+      "y": 130,
+      "w": 150,
+      "h": 76,
+      "text": "x <= 0"
+     },
+     {
+      "kind": "io",
+      "x": 302.75,
+      "y": 254,
+      "w": 512.5,
+      "h": 46,
+      "text": "Вивід «Помилка: x має бути більше 0 для обчислення ln(x)»"
+     },
+     {
+      "kind": "process",
+      "x": 494,
+      "y": 344,
+      "w": 130,
+      "h": 46,
+      "text": "Повернути 0"
+     },
+     {
+      "kind": "terminator",
+      "x": 494,
+      "y": 434,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "process",
+      "x": 175.75,
+      "y": 564,
+      "w": 198,
+      "h": 46,
+      "text": "term1: float = y - z"
+     },
+     {
+      "kind": "process",
+      "x": 103.5,
+      "y": 654,
+      "w": 342.5,
+      "h": 46,
+      "text": "numerator: float = y - (z ** (y - z))"
+     },
+     {
+      "kind": "process",
+      "x": 137.5,
+      "y": 744,
+      "w": 274.5,
+      "h": 46,
+      "text": "denominator: float = 1 + x**2"
+     },
+     {
+      "kind": "process",
+      "x": 154.5,
+      "y": 834,
+      "w": 240.5,
+      "h": 46,
+      "text": "ln_x: float = math.log(x)"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 924,
+      "w": 461.5,
+      "h": 46,
+      "text": "f: float = term1 * (numerator / denominator) + ln_x"
+     },
+     {
+      "kind": "process",
+      "x": 209.75,
+      "y": 1014,
+      "w": 130,
+      "h": 46,
+      "text": "Повернути f"
+     },
+     {
+      "kind": "terminator",
+      "x": 209.75,
+      "y": 1104,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 86
+       },
+       {
+        "x": 274.75,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 349.75,
+        "y": 168
+       },
+       {
+        "x": 559,
+        "y": 168
+       },
+       {
+        "x": 559,
+        "y": 254
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 559,
+        "y": 300
+       },
+       {
+        "x": 559,
+        "y": 344
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 559,
+        "y": 390
+       },
+       {
+        "x": 559,
+        "y": 434
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 206
+       },
+       {
+        "x": 274.75,
+        "y": 520
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 520
+       },
+       {
+        "x": 274.75,
+        "y": 564
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 610
+       },
+       {
+        "x": 274.75,
+        "y": 654
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 700
+       },
+       {
+        "x": 274.75,
+        "y": 744
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 790
+       },
+       {
+        "x": 274.75,
+        "y": 834
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 880
+       },
+       {
+        "x": 274.75,
+        "y": 924
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 970
+       },
+       {
+        "x": 274.75,
+        "y": 1014
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 274.75,
+        "y": 1060
+       },
+       {
+        "x": 274.75,
+        "y": 1104
+       }
+      ]
+     }
+    ],
+    "w": 859.25,
+    "h": 1190,
+    "caption": "first_task",
+    "figNum": 4
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"859\" height=\"1220\" viewBox=\"0 0 859 1220\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M274.8 86.0 L274.8 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M349.8 168.0 L559.0 168.0 L559.0 254.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"383.8\" y=\"159.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M559.0 300.0 L559.0 344.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M559.0 390.0 L559.0 434.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M274.8 206.0 L274.8 520.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"284.8\" y=\"363.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M274.8 520.0 L274.8 564.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M274.8 610.0 L274.8 654.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M274.8 700.0 L274.8 744.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M274.8 790.0 L274.8 834.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M274.8 880.0 L274.8 924.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M274.8 970.0 L274.8 1014.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M274.8 1060.0 L274.8 1104.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"209.8\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"274.8,130.0 349.8,168.0 274.8,206.0 199.8,168.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"168.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">x &lt;= 0</text><polygon points=\"321.1,254.0 815.2,254.0 796.9,300.0 302.8,300.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"559.0\" y=\"277.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «Помилка: x має бути більше 0 для обчислення ln(x)»</text><rect x=\"494.0\" y=\"344.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"559.0\" y=\"367.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути 0</text><rect x=\"494.0\" y=\"434.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"559.0\" y=\"455.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><rect x=\"175.8\" y=\"564.0\" width=\"198.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"587.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">term1: float = y - z</text><rect x=\"103.5\" y=\"654.0\" width=\"342.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"677.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">numerator: float = y - (z ** (y - z))</text><rect x=\"137.5\" y=\"744.0\" width=\"274.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"767.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">denominator: float = 1 + x**2</text><rect x=\"154.5\" y=\"834.0\" width=\"240.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"857.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">ln_x: float = math.log(x)</text><rect x=\"44.0\" y=\"924.0\" width=\"461.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"947.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">f: float = term1 * (numerator / denominator) + ln_x</text><rect x=\"209.8\" y=\"1014.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"1037.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути f</text><rect x=\"209.8\" y=\"1104.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.8\" y=\"1125.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"429.6\" y=\"1208.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 4 — first_task</text></svg>"
+  },
+  {
+   "name": "second_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 222,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 213.5,
+      "y": 130,
+      "w": 147,
+      "h": 46,
+      "text": "a: float = 3.1"
+     },
+     {
+      "kind": "decision",
+      "x": 212,
+      "y": 220,
+      "w": 150,
+      "h": 76,
+      "text": "x > 1"
+     },
+     {
+      "kind": "process",
+      "x": 315,
+      "y": 344,
+      "w": 351,
+      "h": 46,
+      "text": "Повернути math.sqrt(a + math.log10(x))"
+     },
+     {
+      "kind": "terminator",
+      "x": 425.5,
+      "y": 434,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "decision",
+      "x": 212,
+      "y": 564,
+      "w": 150,
+      "h": 76,
+      "text": "abs(x) < 1"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 688,
+      "w": 215,
+      "h": 46,
+      "text": "Повернути math.asin(x)"
+     },
+     {
+      "kind": "terminator",
+      "x": 86.5,
+      "y": 778,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "process",
+      "x": 315,
+      "y": 688,
+      "w": 147,
+      "h": 46,
+      "text": "Повернути x**a"
+     },
+     {
+      "kind": "terminator",
+      "x": 323.5,
+      "y": 778,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 287,
+        "y": 86
+       },
+       {
+        "x": 287,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 287,
+        "y": 176
+       },
+       {
+        "x": 287,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 362,
+        "y": 258
+       },
+       {
+        "x": 490.5,
+        "y": 258
+       },
+       {
+        "x": 490.5,
+        "y": 344
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 490.5,
+        "y": 390
+       },
+       {
+        "x": 490.5,
+        "y": 434
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 287,
+        "y": 296
+       },
+       {
+        "x": 287,
+        "y": 520
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 287,
+        "y": 520
+       },
+       {
+        "x": 287,
+        "y": 564
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 212,
+        "y": 602
+       },
+       {
+        "x": 151.5,
+        "y": 602
+       },
+       {
+        "x": 151.5,
+        "y": 688
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 151.5,
+        "y": 734
+       },
+       {
+        "x": 151.5,
+        "y": 778
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 362,
+        "y": 602
+       },
+       {
+        "x": 388.5,
+        "y": 602
+       },
+       {
+        "x": 388.5,
+        "y": 688
+       }
+      ],
+      "label": "Ні"
+     },
+     {
+      "points": [
+       {
+        "x": 388.5,
+        "y": 734
+       },
+       {
+        "x": 388.5,
+        "y": 778
+       }
+      ]
+     }
+    ],
+    "w": 710,
+    "h": 864,
+    "caption": "second_task",
+    "figNum": 5
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"710\" height=\"894\" viewBox=\"0 0 710 894\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M287.0 86.0 L287.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M287.0 176.0 L287.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M362.0 258.0 L490.5 258.0 L490.5 344.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"396.0\" y=\"249.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M490.5 390.0 L490.5 434.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M287.0 296.0 L287.0 520.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"297.0\" y=\"408.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M287.0 520.0 L287.0 564.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M212.0 602.0 L151.5 602.0 L151.5 688.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"181.8\" y=\"593.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M151.5 734.0 L151.5 778.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M362.0 602.0 L388.5 602.0 L388.5 688.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"375.2\" y=\"593.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M388.5 734.0 L388.5 778.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"222.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"287.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"213.5\" y=\"130.0\" width=\"147.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"287.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">a: float = 3.1</text><polygon points=\"287.0,220.0 362.0,258.0 287.0,296.0 212.0,258.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"287.0\" y=\"258.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">x &gt; 1</text><rect x=\"315.0\" y=\"344.0\" width=\"351.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"490.5\" y=\"367.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути math.sqrt(a + math.log10(x))</text><rect x=\"425.5\" y=\"434.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"490.5\" y=\"455.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><polygon points=\"287.0,564.0 362.0,602.0 287.0,640.0 212.0,602.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"287.0\" y=\"602.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">abs(x) &lt; 1</text><rect x=\"44.0\" y=\"688.0\" width=\"215.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"151.5\" y=\"711.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути math.asin(x)</text><rect x=\"86.5\" y=\"778.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"151.5\" y=\"799.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><rect x=\"315.0\" y=\"688.0\" width=\"147.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"388.5\" y=\"711.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути x**a</text><rect x=\"323.5\" y=\"778.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"388.5\" y=\"799.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"355.0\" y=\"882.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 5 — second_task</text></svg>"
+  },
+  {
+   "name": "third_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 130,
+      "w": 572,
+      "h": 46,
+      "text": "strategies: list[tuple[str, Callable[[float], float]]] = [ (\"Ви…"
+     },
+     {
+      "kind": "process",
+      "x": 214,
+      "y": 220,
+      "w": 232,
+      "h": 46,
+      "text": "result: list[float] = []"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 310,
+      "w": 572,
+      "h": 46,
+      "text": "for name, func in strategies: localResult = func(x) result.appe…"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 400,
+      "w": 572,
+      "h": 46,
+      "text": "for i in range(len(result)): if not math.isclose(result[i], res…"
+     },
+     {
+      "kind": "process",
+      "x": 235.25,
+      "y": 490,
+      "w": 189.5,
+      "h": 46,
+      "text": "Повернути result[0]"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 580,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 266
+       },
+       {
+        "x": 330,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 356
+       },
+       {
+        "x": 330,
+        "y": 400
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 446
+       },
+       {
+        "x": 330,
+        "y": 490
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 536
+       },
+       {
+        "x": 330,
+        "y": 580
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 666,
+    "caption": "third_task",
+    "figNum": 6
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"696\" viewBox=\"0 0 660 696\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 266.0 L330.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 356.0 L330.0 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 446.0 L330.0 490.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 536.0 L330.0 580.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"44.0\" y=\"130.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">strategies: list[tuple[str, Callable[[float], float]]] = [ (&quot;Ви…</text><rect x=\"214.0\" y=\"220.0\" width=\"232.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">result: list[float] = []</text><rect x=\"44.0\" y=\"310.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for name, func in strategies: localResult = func(x) result.appe…</text><rect x=\"44.0\" y=\"400.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"423.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i in range(len(result)): if not math.isclose(result[i], res…</text><rect x=\"235.2\" y=\"490.0\" width=\"189.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"513.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути result[0]</text><rect x=\"265.0\" y=\"580.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"601.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"684.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 6 — third_task</text></svg>"
+  },
+  {
+   "name": "for_cycle_third_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 248,
+      "y": 130,
+      "w": 164,
+      "h": 46,
+      "text": "sum: float = 0.0"
+     },
+     {
+      "kind": "process",
+      "x": 265,
+      "y": 220,
+      "w": 130,
+      "h": 46,
+      "text": "k: int = 1"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 310,
+      "w": 572,
+      "h": 46,
+      "text": "for k in range(1, 7): sum += math.sin(0.17 * (x**k)) / ((2 * k)…"
+     },
+     {
+      "kind": "process",
+      "x": 260.75,
+      "y": 400,
+      "w": 138.5,
+      "h": 46,
+      "text": "Повернути sum"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 490,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 266
+       },
+       {
+        "x": 330,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 356
+       },
+       {
+        "x": 330,
+        "y": 400
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 446
+       },
+       {
+        "x": 330,
+        "y": 490
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 576,
+    "caption": "for_cycle_third_task",
+    "figNum": 7
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"606\" viewBox=\"0 0 660 606\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 266.0 L330.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 356.0 L330.0 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 446.0 L330.0 490.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"248.0\" y=\"130.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">sum: float = 0.0</text><rect x=\"265.0\" y=\"220.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">k: int = 1</text><rect x=\"44.0\" y=\"310.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for k in range(1, 7): sum += math.sin(0.17 * (x**k)) / ((2 * k)…</text><rect x=\"260.8\" y=\"400.0\" width=\"138.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"423.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути sum</text><rect x=\"265.0\" y=\"490.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"511.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"594.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 7 — for_cycle_third_task</text></svg>"
+  },
+  {
+   "name": "while_cycle_third_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 226.5,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 209.5,
+      "y": 130,
+      "w": 164,
+      "h": 46,
+      "text": "sum: float = 0.0"
+     },
+     {
+      "kind": "process",
+      "x": 226.5,
+      "y": 220,
+      "w": 130,
+      "h": 46,
+      "text": "k: int = 1"
+     },
+     {
+      "kind": "decision",
+      "x": 216.5,
+      "y": 310,
+      "w": 150,
+      "h": 76,
+      "text": "k < 7"
+     },
+     {
+      "kind": "process",
+      "x": 82,
+      "y": 430,
+      "w": 419,
+      "h": 46,
+      "text": "sum += math.sin(0.17 * (x**k)) / ((2 * k) + x)"
+     },
+     {
+      "kind": "process",
+      "x": 226.5,
+      "y": 520,
+      "w": 130,
+      "h": 46,
+      "text": "k += 1"
+     },
+     {
+      "kind": "process",
+      "x": 222.25,
+      "y": 654,
+      "w": 138.5,
+      "h": 46,
+      "text": "Повернути sum"
+     },
+     {
+      "kind": "terminator",
+      "x": 226.5,
+      "y": 744,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 86
+       },
+       {
+        "x": 291.5,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 176
+       },
+       {
+        "x": 291.5,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 266
+       },
+       {
+        "x": 291.5,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 386
+       },
+       {
+        "x": 291.5,
+        "y": 430
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 476
+       },
+       {
+        "x": 291.5,
+        "y": 520
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 566
+       },
+       {
+        "x": 291.5,
+        "y": 588
+       },
+       {
+        "x": 539,
+        "y": 588
+       },
+       {
+        "x": 539,
+        "y": 348
+       },
+       {
+        "x": 366.5,
+        "y": 348
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 216.5,
+        "y": 348
+       },
+       {
+        "x": 44,
+        "y": 348
+       },
+       {
+        "x": 44,
+        "y": 610
+       },
+       {
+        "x": 291.5,
+        "y": 610
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 610
+       },
+       {
+        "x": 291.5,
+        "y": 654
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 700
+       },
+       {
+        "x": 291.5,
+        "y": 744
+       }
+      ]
+     }
+    ],
+    "w": 583,
+    "h": 830,
+    "caption": "while_cycle_third_task",
+    "figNum": 8
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"583\" height=\"860\" viewBox=\"0 0 583 860\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M291.5 86.0 L291.5 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 176.0 L291.5 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 266.0 L291.5 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 386.0 L291.5 430.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"301.5\" y=\"408.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M291.5 476.0 L291.5 520.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 566.0 L291.5 588.0 L539.0 588.0 L539.0 348.0 L366.5 348.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M216.5 348.0 L44.0 348.0 L44.0 610.0 L291.5 610.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"182.5\" y=\"339.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M291.5 610.0 L291.5 654.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 700.0 L291.5 744.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"226.5\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"209.5\" y=\"130.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">sum: float = 0.0</text><rect x=\"226.5\" y=\"220.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">k: int = 1</text><polygon points=\"291.5,310.0 366.5,348.0 291.5,386.0 216.5,348.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"348.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">k &lt; 7</text><rect x=\"82.0\" y=\"430.0\" width=\"419.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"453.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">sum += math.sin(0.17 * (x**k)) / ((2 * k) + x)</text><rect x=\"226.5\" y=\"520.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"543.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">k += 1</text><rect x=\"222.2\" y=\"654.0\" width=\"138.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"677.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути sum</text><rect x=\"226.5\" y=\"744.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"765.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"291.5\" y=\"848.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 8 — while_cycle_third_task</text></svg>"
+  },
+  {
+   "name": "while_true_cycle_third_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 226.5,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 209.5,
+      "y": 130,
+      "w": 164,
+      "h": 46,
+      "text": "sum: float = 0.0"
+     },
+     {
+      "kind": "process",
+      "x": 226.5,
+      "y": 220,
+      "w": 130,
+      "h": 46,
+      "text": "k: int = 1"
+     },
+     {
+      "kind": "decision",
+      "x": 216.5,
+      "y": 310,
+      "w": 150,
+      "h": 76,
+      "text": "True"
+     },
+     {
+      "kind": "process",
+      "x": 82,
+      "y": 430,
+      "w": 419,
+      "h": 46,
+      "text": "sum += math.sin(0.17 * (x**k)) / ((2 * k) + x)"
+     },
+     {
+      "kind": "process",
+      "x": 226.5,
+      "y": 520,
+      "w": 130,
+      "h": 46,
+      "text": "k += 1"
+     },
+     {
+      "kind": "decision",
+      "x": 216.5,
+      "y": 610,
+      "w": 150,
+      "h": 76,
+      "text": "k >= 7"
+     },
+     {
+      "kind": "process",
+      "x": 222.25,
+      "y": 822,
+      "w": 138.5,
+      "h": 46,
+      "text": "Повернути sum"
+     },
+     {
+      "kind": "terminator",
+      "x": 226.5,
+      "y": 912,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 86
+       },
+       {
+        "x": 291.5,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 176
+       },
+       {
+        "x": 291.5,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 266
+       },
+       {
+        "x": 291.5,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 386
+       },
+       {
+        "x": 291.5,
+        "y": 430
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 476
+       },
+       {
+        "x": 291.5,
+        "y": 520
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 566
+       },
+       {
+        "x": 291.5,
+        "y": 610
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 686
+       },
+       {
+        "x": 291.5,
+        "y": 734
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 366.5,
+        "y": 648
+       },
+       {
+        "x": 539,
+        "y": 648
+       },
+       {
+        "x": 539,
+        "y": 348
+       },
+       {
+        "x": 366.5,
+        "y": 348
+       }
+      ],
+      "label": "Ні"
+     },
+     {
+      "points": [
+       {
+        "x": 216.5,
+        "y": 348
+       },
+       {
+        "x": 44,
+        "y": 348
+       },
+       {
+        "x": 44,
+        "y": 778
+       },
+       {
+        "x": 291.5,
+        "y": 778
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 734
+       },
+       {
+        "x": 291.5,
+        "y": 778
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 778
+       },
+       {
+        "x": 291.5,
+        "y": 822
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 291.5,
+        "y": 868
+       },
+       {
+        "x": 291.5,
+        "y": 912
+       }
+      ]
+     }
+    ],
+    "w": 583,
+    "h": 998,
+    "caption": "while_true_cycle_third_task",
+    "figNum": 9
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"583\" height=\"1028\" viewBox=\"0 0 583 1028\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M291.5 86.0 L291.5 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 176.0 L291.5 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 266.0 L291.5 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 386.0 L291.5 430.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"301.5\" y=\"408.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M291.5 476.0 L291.5 520.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 566.0 L291.5 610.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 686.0 L291.5 734.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"301.5\" y=\"710.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M366.5 648.0 L539.0 648.0 L539.0 348.0 L366.5 348.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"400.5\" y=\"639.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M216.5 348.0 L44.0 348.0 L44.0 778.0 L291.5 778.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"182.5\" y=\"339.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M291.5 734.0 L291.5 778.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 778.0 L291.5 822.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M291.5 868.0 L291.5 912.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"226.5\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"209.5\" y=\"130.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">sum: float = 0.0</text><rect x=\"226.5\" y=\"220.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">k: int = 1</text><polygon points=\"291.5,310.0 366.5,348.0 291.5,386.0 216.5,348.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"348.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">True</text><rect x=\"82.0\" y=\"430.0\" width=\"419.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"453.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">sum += math.sin(0.17 * (x**k)) / ((2 * k) + x)</text><rect x=\"226.5\" y=\"520.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"543.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">k += 1</text><polygon points=\"291.5,610.0 366.5,648.0 291.5,686.0 216.5,648.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"648.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">k &gt;= 7</text><rect x=\"222.2\" y=\"822.0\" width=\"138.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"845.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути sum</text><rect x=\"226.5\" y=\"912.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"291.5\" y=\"933.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"291.5\" y=\"1016.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 9 — while_true_cycle_third_task</text></svg>"
+  },
+  {
+   "name": "fourth_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 130,
+      "w": 572,
+      "h": 46,
+      "text": "Повернути sum([i for i in [random.randint(0, 50) for _ in range…"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 220,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 306,
+    "caption": "fourth_task",
+    "figNum": 10
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"336\" viewBox=\"0 0 660 336\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"44.0\" y=\"130.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути sum([i for i in [random.randint(0, 50) for _ in range…</text><rect x=\"265.0\" y=\"220.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"241.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"324.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 10 — fourth_task</text></svg>"
+  },
+  {
+   "name": "fifth_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 197,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 163,
+      "y": 130,
+      "w": 198,
+      "h": 46,
+      "text": "height, width = 5, 5"
+     },
+     {
+      "kind": "subprogram",
+      "x": 44,
+      "y": 220,
+      "w": 436,
+      "h": 46,
+      "text": "matrix = create_matrix_fifth_task(height, width)"
+     },
+     {
+      "kind": "subprogram",
+      "x": 73.75,
+      "y": 310,
+      "w": 376.5,
+      "h": 46,
+      "text": "vector = create_vector_fifth_task(matrix)"
+     },
+     {
+      "kind": "io",
+      "x": 141.75,
+      "y": 400,
+      "w": 240.5,
+      "h": 46,
+      "text": "Вивід «Створена матриця:»"
+     },
+     {
+      "kind": "subprogram",
+      "x": 116.25,
+      "y": 490,
+      "w": 291.5,
+      "h": 46,
+      "text": "print_matrix_fifth_task(matrix)"
+     },
+     {
+      "kind": "io",
+      "x": 133.25,
+      "y": 580,
+      "w": 257.5,
+      "h": 46,
+      "text": "Вивід «\\nСтворений вектор:»"
+     },
+     {
+      "kind": "subprogram",
+      "x": 116.25,
+      "y": 670,
+      "w": 291.5,
+      "h": 46,
+      "text": "print_vector_fifth_task(vector)"
+     },
+     {
+      "kind": "terminator",
+      "x": 197,
+      "y": 760,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 86
+       },
+       {
+        "x": 262,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 176
+       },
+       {
+        "x": 262,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 266
+       },
+       {
+        "x": 262,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 356
+       },
+       {
+        "x": 262,
+        "y": 400
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 446
+       },
+       {
+        "x": 262,
+        "y": 490
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 536
+       },
+       {
+        "x": 262,
+        "y": 580
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 626
+       },
+       {
+        "x": 262,
+        "y": 670
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 262,
+        "y": 716
+       },
+       {
+        "x": 262,
+        "y": 760
+       }
+      ]
+     }
+    ],
+    "w": 524,
+    "h": 846,
+    "caption": "fifth_task",
+    "figNum": 11
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"524\" height=\"876\" viewBox=\"0 0 524 876\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M262.0 86.0 L262.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M262.0 176.0 L262.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M262.0 266.0 L262.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M262.0 356.0 L262.0 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M262.0 446.0 L262.0 490.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M262.0 536.0 L262.0 580.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M262.0 626.0 L262.0 670.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M262.0 716.0 L262.0 760.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"197.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"163.0\" y=\"130.0\" width=\"198.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">height, width = 5, 5</text><rect x=\"44.0\" y=\"220.0\" width=\"436.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"53.0\" y1=\"220.0\" x2=\"53.0\" y2=\"266.0\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"471.0\" y1=\"220.0\" x2=\"471.0\" y2=\"266.0\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">matrix = create_matrix_fifth_task(height, width)</text><rect x=\"73.8\" y=\"310.0\" width=\"376.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"82.8\" y1=\"310.0\" x2=\"82.8\" y2=\"356.0\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"441.2\" y1=\"310.0\" x2=\"441.2\" y2=\"356.0\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">vector = create_vector_fifth_task(matrix)</text><polygon points=\"160.2,400.0 382.2,400.0 363.9,446.0 141.8,446.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"423.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «Створена матриця:»</text><rect x=\"116.2\" y=\"490.0\" width=\"291.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"125.2\" y1=\"490.0\" x2=\"125.2\" y2=\"536.0\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"398.8\" y1=\"490.0\" x2=\"398.8\" y2=\"536.0\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"513.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">print_matrix_fifth_task(matrix)</text><polygon points=\"151.7,580.0 390.8,580.0 372.4,626.0 133.2,626.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"603.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «\\nСтворений вектор:»</text><rect x=\"116.2\" y=\"670.0\" width=\"291.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"125.2\" y1=\"670.0\" x2=\"125.2\" y2=\"716.0\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"398.8\" y1=\"670.0\" x2=\"398.8\" y2=\"716.0\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"693.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">print_vector_fifth_task(vector)</text><rect x=\"197.0\" y=\"760.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"262.0\" y=\"781.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"262.0\" y=\"864.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 11 — fifth_task</text></svg>"
+  },
+  {
+   "name": "create_matrix_fifth_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 133.25,
+      "y": 130,
+      "w": 393.5,
+      "h": 46,
+      "text": "matrix = Matrix1Based[float](height, width)"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 220,
+      "w": 572,
+      "h": 46,
+      "text": "for i in range(1, height + 1): for j in range(1, width + 1): va…"
+     },
+     {
+      "kind": "process",
+      "x": 248,
+      "y": 310,
+      "w": 164,
+      "h": 46,
+      "text": "Повернути matrix"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 400,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 266
+       },
+       {
+        "x": 330,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 356
+       },
+       {
+        "x": 330,
+        "y": 400
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 486,
+    "caption": "create_matrix_fifth_task",
+    "figNum": 12
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"516\" viewBox=\"0 0 660 516\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 266.0 L330.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 356.0 L330.0 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"133.2\" y=\"130.0\" width=\"393.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">matrix = Matrix1Based[float](height, width)</text><rect x=\"44.0\" y=\"220.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i in range(1, height + 1): for j in range(1, width + 1): va…</text><rect x=\"248.0\" y=\"310.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути matrix</text><rect x=\"265.0\" y=\"400.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"421.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"504.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 12 — create_matrix_fifth_task</text></svg>"
+  },
+  {
+   "name": "create_vector_fifth_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 214,
+      "y": 130,
+      "w": 232,
+      "h": 46,
+      "text": "vector: list[float] = []"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 220,
+      "w": 572,
+      "h": 46,
+      "text": "for i in range(1, matrix.rows + 1, 2): row_sum = 0.0 for j in r…"
+     },
+     {
+      "kind": "process",
+      "x": 248,
+      "y": 310,
+      "w": 164,
+      "h": 46,
+      "text": "Повернути vector"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 400,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 266
+       },
+       {
+        "x": 330,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 356
+       },
+       {
+        "x": 330,
+        "y": 400
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 486,
+    "caption": "create_vector_fifth_task",
+    "figNum": 13
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"516\" viewBox=\"0 0 660 516\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 266.0 L330.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 356.0 L330.0 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"214.0\" y=\"130.0\" width=\"232.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">vector: list[float] = []</text><rect x=\"44.0\" y=\"220.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i in range(1, matrix.rows + 1, 2): row_sum = 0.0 for j in r…</text><rect x=\"248.0\" y=\"310.0\" width=\"164.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути vector</text><rect x=\"265.0\" y=\"400.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"421.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"504.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 13 — create_vector_fifth_task</text></svg>"
+  },
+  {
+   "name": "print_matrix_fifth_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 86.5,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "io",
+      "x": 44,
+      "y": 130,
+      "w": 215,
+      "h": 46,
+      "text": "Вивід порожнього рядка"
+     },
+     {
+      "kind": "io",
+      "x": 86.5,
+      "y": 220,
+      "w": 130,
+      "h": 46,
+      "text": "Вивід matrix"
+     },
+     {
+      "kind": "terminator",
+      "x": 86.5,
+      "y": 310,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 151.5,
+        "y": 86
+       },
+       {
+        "x": 151.5,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 151.5,
+        "y": 176
+       },
+       {
+        "x": 151.5,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 151.5,
+        "y": 266
+       },
+       {
+        "x": 151.5,
+        "y": 310
+       }
+      ]
+     }
+    ],
+    "w": 303,
+    "h": 396,
+    "caption": "print_matrix_fifth_task",
+    "figNum": 14
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"303\" height=\"426\" viewBox=\"0 0 303 426\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M151.5 86.0 L151.5 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M151.5 176.0 L151.5 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M151.5 266.0 L151.5 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"86.5\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"151.5\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"62.4,130.0 259.0,130.0 240.6,176.0 44.0,176.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"151.5\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід порожнього рядка</text><polygon points=\"104.9,220.0 216.5,220.0 198.1,266.0 86.5,266.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"151.5\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід matrix</text><rect x=\"86.5\" y=\"310.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"151.5\" y=\"331.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"151.5\" y=\"414.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 14 — print_matrix_fifth_task</text></svg>"
+  },
+  {
+   "name": "print_vector_fifth_task",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 130,
+      "w": 572,
+      "h": 46,
+      "text": "formatted_elements: list[str] = [f\"{item:.3f}\" for item in vect…"
+     },
+     {
+      "kind": "io",
+      "x": 209.75,
+      "y": 220,
+      "w": 240.5,
+      "h": 46,
+      "text": "Вивід *formatted_elements"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 310,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 266
+       },
+       {
+        "x": 330,
+        "y": 310
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 396,
+    "caption": "print_vector_fifth_task",
+    "figNum": 15
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"426\" viewBox=\"0 0 660 426\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 266.0 L330.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"44.0\" y=\"130.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">formatted_elements: list[str] = [f&quot;{item:.3f}&quot; for item in vect…</text><polygon points=\"228.2,220.0 450.2,220.0 431.9,266.0 209.8,266.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід *formatted_elements</text><rect x=\"265.0\" y=\"310.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"331.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"414.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 15 — print_vector_fifth_task</text></svg>"
+  },
+  {
+   "name": "vika",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 434.5,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "io",
+      "x": 434.5,
+      "y": 130,
+      "w": 130,
+      "h": 46,
+      "text": "Ввід n"
+     },
+     {
+      "kind": "process",
+      "x": 434.5,
+      "y": 220,
+      "w": 130,
+      "h": 46,
+      "text": "a = []"
+     },
+     {
+      "kind": "process",
+      "x": 264.5,
+      "y": 310,
+      "w": 470,
+      "h": 46,
+      "text": "for i in range(n): a.append(random.randint(-10, 10))"
+     },
+     {
+      "kind": "io",
+      "x": 413.25,
+      "y": 400,
+      "w": 172.5,
+      "h": 46,
+      "text": "Вивід «Список:» a"
+     },
+     {
+      "kind": "process",
+      "x": 434.5,
+      "y": 490,
+      "w": 130,
+      "h": 46,
+      "text": "neg_a = -1"
+     },
+     {
+      "kind": "process",
+      "x": 434.5,
+      "y": 580,
+      "w": 130,
+      "h": 46,
+      "text": "neg_b = -1"
+     },
+     {
+      "kind": "process",
+      "x": 213.5,
+      "y": 670,
+      "w": 572,
+      "h": 46,
+      "text": "for i in range(n): if a[i] < 0: if neg_a == -1: neg_a = i elif …"
+     },
+     {
+      "kind": "decision",
+      "x": 359,
+      "y": 760,
+      "w": 281,
+      "h": 76,
+      "text": "neg_a == -1 or neg_b == -1"
+     },
+     {
+      "kind": "io",
+      "x": 44,
+      "y": 884,
+      "w": 427.5,
+      "h": 46,
+      "text": "Вивід «У списку менше двох від'ємних елементів»"
+     },
+     {
+      "kind": "process",
+      "x": 676.25,
+      "y": 884,
+      "w": 130,
+      "h": 46,
+      "text": "s = 0"
+     },
+     {
+      "kind": "process",
+      "x": 531.75,
+      "y": 974,
+      "w": 419,
+      "h": 46,
+      "text": "for i in range(neg_a + 1, neg_b): s = s + a[i]"
+     },
+     {
+      "kind": "io",
+      "x": 527.5,
+      "y": 1064,
+      "w": 427.5,
+      "h": 46,
+      "text": "Вивід «Сума між першим та другим від'ємними:» s"
+     },
+     {
+      "kind": "terminator",
+      "x": 434.5,
+      "y": 1198,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 86
+       },
+       {
+        "x": 499.5,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 176
+       },
+       {
+        "x": 499.5,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 266
+       },
+       {
+        "x": 499.5,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 356
+       },
+       {
+        "x": 499.5,
+        "y": 400
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 446
+       },
+       {
+        "x": 499.5,
+        "y": 490
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 536
+       },
+       {
+        "x": 499.5,
+        "y": 580
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 626
+       },
+       {
+        "x": 499.5,
+        "y": 670
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 716
+       },
+       {
+        "x": 499.5,
+        "y": 760
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 359,
+        "y": 798
+       },
+       {
+        "x": 257.75,
+        "y": 798
+       },
+       {
+        "x": 257.75,
+        "y": 884
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 257.75,
+        "y": 930
+       },
+       {
+        "x": 257.75,
+        "y": 1154
+       },
+       {
+        "x": 499.5,
+        "y": 1154
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 640,
+        "y": 798
+       },
+       {
+        "x": 741.25,
+        "y": 798
+       },
+       {
+        "x": 741.25,
+        "y": 884
+       }
+      ],
+      "label": "Ні"
+     },
+     {
+      "points": [
+       {
+        "x": 741.25,
+        "y": 930
+       },
+       {
+        "x": 741.25,
+        "y": 974
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 741.25,
+        "y": 1020
+       },
+       {
+        "x": 741.25,
+        "y": 1064
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 741.25,
+        "y": 1110
+       },
+       {
+        "x": 741.25,
+        "y": 1154
+       },
+       {
+        "x": 499.5,
+        "y": 1154
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 499.5,
+        "y": 1154
+       },
+       {
+        "x": 499.5,
+        "y": 1198
+       }
+      ]
+     }
+    ],
+    "w": 999,
+    "h": 1284,
+    "caption": "vika",
+    "figNum": 16
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"999\" height=\"1314\" viewBox=\"0 0 999 1314\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M499.5 86.0 L499.5 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M499.5 176.0 L499.5 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M499.5 266.0 L499.5 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M499.5 356.0 L499.5 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M499.5 446.0 L499.5 490.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M499.5 536.0 L499.5 580.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M499.5 626.0 L499.5 670.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M499.5 716.0 L499.5 760.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M359.0 798.0 L257.8 798.0 L257.8 884.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"325.0\" y=\"789.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M257.8 930.0 L257.8 1154.0 L499.5 1154.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M640.0 798.0 L741.2 798.0 L741.2 884.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"674.0\" y=\"789.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M741.2 930.0 L741.2 974.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M741.2 1020.0 L741.2 1064.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M741.2 1110.0 L741.2 1154.0 L499.5 1154.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M499.5 1154.0 L499.5 1198.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"434.5\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"452.9,130.0 564.5,130.0 546.1,176.0 434.5,176.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Ввід n</text><rect x=\"434.5\" y=\"220.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">a = []</text><rect x=\"264.5\" y=\"310.0\" width=\"470.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i in range(n): a.append(random.randint(-10, 10))</text><polygon points=\"431.6,400.0 585.8,400.0 567.4,446.0 413.2,446.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"423.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «Список:» a</text><rect x=\"434.5\" y=\"490.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"513.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">neg_a = -1</text><rect x=\"434.5\" y=\"580.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"603.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">neg_b = -1</text><rect x=\"213.5\" y=\"670.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"693.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i in range(n): if a[i] &lt; 0: if neg_a == -1: neg_a = i elif …</text><polygon points=\"499.5,760.0 640.0,798.0 499.5,836.0 359.0,798.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"798.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">neg_a == -1 or neg_b == -1</text><polygon points=\"62.4,884.0 471.5,884.0 453.1,930.0 44.0,930.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"257.8\" y=\"907.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «У списку менше двох від'ємних елементів»</text><rect x=\"676.2\" y=\"884.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"741.2\" y=\"907.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">s = 0</text><rect x=\"531.8\" y=\"974.0\" width=\"419.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"741.2\" y=\"997.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i in range(neg_a + 1, neg_b): s = s + a[i]</text><polygon points=\"545.9,1064.0 955.0,1064.0 936.6,1110.0 527.5,1110.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"741.2\" y=\"1087.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Вивід «Сума між першим та другим від'ємними:» s</text><rect x=\"434.5\" y=\"1198.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"499.5\" y=\"1219.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"499.5\" y=\"1302.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 16 — vika</text></svg>"
+  },
+  {
+   "name": "програма",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 102.5,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "decision",
+      "x": 44,
+      "y": 130,
+      "w": 247,
+      "h": 76,
+      "text": "__name__ == \"__main__\""
+     },
+     {
+      "kind": "subprogram",
+      "x": 102.5,
+      "y": 254,
+      "w": 130,
+      "h": 46,
+      "text": "main()"
+     },
+     {
+      "kind": "terminator",
+      "x": 102.5,
+      "y": 388,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 167.5,
+        "y": 86
+       },
+       {
+        "x": 167.5,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 167.5,
+        "y": 206
+       },
+       {
+        "x": 167.5,
+        "y": 254
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 291,
+        "y": 168
+       },
+       {
+        "x": 315,
+        "y": 168
+       },
+       {
+        "x": 315,
+        "y": 344
+       },
+       {
+        "x": 167.5,
+        "y": 344
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 167.5,
+        "y": 300
+       },
+       {
+        "x": 167.5,
+        "y": 344
+       }
+      ],
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 167.5,
+        "y": 344
+       },
+       {
+        "x": 167.5,
+        "y": 388
+       }
+      ]
+     }
+    ],
+    "w": 359,
+    "h": 474,
+    "caption": "програма",
+    "figNum": 17
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"359\" height=\"504\" viewBox=\"0 0 359 504\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M167.5 86.0 L167.5 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M167.5 206.0 L167.5 254.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"177.5\" y=\"230.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M291.0 168.0 L315.0 168.0 L315.0 344.0 L167.5 344.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"303.0\" y=\"159.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M167.5 300.0 L167.5 344.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><path d=\"M167.5 344.0 L167.5 388.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"102.5\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"167.5\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"167.5,130.0 291.0,168.0 167.5,206.0 44.0,168.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"167.5\" y=\"168.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">__name__ == &quot;__main__&quot;</text><rect x=\"102.5\" y=\"254.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"111.5\" y1=\"254.0\" x2=\"111.5\" y2=\"300.0\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"223.5\" y1=\"254.0\" x2=\"223.5\" y2=\"300.0\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"167.5\" y=\"277.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">main()</text><rect x=\"102.5\" y=\"388.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"167.5\" y=\"409.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"179.5\" y=\"492.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 17 — програма</text></svg>"
+  }
+ ]
+}

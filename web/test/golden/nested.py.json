@@ -1,0 +1,301 @@
+{
+ "file": "nested.py",
+ "lang": "py",
+ "options": {},
+ "astJSON": [
+  {
+   "name": "outer",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "process",
+      "text": "total = 0"
+     },
+     {
+      "kind": "process",
+      "text": "for i in range(x): if i % 2 == 0: total += helper(i) else: tota…"
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути total"
+     }
+    ]
+   }
+  },
+  {
+   "name": "helper",
+   "block": {
+    "kind": "block",
+    "stmts": [
+     {
+      "kind": "if",
+      "cond": "y < 0",
+      "then": {
+       "kind": "block",
+       "stmts": [
+        {
+         "kind": "terminal",
+         "text": "Помилка: ValueError(\"neg\")"
+        }
+       ]
+      },
+      "else": {
+       "kind": "block",
+       "stmts": []
+      }
+     },
+     {
+      "kind": "terminal",
+      "text": "Повернути y * 2"
+     }
+    ]
+   }
+  }
+ ],
+ "functions": [
+  {
+   "name": "outer",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "process",
+      "x": 265,
+      "y": 130,
+      "w": 130,
+      "h": 46,
+      "text": "total = 0"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 220,
+      "w": 572,
+      "h": 46,
+      "text": "for i in range(x): if i % 2 == 0: total += helper(i) else: tota…"
+     },
+     {
+      "kind": "process",
+      "x": 252.25,
+      "y": 310,
+      "w": 155.5,
+      "h": 46,
+      "text": "Повернути total"
+     },
+     {
+      "kind": "terminator",
+      "x": 265,
+      "y": 400,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 86
+       },
+       {
+        "x": 330,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 176
+       },
+       {
+        "x": 330,
+        "y": 220
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 266
+       },
+       {
+        "x": 330,
+        "y": 310
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 330,
+        "y": 356
+       },
+       {
+        "x": 330,
+        "y": 400
+       }
+      ]
+     }
+    ],
+    "w": 660,
+    "h": 486,
+    "caption": "outer",
+    "figNum": 1
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"660\" height=\"516\" viewBox=\"0 0 660 516\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M330.0 86.0 L330.0 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 176.0 L330.0 220.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 266.0 L330.0 310.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M330.0 356.0 L330.0 400.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"265.0\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><rect x=\"265.0\" y=\"130.0\" width=\"130.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"153.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">total = 0</text><rect x=\"44.0\" y=\"220.0\" width=\"572.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"243.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">for i in range(x): if i % 2 == 0: total += helper(i) else: tota…</text><rect x=\"252.2\" y=\"310.0\" width=\"155.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"333.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути total</text><rect x=\"265.0\" y=\"400.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"330.0\" y=\"421.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"330.0\" y=\"504.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 1 — outer</text></svg>"
+  },
+  {
+   "name": "helper",
+   "diagram": {
+    "shapes": [
+     {
+      "kind": "terminator",
+      "x": 56.75,
+      "y": 44,
+      "w": 130,
+      "h": 42,
+      "text": "Початок"
+     },
+     {
+      "kind": "decision",
+      "x": 46.75,
+      "y": 130,
+      "w": 150,
+      "h": 76,
+      "text": "y < 0"
+     },
+     {
+      "kind": "process",
+      "x": 149.75,
+      "y": 254,
+      "w": 249,
+      "h": 46,
+      "text": "Помилка: ValueError(\"neg\")"
+     },
+     {
+      "kind": "terminator",
+      "x": 209.25,
+      "y": 344,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     },
+     {
+      "kind": "process",
+      "x": 44,
+      "y": 474,
+      "w": 155.5,
+      "h": 46,
+      "text": "Повернути y * 2"
+     },
+     {
+      "kind": "terminator",
+      "x": 56.75,
+      "y": 564,
+      "w": 130,
+      "h": 42,
+      "text": "Кінець"
+     }
+    ],
+    "edges": [
+     {
+      "points": [
+       {
+        "x": 121.75,
+        "y": 86
+       },
+       {
+        "x": 121.75,
+        "y": 130
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 196.75,
+        "y": 168
+       },
+       {
+        "x": 274.25,
+        "y": 168
+       },
+       {
+        "x": 274.25,
+        "y": 254
+       }
+      ],
+      "label": "Так"
+     },
+     {
+      "points": [
+       {
+        "x": 274.25,
+        "y": 300
+       },
+       {
+        "x": 274.25,
+        "y": 344
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 121.75,
+        "y": 206
+       },
+       {
+        "x": 121.75,
+        "y": 430
+       }
+      ],
+      "label": "Ні",
+      "arrowless": true
+     },
+     {
+      "points": [
+       {
+        "x": 121.75,
+        "y": 430
+       },
+       {
+        "x": 121.75,
+        "y": 474
+       }
+      ]
+     },
+     {
+      "points": [
+       {
+        "x": 121.75,
+        "y": 520
+       },
+       {
+        "x": 121.75,
+        "y": 564
+       }
+      ]
+     }
+    ],
+    "w": 442.75,
+    "h": 650,
+    "caption": "helper",
+    "figNum": 2
+   },
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"443\" height=\"680\" viewBox=\"0 0 443 680\" font-family=\"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif\" font-size=\"14\"><defs><marker id=\"arr\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7.5\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#222\"/></marker></defs><rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/><path d=\"M121.8 86.0 L121.8 130.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M196.8 168.0 L274.2 168.0 L274.2 254.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><text x=\"230.8\" y=\"159.0\" text-anchor=\"middle\" font-size=\"12\" fill=\"#444\">Так</text><path d=\"M274.2 300.0 L274.2 344.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M121.8 206.0 L121.8 430.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"131.8\" y=\"318.0\" text-anchor=\"start\" font-size=\"12\" fill=\"#444\">Ні</text><path d=\"M121.8 430.0 L121.8 474.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><path d=\"M121.8 520.0 L121.8 564.0\" fill=\"none\" stroke=\"#222\" stroke-width=\"1.5\" marker-end=\"url(#arr)\"/><rect x=\"56.8\" y=\"44.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"121.8\" y=\"65.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Початок</text><polygon points=\"121.8,130.0 196.8,168.0 121.8,206.0 46.8,168.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"121.8\" y=\"168.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">y &lt; 0</text><rect x=\"149.8\" y=\"254.0\" width=\"249.0\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.2\" y=\"277.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Помилка: ValueError(&quot;neg&quot;)</text><rect x=\"209.2\" y=\"344.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"274.2\" y=\"365.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><rect x=\"44.0\" y=\"474.0\" width=\"155.5\" height=\"46.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"121.8\" y=\"497.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Повернути y * 2</text><rect x=\"56.8\" y=\"564.0\" width=\"130.0\" height=\"42.0\" rx=\"21.0\" fill=\"#fdfdfd\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"121.8\" y=\"585.0\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#111\">Кінець</text><text x=\"221.4\" y=\"668.0\" text-anchor=\"middle\" font-size=\"14\" fill=\"#111\">Рисунок 2 — helper</text></svg>"
+  }
+ ]
+}
