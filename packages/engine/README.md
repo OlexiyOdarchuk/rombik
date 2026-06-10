@@ -1,44 +1,77 @@
 # @rombik/engine
 
-Перетворення структурованого коду (Python / C++) на блок-схему алгоритму за
-**ДСТУ 19.701-90**. Чистий TypeScript, **без залежностей від DOM чи фреймворку** —
-працює у браузері, Node і будь-де.
+Рушій **rombik**: код (**Python / C++**) → блок-схема алгоритму за **ДСТУ 19.701‑90**.
+Чистий **TypeScript**, нуль рантайм-залежностей, без DOM і фреймворків. Дає геометрію
+схеми та рендери у **SVG / Typst (CeTZ) / Excalidraw**.
 
 ```
-код ──parser──► AST-JSON ──► IR ──layout──► Diagram ──render──► SVG / Typst / …
+код ──parser──► AST-JSON ──► IR ──layout──► Diagram ──render──► SVG / Typst / Excalidraw
 ```
 
-## Структура
-
-```
-src/
-  index.ts          публічний API
-  diagram.ts        модель геометрії (фігури, ребра) + підпис
-  ir.ts             IR — мова-агностик дерево керування            (TODO)
-  parser/           відображення tree-sitter → AST-JSON            (TODO: порт з web/parser.js)
-  layout/           розкладка IR → Diagram (рекурсивна геометрія)  (TODO: порт з pkg/layout)
-  render/
-    svg.ts          SVG-рендерер (готово, byte-парність із Go)
-    typst.ts        Typst                                          (TODO)
-    excalidraw.ts   Excalidraw                                     (TODO)
-test/
-  svg.test.ts       golden-парність (node:test)
-  golden/*.json     еталони, зняті з Go-рушія (оракул міграції)
-  corpus/           вхідні приклади (Python + C++)
-  capture-golden.mjs  тимчасовий: регенерує оракул зі старого Go-рушія
+```bash
+npm install @rombik/engine web-tree-sitter
 ```
 
-## Статус міграції Go → TS
+> Розбір коду — через `web-tree-sitter` (WASM-граматики `tree-sitter-python` /
+> `tree-sitter-cpp`). Рушій приймає вже готове дерево, тож граматику обираєш сам.
 
-Рушій історично на Go (компілювався у WASM для вебу). Триває порт на TS, щоб
-прибрати кордон Go↔wasm і двомовність. **Інваріант:** кожен портований модуль
-має давати БАЙТ-У-БАЙТ той самий вивід, що Go — це стереже `test/golden`.
+## Швидкий старт
 
-Готово: модель + SVG-рендерер. Далі: `parser` → `ir` → `layout`.
+```js
+import { Parser, Language } from 'web-tree-sitter';
+import { fromTree, renderSvg } from '@rombik/engine';
 
-## Тести
+await Parser.init();
+const parser = new Parser();
+parser.setLanguage(await Language.load('tree-sitter-python.wasm'));
+
+const tree = parser.parse(`def grade(s):\n    if s >= 60:\n        print("ok")`);
+for (const { name, diagram } of fromTree(tree, 'python', {})) {
+  console.log(name, renderSvg(diagram)); // → <svg>…</svg>
+}
+```
+
+## API
+
+| Функція | Призначення |
+| --- | --- |
+| `fromTree(tree, lang, opts)` | tree-sitter-дерево → `[{ name, diagram }]` (одна на функцію) |
+| `parseTree(tree, lang)` | дерево → проміжний AST-JSON (для подальшої обробки) |
+| `fromAst(ast, opts)` / `fromJson(json)` | AST-JSON → діаграми |
+| `splitFromAst(ast, opts, name, maxH)` | розбити схему функції на частини ≤ `maxH` |
+| `layoutProgram(funcs, opts)` | розкладка без розбору (низькорівнево) |
+| `renderSvg(d)` / `renderSvgAll(ds)` | SVG однієї / усіх схем |
+| `renderTypst(d)` / `renderTypstAll(ds)` | Typst (CeTZ); є фрагмент-режим |
+| `renderExcalidraw(d)` / `renderExcalidrawAll(ds)` | `.excalidraw` (доредагувати на excalidraw.com) |
+| `captionLine`, `labelAnchor` | допоміжні (підпис «Рисунок N», якорі підписів) |
+
+`lang` — `'python' | 'cpp'`. `opts` (`Options`, усі поля необов'язкові): `singleEnd`,
+`callAsProcess`, `stripTypes`, `returnAsIO`, `yes`/`no` (підписи гілок),
+`inWord`/`outWord` (слова вводу/виводу), `capWord`. Типи (`Diagram`, `Shape`, `Edge`,
+`Point`, `Options`, …) йдуть у комплекті.
+
+PNG/PDF тут немає (це робота растеризатора): рендер дає **SVG**, далі —
+браузерним `<canvas>` або зовнішнім `rsvg-convert` / `cairosvg`.
+
+## Підтримувані конструкції
+
+if / else‑if, `switch` (усі `case` + `default`, fallthrough → одна умова), `for`
+(класичний і range‑based), `while`, `do‑while`, вкладені цикли, `break` / `continue`,
+кілька `return`, рекурсія, виклики (підпрограма), `cin`/`cout` (вводу/виводу),
+`try`/`catch`, методи класів (окремі схеми `Клас::метод`).
+
+## Розробка
 
 ```sh
-npm test            # node:test, golden-парність SVG (потрібен Node 22+)
+npm test            # node:test (потрібен Node 22+)
+npm run coverage    # тести + звіт покриття
 npm run typecheck   # tsc --noEmit (strict)
+npm run build       # dist/ (JS + .d.ts) для публікації
 ```
+
+У монорепо веб і CLI беруть **джерела** (умова експорту `rombik-source`), а
+npm-споживач — зібраний `dist/`. Частина [rombik](https://github.com/OlexiyOdarchuk/rombik).
+
+## Ліцензія
+
+MIT.

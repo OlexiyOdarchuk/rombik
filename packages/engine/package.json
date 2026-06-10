@@ -3,14 +3,47 @@
   "version": "0.1.0",
   "description": "Перетворення коду (Python/C++) на блок-схему алгоритму за ДСТУ 19.701-90.",
   "type": "module",
-  "private": true,
-  "exports": {
-    ".": "./src/index.ts"
+  "license": "MIT",
+  "author": "OlexiyOdarchuk (https://github.com/OlexiyOdarchuk)",
+  "homepage": "https://github.com/OlexiyOdarchuk/rombik#readme",
+  "bugs": "https://github.com/OlexiyOdarchuk/rombik/issues",
+  "keywords": [
+    "flowchart",
+    "блок-схема",
+    "ДСТУ",
+    "python",
+    "cpp",
+    "tree-sitter",
+    "svg"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OlexiyOdarchuk/rombik.git",
+    "directory": "packages/engine"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "rombik-source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
   "scripts": {
     "test": "node --test --experimental-strip-types \"test/**/*.test.ts\"",
     "coverage": "node --test --experimental-test-coverage --experimental-strip-types \"test/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/fix-dts.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
