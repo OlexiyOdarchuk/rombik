@@ -1,4 +1,4 @@
-name: Publish rombik-engine to npm
+name: Publish to npm (rombik-engine + rombik)
 
 # Запуск: кнопкою (Actions → цей workflow → Run workflow) АБО при публікації GitHub Release.
 on:
@@ -32,15 +32,26 @@ jobs:
       - name: Tests (rombik-engine)
         run: npm test --workspace rombik-engine
 
-      # prepublishOnly сам збере dist/. --provenance вимагає id-token: write.
-      # Пропускаємо, якщо ця версія вже опублікована (щоб реліз/повтор не падали 403).
-      - name: Publish to npm (idempotent)
+      # prepublishOnly у кожному пакеті сам збере dist/. --provenance вимагає id-token: write.
+      # Пропускаємо пакет, якщо його версія вже опублікована (щоб реліз/повтор не падали 403).
+      - name: Publish rombik-engine (idempotent)
         run: |
           VER=$(node -p "require('./packages/engine/package.json').version")
           if npm view "rombik-engine@$VER" version >/dev/null 2>&1; then
-            echo "rombik-engine@$VER вже на npm — пропускаю публікацію."
+            echo "rombik-engine@$VER вже на npm — пропускаю."
           else
             npm publish --workspace rombik-engine --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish rombik CLI (idempotent)
+        run: |
+          VER=$(node -p "require('./packages/cli/package.json').version")
+          if npm view "rombik@$VER" version >/dev/null 2>&1; then
+            echo "rombik@$VER вже на npm — пропускаю."
+          else
+            npm publish --workspace rombik --provenance --access public
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

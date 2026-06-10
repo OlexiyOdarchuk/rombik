@@ -40,3 +40,9 @@ jobs:
 
       - name: CLI smoke — код → SVG
         run: node dist/rombik.mjs examples/grade.py | grep -q "</svg>"
+
+      - name: Build rombik package (npm CLI)
+        run: npm run build --workspace rombik
+
+      - name: rombik bin smoke — код → SVG
+        run: node packages/cli/dist/rombik.mjs examples/grade.py | grep -q "</svg>"
