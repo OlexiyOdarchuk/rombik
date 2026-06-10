@@ -415,5 +415,32 @@ def print_vector_fifth_task(vector: list[float]):
     print(*formatted_elements)
 
 
+def vika():
+    n = int(input("Введіть n: "))
+
+    a = []
+    for i in range(n):
+        a.append(random.randint(-10, 10))
+    print("Список:", a)
+
+    neg_a = -1
+    neg_b = -1
+    for i in range(n):
+        if a[i] < 0:
+            if neg_a == -1:
+                neg_a = i
+            elif neg_b == -1:
+                neg_b = i
+                break
+
+    if neg_a == -1 or neg_b == -1:
+        print("У списку менше двох від'ємних елементів")
+    else:
+        s = 0
+        for i in range(neg_a + 1, neg_b):
+            s = s + a[i]
+        print("Сума між першим та другим від'ємними:", s)
+
+
 if __name__ == "__main__":
     main()

@@ -1,13 +1,14 @@
-// Пакет rombik — високорівневий публічний API: код → блок-схеми за ДСТУ.
-// Об'єднує парсер, розкладку й рендер. Для бібліотечного використання:
+// Пакет rombik — високорівневий публічний API: AST-JSON → блок-схеми за ДСТУ.
+// Об'єднує розкладку й рендер. Для бібліотечного використання:
 //
-//	res, err := rombik.FromPython(code, rombik.Options{})
+//	res, err := rombik.FromAST(astJSON, rombik.Options{})
 //	for _, f := range res {
 //	    os.WriteFile(f.Name+".svg", []byte(f.SVG()), 0o644)
 //	}
 //
-// У браузері (WASM, без python3) парсер дає AST окремо (Pyodide), а тут —
-// rombik.FromAST(astJSON, opts).
+// Парсинг коду — поза цим пакетом: фронтенд (tree-sitter у вебі/Node) дає AST-JSON,
+// а тут FromAST(astJSON) зводить його в схеми. Так ядро не залежить ні від мови,
+// ні від рантайму парсера (python3 більше не потрібен).
 //
 // PNG/PDF тут НЕ надаються навмисно: вони тягнуть важке дерево tdewolff/canvas
 // (растеризація, шрифти, латех, ~55 модулів). Щоб імпорт цього пакета заради SVG
@@ -23,7 +24,6 @@ import (
 	"github.com/OlexiyOdarchuk/rombik/pkg/ir"
 	"github.com/OlexiyOdarchuk/rombik/pkg/layout"
 	"github.com/OlexiyOdarchuk/rombik/pkg/parser/astjson"
-	"github.com/OlexiyOdarchuk/rombik/pkg/parser/python"
 
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/excalidraw"
 	"github.com/OlexiyOdarchuk/rombik/pkg/render/svg"
@@ -51,17 +51,8 @@ func (r Result) Typst() string { return typst.Render(r.Diagram) }
 // Excalidraw повертає схему у форматі .excalidraw (для excalidraw.com).
 func (r Result) Excalidraw() string { return excalidraw.Render(r.Diagram) }
 
-// FromPython: Python-код → схеми (потребує python3 у системі; не для WASM).
-func FromPython(code string, opts Options) ([]Result, error) {
-	funcs, err := python.ParseAll(code)
-	if err != nil {
-		return nil, err
-	}
-	return build(funcs, opts), nil
-}
-
-// FromAST: вже розібраний AST-JSON (формат astjson) → схеми. Працює будь-де,
-// зокрема у WASM (AST дає Pyodide).
+// FromAST: розібраний AST-JSON (формат astjson) → схеми. Це єдина точка входу
+// з коду: парсер (tree-sitter у вебі/Node) дає AST-JSON, а далі — мова-агностик.
 func FromAST(astJSON []byte, opts Options) ([]Result, error) {
 	funcs, err := astjson.FromJSON(astJSON)
 	if err != nil {

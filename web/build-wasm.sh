@@ -13,7 +13,4 @@ GOOS=js GOARCH=wasm go build -o web/static/rombik-raster.wasm ./cmd/wasmraster
 echo "→ wasm_exec.js"
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/static/
 
-echo "→ parser.py"
-cp pkg/parser/python/parser.py web/static/
-
-echo "Готово: web/static/{rombik.wasm, rombik-raster.wasm, wasm_exec.js, parser.py}"
+echo "Готово: web/static/{rombik.wasm, rombik-raster.wasm, wasm_exec.js}"
