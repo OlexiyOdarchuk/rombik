@@ -81,6 +81,25 @@ for (const f of figs) writeFileSync(`${f.name}.svg`, renderSvg(f.diagram));
 (tree → AST-JSON), `renderTypst` / `renderExcalidraw`, `splitFromAst(ast, opts, name, maxH)`.
 PNG/PDF — браузерний SVG→canvas (див. `web/src/lib/engine.js`).
 
+### CLI — самодостатній скрипт
+
+Зібрати standalone CLI (бандл рушія + tree-sitter в один файл; **без node_modules і
+TS-флагів** — просто `node`):
+
+```bash
+npm run build:cli                                   # → dist/rombik.mjs (+ wasm поруч)
+
+node dist/rombik.mjs examples/grade.py -o grade.svg
+./dist/rombik.mjs prog.cpp -t typ > prog.typ         # shebang; з будь-якої теки
+cat prog.py | ./dist/rombik.mjs - -t json            # stdin → JSON-геометрія
+```
+
+> Папку `dist/` (скрипт + 3 wasm, ~4 МБ) можна скопіювати куди завгодно — працює з
+> чистим Node 22+, нічого не встановлюючи. Для dev без бандла: `npm run cli -- file.py`.
+
+Опції: `-o/--out`, `-t/--format svg|typ|json|excalidraw`, `-l/--lang py|cpp`, `--fn NAME`,
+`--single-end`, `--split N`. `-h` — повна довідка.
+
 ---
 
 ## Як це працює (конвеєр)

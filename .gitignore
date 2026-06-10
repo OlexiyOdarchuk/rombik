@@ -20,3 +20,6 @@ node_modules/
 main.py
 main.svg
 out_*.svg
+
+# Зібраний standalone CLI
+dist/
