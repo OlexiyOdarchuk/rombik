@@ -1,5 +1,28 @@
 # rombik.
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/rombik-engine"><img src="https://img.shields.io/npm/v/rombik-engine?label=rombik-engine&logo=npm&color=cb3837" alt="rombik-engine на npm"></a>
+  <a href="https://www.npmjs.com/package/rombik"><img src="https://img.shields.io/npm/v/rombik?label=rombik%20(CLI)&logo=npm&color=cb3837" alt="rombik CLI на npm"></a>
+  <a href="https://www.npmjs.com/package/rombik"><img src="https://img.shields.io/npm/dm/rombik?logo=npm&color=cb3837" alt="завантаження"></a>
+  <a href="https://github.com/OlexiyOdarchuk/rombik/actions/workflows/ci.yml"><img src="https://github.com/OlexiyOdarchuk/rombik/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/OlexiyOdarchuk/rombik/actions/workflows/deploy.yml"><img src="https://github.com/OlexiyOdarchuk/rombik/actions/workflows/deploy.yml/badge.svg" alt="Deploy"></a>
+  <br>
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/node/v/rombik?logo=node.js&logoColor=white&color=339933" alt="Node">
+  <img src="https://img.shields.io/bundlephobia/minzip/rombik-engine?label=engine%20gzip&logo=webpack" alt="розмір">
+  <img src="https://img.shields.io/badge/залежності%20рушія-0-success" alt="нуль залежностей">
+  <img src="https://img.shields.io/badge/тестів-159%20✓-success" alt="тести">
+  <br>
+  <img src="https://img.shields.io/badge/мови-Python%20·%20C%20·%20C%2B%2B%20·%20Pascal-8A2BE2?logo=python&logoColor=white" alt="мови">
+  <img src="https://img.shields.io/badge/стандарт-ДСТУ%2019.701--90-0a7bbb" alt="ДСТУ 19.701-90">
+  <a href="https://github.com/OlexiyOdarchuk/rombik/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/rombik-engine?color=green" alt="MIT"></a>
+  <img src="https://img.shields.io/badge/provenance-✓-success?logo=npm" alt="npm provenance">
+  <a href="https://rombik.ishawyha.dev"><img src="https://img.shields.io/badge/сайт-rombik.ishawyha.dev-blue" alt="сайт"></a>
+  <br>
+  <a href="https://github.com/OlexiyOdarchuk/rombik/stargazers"><img src="https://img.shields.io/github/stars/OlexiyOdarchuk/rombik?style=social" alt="зірки"></a>
+  <img src="https://img.shields.io/badge/Made%20in-Ukraine%20🇺🇦-005bbb" alt="Зроблено в Україні">
+</p>
+
 **Код → блок-схема за ДСТУ 19.701-90 (SVG / PNG / PDF / Typst / Excalidraw).**
 
 rombik перетворює код на **Python, C, C++ та Pascal** на акуратну блок-схему алгоритму
