@@ -47,7 +47,11 @@ function help() {
 Приклади:
   rombik examples/grade.py -o grade.svg
   rombik prog.cpp -t typ > prog.typ
-  cat prog.py | rombik - -t json`);
+  cat prog.py | rombik - -t json
+
+PNG / PDF (растр — зовнішнім конвертером SVG):
+  rombik grade.py | rsvg-convert -f pdf -o grade.pdf
+  rombik grade.py | rsvg-convert -f png -o grade.png      # також: cairosvg, inkscape`);
 }
 
 if (values.help || positionals.length === 0) { help(); process.exit(0); }
