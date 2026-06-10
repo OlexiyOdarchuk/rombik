@@ -451,6 +451,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       return { kind: 'block', stmts };
     }
 
+    if (s.type === 'pass_statement') return null; // no-op заглушка — не малюємо
     if (s.type === 'break_statement') return { kind: 'break' };
     if (s.type === 'continue_statement') return { kind: 'continue' };
 
@@ -483,6 +484,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       const expr = s.namedChildren[0];
       if (!expr) return { kind: 'process', text: oneline(s.text.replace(';', '')) };
       if (expr.type === 'string' || expr.type === 'concatenated_string') return null;
+      if (expr.type === 'ellipsis') return null; // «...» — заглушка, не малюємо
 
       if (isCpp && (expr.type === 'binary_expression' || expr.type === 'shift_expression')) {
         const text = expr.text.trim();
