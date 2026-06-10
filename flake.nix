@@ -1,16 +1,23 @@
 {
-  description = "rombik — код (Python/C++) → блок-схема алгоритму за ДСТУ 19.701-90";
+  description = "rombik — код → блок-схема алгоритму за ДСТУ 19.701-90";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-      in {
+      in
+      {
         # nix develop — готове середовище без ручної возні з node.
         devShells.default = pkgs.mkShell {
           packages = [
@@ -25,5 +32,6 @@
             echo "  npm run build:cli && ./dist/rombik.mjs examples/grade.py -o grade.svg"
           '';
         };
-      });
+      }
+    );
 }
