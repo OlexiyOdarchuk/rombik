@@ -52,7 +52,7 @@ function splitByHeight(f: Func, opts, maxH): Result[]                   // те 
 ```
 
 - `fromTree` = `parseTree` → `fromJson` → `buildResults`. Це наскрізний шлях
-  «дерево tree-sitter (Python/C++) → схеми» цілком у TS.
+  «дерево tree-sitter (Python/C/C++/Pascal) → схеми» цілком у TS.
 - `fromAst` стартує з уже розпарсеного [[Чому-AST-JSON-як-контракт|AST-JSON]].
 - Усі йдуть через внутрішній `buildResults`, який на кожну функцію кличе
   [[Layout-рушій-розкладки|layoutProgram]] і **засіває підпис**: `caption` = ім'я

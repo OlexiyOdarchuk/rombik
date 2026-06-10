@@ -4,7 +4,11 @@
 	import { EditorState, Compartment } from '@codemirror/state';
 	import { python } from '@codemirror/lang-python';
 	import { cpp } from '@codemirror/lang-cpp';
+	import { StreamLanguage } from '@codemirror/language';
+	import { pascal } from '@codemirror/legacy-modes/mode/pascal';
 	import { oneDark } from '@codemirror/theme-one-dark';
+
+	const pascalLang = StreamLanguage.define(pascal);
 
 	let { value = $bindable(''), lang = 'python' } = $props();
 	let el;
@@ -14,8 +18,7 @@
 
 	const isDark = () => document.documentElement.classList.contains('dark');
 	const themeExt = () => (isDark() ? oneDark : []);
-	// Pascal — без власного режиму CodeMirror; без підсвітки (краще, ніж хибна python).
-	const langExt = () => (lang === 'cpp' ? cpp() : lang === 'pascal' ? [] : python());
+	const langExt = () => (lang === 'cpp' ? cpp() : lang === 'pascal' ? pascalLang : python());
 
 
 	onMount(() => {

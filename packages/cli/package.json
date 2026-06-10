@@ -1,13 +1,22 @@
 {
   "name": "rombik",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI: код (Python/C++) → блок-схема алгоритму за ДСТУ 19.701-90 (SVG / Typst / JSON / Excalidraw).",
   "type": "module",
   "license": "MIT",
   "author": "Oleksii Odarchuk aka iShawyha (https://github.com/OlexiyOdarchuk)",
   "homepage": "https://github.com/OlexiyOdarchuk/rombik#readme",
   "bugs": "https://github.com/OlexiyOdarchuk/rombik/issues",
-  "keywords": ["flowchart", "блок-схема", "ДСТУ", "python", "cpp", "cli", "svg", "typst"],
+  "keywords": [
+    "flowchart",
+    "блок-схема",
+    "ДСТУ",
+    "python",
+    "cpp",
+    "cli",
+    "svg",
+    "typst"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OlexiyOdarchuk/rombik.git",
@@ -16,7 +25,10 @@
   "bin": {
     "rombik": "./dist/rombik.mjs"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "engines": {
     "node": ">=22"
   },

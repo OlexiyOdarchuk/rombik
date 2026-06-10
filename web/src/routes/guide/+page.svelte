@@ -11,26 +11,32 @@
 	];
 
 	const pythonFeatures = [
-		'Послідовність, присвоєння, вирази',
-		'if / elif / else (будь-яка вкладеність)',
-		'match / case',
-		'for … in range (шестикутник «i = 0, n−1, 1»)',
-		'while (передумова), for/else, while/else',
+		'if / elif / else, match / case',
+		'for … in range, while, for/else, while/else',
 		'while True … break (післяумова), нескінченний цикл',
-		'break / continue / return / raise / exit',
+		'break / continue / return / raise',
 		'try / except / finally, with',
+		'list / set / dict-comprehension → цикл',
 		'input / print → «Ввід …» / «Вивід …»',
-		'Виклик власної функції → підпрограма'
+		'методи й вкладені класи («Клас.метод»), декоратори'
 	];
 	const cppFeatures = [
-		'if / else, тернарник, складені умови',
-		'switch — усі case + default; fallthrough (case 1: case 2:) → одна умова через «||»',
-		'for (класичний) і range-based «for (int x : arr)»',
-		'while, do / while, вкладені цикли',
+		'if / else, switch (усі case + default, fallthrough → «||»)',
+		'for (класичний і range-based), while, do / while',
 		'break / continue / return, рекурсія',
-		'cin / cout → «Ввід …» / «Вивід …»',
+		'cin / cout і printf / scanf → ввід/вивід',
 		'try / catch',
-		'Методи класів і структур → окрема схема «Клас::метод»'
+		'методи класів («Клас::метод»), оператори, namespace, шаблони',
+		'C — підмножина C++ (та сама обробка)'
+	];
+	const pascalFeatures = [
+		'procedure / function → окремі схеми',
+		'присвоєння «:=» → дія',
+		'writeln / write → Вивід, readln / read → Ввід',
+		'if .. then .. else',
+		'for .. to / downto .. do',
+		'while .. do, repeat .. until',
+		'case .. of'
 	];
 </script>
 
@@ -41,7 +47,7 @@
 <section class="mx-auto max-w-4xl px-5 py-16">
 	<h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Як це працює</h1>
 	<p class="mt-4 text-lg text-slate-600 dark:text-slate-300">
-		rombik розбирає твій код справжнім парсером (<strong>Python</strong> і <strong>C++</strong>),
+		rombik розбирає твій код справжнім парсером (<strong>Python</strong>, <strong>C</strong>, <strong>C++</strong> і <strong>Pascal</strong>),
 		будує логічне дерево алгоритму й розкладає його у блок-схему за ДСТУ 19.701-90. Усе
 		локально в браузері — код нікуди не надсилається.
 	</p>
@@ -79,8 +85,8 @@
 		Кожна функція стає окремою схемою; її параметри малюються вхідним паралелограмом,
 		а <code>return</code> — паралелограмом виходу.
 	</p>
-	<div class="mt-6 grid gap-6 md:grid-cols-2">
-		{#each [['Python', pythonFeatures], ['C++', cppFeatures]] as [lang, items] (lang)}
+	<div class="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+		{#each [['Python', pythonFeatures], ['C / C++', cppFeatures], ['Pascal', pascalFeatures]] as [lang, items] (lang)}
 			<div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-800">
 				<h3 class="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-slate-100">
 					<span class="rounded-md bg-blue-600 px-2 py-0.5 text-sm text-white">{lang}</span>

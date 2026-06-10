@@ -2,7 +2,7 @@
 
 **Код → блок-схема за ДСТУ 19.701-90 (SVG / PNG / PDF / Typst / Excalidraw).**
 
-rombik перетворює код на **Python та C++** на акуратну блок-схему алгоритму
+rombik перетворює код на **Python, C, C++ та Pascal** на акуратну блок-схему алгоритму
 (ГОСТ/ДСТУ 19.701-90 — той самий стандарт, що вимагають у курсових і лабораторних).
 Працює **повністю у браузері**, без сервера: код нікуди не надсилається. Рушій —
 чистий **TypeScript** (`rombik-engine`), тож тим самим кодом можна користуватись
@@ -33,14 +33,17 @@ def grade(score):
 - **Точні ДСТУ-примітиви** — термінатор (овал), процес (прямокутник), розв'язок (ромб),
   ввід/вивід (паралелограм), початок циклу (шестикутник), підпрограма (прямокутник
   із боковими рисками).
-- **Розпізнавання керівних конструкцій** — `if/elif/else`, `match/case`,
-  `try/except/finally`, `with`, `for ... in range`, `while`, `for/else`, `while/else`,
-  ідіоми `while True: … if cond: break` (післяумова) та нескінченний цикл, `break`,
-  `continue`, `return/raise/exit`, виклики локальних функцій → символ підпрограми.
-- **Повна підтримка C++** — `if/else`, `switch` (усі `case` + `default`, fallthrough
-  `case 1: case 2:` → одна умова через `||`), `for` (класичний і range‑based `for (x : arr)`),
-  `while`, `do/while`, вкладені цикли, `break`/`continue`, кілька `return`, рекурсія,
-  `cin`/`cout` (ввід/вивід), `try`/`catch`, **методи класів** — кожен окремою схемою `Клас::метод`.
+- **Чотири мови: Python, C, C++, Pascal.**
+  - **Python** — `if/elif/else`, `match/case`, `try/except/finally`, `with`,
+    `for ... in range`, `while`, `for/else`, `while/else`, ідіома `while True: … break`
+    (післяумова), `break/continue/return/raise`, list/set/dict‑comprehension → цикл,
+    методи й вкладені класи (`Клас.метод`), декоратори.
+  - **C / C++** — `if/else`, `switch` (усі `case` + `default`, fallthrough → умова через `||`),
+    `for` (класичний і range‑based), `while`, `do/while`, `break/continue`, рекурсія,
+    `cin/cout` і `printf/scanf` (ввід/вивід), `try/catch`, **методи класів** (`Клас::метод`),
+    оператори, namespace, шаблони. C — підмножина C++.
+  - **Pascal** — `procedure/function`, `:=`, `writeln/readln`, `if..then..else`,
+    `for..to/downto..do`, `while..do`, `repeat..until`, `case..of`.
 - **Кожна функція — окрема схема.** Параметри функції малюються вхідним паралелограмом.
 - **Підпис «Рисунок N»** — конфігуроване слово/шаблон/нумерація (за ДСТУ); шрифт Times New Roman 14.
 - **Налаштування під вимоги викладача** — слова вводу/виводу, підписи гілок, один
@@ -80,7 +83,7 @@ tree-sitter (Tree), далі все в рушії:
 
 ```ts
 import { fromTree, renderSvg, splitFromAst } from 'rombik-engine';
-// tree — результат web-tree-sitter (Python/C++)
+// tree — результат web-tree-sitter (Python/C/C++/Pascal)
 const figs = fromTree(tree, 'python', { singleEnd: true });
 for (const f of figs) writeFileSync(`${f.name}.svg`, renderSvg(f.diagram));
 ```
@@ -116,7 +119,7 @@ cat prog.py | ./dist/rombik.mjs - -t json            # stdin → JSON-геоме
 > Папку `dist/` (скрипт + 3 wasm, ~4 МБ) можна скопіювати куди завгодно — працює з
 > чистим Node 22+, нічого не встановлюючи. Для dev без бандла: `npm run cli -- file.py`.
 
-Опції: `-o/--out`, `-t/--format svg|typ|json|excalidraw`, `-l/--lang py|cpp`, `--fn NAME`,
+Опції: `-o/--out`, `-t/--format svg|typ|json|excalidraw`, `-l/--lang py|cpp|c|pas`, `--fn NAME`,
 `--single-end`, `--split N`. `-h` — повна довідка. **PNG/PDF у CLI** немає (потрібен
 браузерний canvas) — растеризуй SVG зовнішнім тулом, як вище; на сайті ж PNG/PDF є.
 
@@ -125,7 +128,7 @@ cat prog.py | ./dist/rombik.mjs - -t json            # stdin → JSON-геоме
 ## Як це працює (конвеєр)
 
 ```
-код (Python / C++)
+код (Python / C / C++ / Pascal)
    │  tree-sitter (WASM-граматика)            ← єдиний парсер: браузер і Node
    ▼
 Tree → parser/treesitter  →  AST-JSON          (мова-агностик контракт)
@@ -149,7 +152,7 @@ Diagram   (фігури з координатами + ребра-ламані + 
 ```
 packages/engine/        rombik-engine — TS-рушій (без DOM/фреймворку)
   src/
-    parser/treesitter   tree-sitter → AST-JSON (Python + C++)
+    parser/treesitter   tree-sitter → AST-JSON (Python/C/C++/Pascal)
     astjson · ir        AST-JSON → IR (логічне дерево)
     layout/             розкладка IR → геометрія (серце проєкту)
     diagram             модель геометрії + підпис

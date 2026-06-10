@@ -1,6 +1,6 @@
 {
   "name": "rombik-engine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Перетворення коду (Python/C++) на блок-схему алгоритму за ДСТУ 19.701-90.",
   "type": "module",
   "license": "MIT",

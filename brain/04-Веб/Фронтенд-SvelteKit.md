@@ -13,7 +13,7 @@ tags: [web, frontend]
   будь-де (GitHub Pages). Широко використовуються руни Svelte 5: `$state` (для коду та
   опцій), `$derived` (результати генерації), `$effect` (синхронізація тем та CodeMirror).
 - **Tailwind v4** (`@tailwindcss/vite`) — стилі, з підтримкою темної теми.
-- **CodeMirror 6** — редактор коду Python/C++ (підсвітка, нумерація, дужки).
+- **CodeMirror 6** — редактор коду Python/C/C++/Pascal (підсвітка, нумерація, дужки).
 - Рантайм-рушій — **Tree-sitter (парсер) + `rombik-engine` (прямий TS-імпорт)**
   ([[Браузерний-рушій]]).
 
@@ -24,7 +24,7 @@ web/src/
 ├── app.html, app.css        Tailwind + токени теми (--color-paper тощо)
 ├── lib/
 │   ├── engine.js            клей: Tree-sitter + rombik-engine (TS-рушій)
-│   ├── CodeEditor.svelte     CodeMirror 6 (Python та C++); тема через Compartment
+│   ├── CodeEditor.svelte     CodeMirror 6 (Python, C, C++ і Pascal); тема через Compartment
 │   ├── DiagramEditor.svelte  повноекранний візуальний редактор (полотно, ручне ділення/об'єднання схем)
 │   ├── ThemeToggle.svelte    перемикач світла/темна
 │   ├── Nav.svelte            шапка: лого-ромбік, навігація, ThemeToggle
