@@ -31,7 +31,11 @@
 	let view = $state({ x: 40, y: 40, scale: 1 });
 	let gEl; // внутрішня <g> з трансформацією (для коректного перерахунку координат)
 	let nid = 0,
-		eid = 0;
+		eid = 0,
+		gseq = 0; // лічильник унікальних id груп
+
+	// Чи вузол у виділенні (мультивибір АБО одиночний primary).
+	const isNodeSel = (id) => selNodes.has(id) || (sel?.type === 'node' && sel.id === id);
 
 	// --- історія (undo/redo) ---
 	let past = [];
@@ -91,7 +95,7 @@
 			ns.push(...gn); es.push(...ge);
 			gx += (d.w ?? 400) + 80;
 		}
-		nid = k; eid = j;
+		nid = k; eid = j; gseq = list.length;
 		nodes = ns; edges = es; groups = grps;
 		sel = null; selNodes = new Set(); editId = null;
 	}
@@ -215,9 +219,16 @@
 	let act = $state(null); // {kind, ...}
 
 	function bgDown(ev) {
-		// фон: пан полотна + зняти виділення
 		if (act) return;
+		// Shift+тяг фону — рамка-ласо (мультивибір); звичайний тяг — пан + зняти виділення.
+		if (ev.shiftKey) {
+			const w = toWorld(ev.clientX, ev.clientY);
+			act = { kind: 'lasso', pid: ev.pointerId };
+			lasso = { x0: w.x, y0: w.y, x1: w.x, y1: w.y };
+			return;
+		}
 		sel = null;
+		selNodes = new Set();
 		editId = null;
 		act = { kind: 'pan', pid: ev.pointerId, sx: ev.clientX, sy: ev.clientY, vx: view.x, vy: view.y };
 	}
@@ -226,6 +237,16 @@
 		ev.stopPropagation();
 		if (act) return;
 		if (editId && editId !== n.id) editId = null;
+		// Shift-клік — лише перемкнути вузол у мультивиборі (без тягання).
+		if (ev.shiftKey) {
+			const s = new Set(selNodes);
+			s.has(n.id) ? s.delete(n.id) : s.add(n.id);
+			selNodes = s;
+			sel = s.size ? { type: 'node', id: n.id } : null;
+			return;
+		}
+		// Клік по вузлу поза мультивибором — почати з нього (інакше тягнемо всю групу).
+		if (!selNodes.has(n.id)) selNodes = new Set([n.id]);
 		sel = { type: 'node', id: n.id };
 		const w = toWorld(ev.clientX, ev.clientY);
 		act = { kind: 'node', pid: ev.pointerId, id: n.id, ox: n.x, oy: n.y, wx: w.x, wy: w.y };
@@ -270,6 +291,8 @@
 		if (act.kind === 'pan') {
 			view.x = act.vx + (ev.clientX - act.sx);
 			view.y = act.vy + (ev.clientY - act.sy);
+		} else if (act.kind === 'lasso') {
+			lasso = { ...lasso, x1: w.x, y1: w.y };
 		} else if (act.kind === 'node') {
 			const n = nodeById(act.id);
 			let nx = act.ox + (w.x - act.wx),
@@ -280,9 +303,15 @@
 			guides = m.g;
 			const dx = nx - n.x,
 				dy = ny - n.y;
-			n.x = nx;
-			n.y = ny;
-			rerouteFor(n.id, dx, dy);
+			// мультивибір (>1) — рухаємо всю групу разом; інакше лише цей вузол
+			const moving = selNodes.has(n.id) && selNodes.size > 1 ? selNodes : new Set([n.id]);
+			for (const id of moving) {
+				const nn = nodeById(id);
+				if (!nn) continue;
+				nn.x += dx;
+				nn.y += dy;
+				rerouteFor(id, dx, dy);
+			}
 			nodes = [...nodes];
 			edges = [...edges];
 		} else if (act.kind === 'label') {
@@ -329,6 +358,21 @@
 	function onUp(ev) {
 		if (!act || (act.pid !== undefined && ev.pointerId !== act.pid)) return;
 		const w = toWorld(ev.clientX, ev.clientY);
+		if (act.kind === 'lasso') {
+			// вибрати вузли, чий центр у прямокутнику
+			const lx0 = Math.min(lasso.x0, lasso.x1), lx1 = Math.max(lasso.x0, lasso.x1);
+			const ly0 = Math.min(lasso.y0, lasso.y1), ly1 = Math.max(lasso.y0, lasso.y1);
+			const s = new Set();
+			for (const n of nodes) {
+				const cx = n.x + n.w / 2, cy = n.y + n.h / 2;
+				if (cx >= lx0 && cx <= lx1 && cy >= ly0 && cy <= ly1) s.add(n.id);
+			}
+			selNodes = s;
+			sel = s.size ? { type: 'node', id: [...s][0] } : null;
+			lasso = null;
+			act = null;
+			return;
+		}
 		if (act.kind === 'vertex' && act.end) {
 			// відпустили кінець ребра над фігурою → переприв'язка
 			const over = nodeAtPoint(w);
@@ -381,6 +425,16 @@
 	}
 
 	function delSel() {
+		// мультивибір — видалити всі виділені вузли та дотичні ребра
+		if (selNodes.size > 1) {
+			remember();
+			const ids = selNodes;
+			nodes = nodes.filter((n) => !ids.has(n.id));
+			edges = edges.filter((e) => !ids.has(e.fromId) && !ids.has(e.toId));
+			selNodes = new Set();
+			sel = null;
+			return;
+		}
 		if (!sel) return;
 		remember();
 		if (sel.type === 'node') {
@@ -491,6 +545,21 @@
 		sel = null;
 	}
 
+	// Виділені вузли → окрема група (= окрема вихідна схема). Порожні групи прибираємо.
+	function groupSelection() {
+		if (selNodes.size < 1) return;
+		remember();
+		const k = gseq++;
+		const gid = 'g' + k;
+		groups.push({ id: gid, name: '', color: GROUP_COLORS[k % GROUP_COLORS.length] });
+		for (const n of nodes) if (selNodes.has(n.id)) n.group = gid;
+		const used = new Set(nodes.map((n) => n.group));
+		groups = groups.filter((g) => used.has(g.id));
+		nodes = [...nodes];
+		selNodes = new Set();
+		sel = null;
+	}
+
 	// nodeIdAt/groupOfPoint — до якої групи (схеми) належить точка ребра. Без авто-
 	// детекції компонентів: групи задає користувач, тут лише розкладаємо ребра по них.
 	function nodeIdAt(pt) {
@@ -579,10 +648,13 @@
 				<button onclick={() => addNode(kind, w, h)} class="shrink-0 rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">+ {label}</button>
 			{/each}
 			<div class="mx-1 h-5 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></div>
-			{#if sel?.type === 'node' && nodeById(sel.id)?.kind !== 'connector'}
+			{#if selNodes.size > 0}
+				<button onclick={groupSelection} class="shrink-0 rounded border border-emerald-300 px-2 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950">⊞ Окрема схема ({selNodes.size})</button>
+			{/if}
+			{#if sel?.type === 'node' && selNodes.size <= 1 && nodeById(sel.id)?.kind !== 'connector'}
 				<button onclick={() => splitAt(sel.id)} class="shrink-0 rounded border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950">✂ Розділити</button>
 			{/if}
-			<button onclick={delSel} disabled={!sel} class="shrink-0 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
+			<button onclick={delSel} disabled={!sel && selNodes.size === 0} class="shrink-0 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
 			<button onclick={undo} title="Скасувати" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↶</button>
 			<button onclick={redo} title="Повторити" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↷</button>
 		</div>
@@ -616,6 +688,10 @@
 				<rect x={gf.x} y={gf.y} width={gf.w} height={gf.h} rx="12" fill={gf.color} fill-opacity="0.04" stroke={gf.color} stroke-width={1.5 / view.scale} stroke-dasharray="8 5" opacity="0.75" pointer-events="none" />
 				<text x={gf.x + 12} y={gf.y + 17} font-size="13" font-weight="bold" fill={gf.color} pointer-events="none">{gf.name}</text>
 			{/each}
+			<!-- рамка-ласо -->
+			{#if lasso}
+				<rect x={Math.min(lasso.x0, lasso.x1)} y={Math.min(lasso.y0, lasso.y1)} width={Math.abs(lasso.x1 - lasso.x0)} height={Math.abs(lasso.y1 - lasso.y0)} fill="#2563eb" fill-opacity="0.08" stroke="#2563eb" stroke-width={1 / view.scale} stroke-dasharray="5 4" pointer-events="none" />
+			{/if}
 			<!-- ребра -->
 			{#each edges as e (e.id)}
 				<!-- товста невидима «хіт-зона» для зручного кліку -->
@@ -655,17 +731,17 @@
 			{#each nodes as n (n.id)}
 				<g class="cursor-move" onpointerdown={(ev) => nodeDown(ev, n)} ondblclick={() => { remember(); editId = n.id; }} role="presentation">
 					{#if n.kind === 'process' || n.kind === 'subprogram'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 						{#if n.kind === 'subprogram'}
 							<line x1={n.x + 9} y1={n.y} x2={n.x + 9} y2={n.y + n.h} stroke="currentColor" stroke-width="1.5" />
 							<line x1={n.x + n.w - 9} y1={n.y} x2={n.x + n.w - 9} y2={n.y + n.h} stroke="currentColor" stroke-width="1.5" />
 						{/if}
 					{:else if n.kind === 'terminator'}
-						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={n.h / 2} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 					{:else if n.kind === 'connector'}
-						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<circle cx={n.x + n.w / 2} cy={n.y + n.h / 2} r={Math.min(n.w, n.h) / 2} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 					{:else}
-						<polygon points={poly(n)} class="fill-white" stroke={isSel('node', n.id) ? '#2563eb' : 'currentColor'} stroke-width={isSel('node', n.id) ? 2.5 : 1.5} />
+						<polygon points={poly(n)} class="fill-white" stroke={isNodeSel(n.id) ? '#2563eb' : 'currentColor'} stroke-width={isNodeSel(n.id) ? 2.5 : 1.5} />
 					{/if}
 
 					{#if editId === n.id}
@@ -696,6 +772,6 @@
 	</div>
 
 	<p class="border-t border-slate-200 bg-white px-4 py-1.5 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-900">
-		Тягни фон — рух полотна · колесо — масштаб · клік по стрілці — редагувати її вузли · сині порти — тягни нову стрілку · подвійний клік — текст · ✂ — розділити схему
+		Тягни фон — рух полотна · Shift+тяг — рамка-ласо · Shift+клік — додати у вибір · ⊞ — виділене в окрему схему · колесо — масштаб · подвійний клік — текст · ✂ — розділити схему
 	</p>
 </div>
