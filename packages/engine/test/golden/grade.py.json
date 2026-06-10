@@ -69,7 +69,8 @@
       "text": "Вивід «Готово»"
      }
     ]
-   }
+   },
+   "main": false
   }
  ],
  "functions": [

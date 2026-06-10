@@ -13,7 +13,9 @@ export interface Result { name: string; diagram: Diagram; }
 // buildResults — спільне: список IR-Func + опції → схеми (підпис=ім'я, Рисунок N).
 function buildResults(funcs: Func[], o: ResolvedOptions): Result[] {
   return funcs.map((f, i) => {
-    const d = layoutProgram(f.body, o);
+    // ДСТУ: Початок/Кінець лише для main; підпрограми → Вхід/Вихід.
+    const fo = o.mainOnlyTerminators && !f.main ? { ...o, startText: o.entryText, endText: o.exitText } : o;
+    const d = layoutProgram(f.body, fo);
     d.caption = f.name;
     d.figNum = i + 1;
     d.capWord = o.capWord;

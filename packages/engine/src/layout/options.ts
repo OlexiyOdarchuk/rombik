@@ -15,6 +15,10 @@ export interface Options {
   capWord?: string;
   noStart?: boolean;
   noEnd?: boolean;
+  // ДСТУ: Початок/Кінець лише для main; інші функції → вхід/вихід (з цими словами).
+  mainOnlyTerminators?: boolean;
+  entryText?: string;
+  exitText?: string;
 }
 
 export interface ResolvedOptions {
@@ -31,6 +35,9 @@ export interface ResolvedOptions {
   capWord: string;
   noStart: boolean;
   noEnd: boolean;
+  mainOnlyTerminators: boolean;
+  entryText: string;
+  exitText: string;
 }
 
 export function resolveOptions(o: Options = {}): ResolvedOptions {
@@ -48,6 +55,9 @@ export function resolveOptions(o: Options = {}): ResolvedOptions {
     capWord: o.capWord ?? '',
     noStart: o.noStart ?? false,
     noEnd: o.noEnd ?? false,
+    mainOnlyTerminators: o.mainOnlyTerminators ?? false,
+    entryText: o.entryText || 'Вхід',
+    exitText: o.exitText || 'Вихід',
   };
 }
 

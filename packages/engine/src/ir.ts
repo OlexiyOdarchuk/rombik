@@ -22,4 +22,4 @@ export type Node =
   | Break | Continue | Connector | Block;
 
 // Func — іменована програма (функція або тіло модуля) → окрема схема.
-export interface Func { name: string; body: Block; }
+export interface Func { name: string; body: Block; main?: boolean; }

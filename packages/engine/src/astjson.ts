@@ -14,12 +14,12 @@ export interface AstNode {
   body?: AstNode | null;
   jump?: boolean; // connector: goto-стрибок (термінальний)
 }
-export interface AstFunc { name: string; block: AstNode; }
+export interface AstFunc { name: string; block: AstNode; main?: boolean; }
 
 // fromJson: масив Func (рядок або вже розпарсений) → список IR-Func.
 export function fromJson(data: string | AstFunc[]): Func[] {
   const fns: AstFunc[] = typeof data === 'string' ? JSON.parse(data) : data;
-  return fns.map((f) => ({ name: f.name, body: toBlock(f.block) }));
+  return fns.map((f) => ({ name: f.name, body: toBlock(f.block), main: f.main }));
 }
 
 // toBlock зводить вузол-блок у IR-Block (вкладені block інлайняться).

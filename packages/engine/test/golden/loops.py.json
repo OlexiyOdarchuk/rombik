@@ -68,7 +68,8 @@
       "text": "Повернути s"
      }
     ]
-   }
+   },
+   "main": false
   }
  ],
  "functions": [

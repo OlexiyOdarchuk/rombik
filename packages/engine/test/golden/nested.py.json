@@ -56,7 +56,8 @@
       "text": "Повернути total"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "helper",
@@ -89,7 +90,8 @@
       "text": "Повернути y * 2"
      }
     ]
-   }
+   },
+   "main": false
   }
  ],
  "functions": [
