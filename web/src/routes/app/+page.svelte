@@ -173,6 +173,7 @@ end.`;
 	// Налаштування (галочки/списки) -> опції рушія.
 	let s = $state({
 		singleEnd: false, // false = Кінець на кожен вихід
+		mainOnlyTerminators: false, // ДСТУ: Початок/Кінець лише для main, решта — Вхід/Вихід
 		callAsProcess: false,
 		stripTypes: false,
 		returnAsIO: false,
@@ -194,6 +195,7 @@ end.`;
 		const [inWord, outWord] = IO[s.io];
 		return {
 			singleEnd: s.singleEnd,
+			mainOnlyTerminators: s.mainOnlyTerminators,
 			callAsProcess: s.callAsProcess,
 			stripTypes: s.stripTypes,
 			returnAsIO: s.returnAsIO,
@@ -515,7 +517,7 @@ end.`;
 							{#if sTab === 'struct'}
 								<div class="space-y-3">
 									<h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Алгоритмічні блоки</h3>
-									{#each [['singleEnd', 'Один Кінець на всю схему'], ['callAsProcess', 'Виклик — звичайним блоком'], ['stripTypes', 'Без тип-анотацій'], ['returnAsIO', 'return — паралелограмом']] as [key, label] (key)}
+									{#each [['singleEnd', 'Один Кінець на всю схему'], ['mainOnlyTerminators', 'Початок/Кінець лише для main (решта — Вхід/Вихід)'], ['callAsProcess', 'Виклик — звичайним блоком'], ['stripTypes', 'Без тип-анотацій'], ['returnAsIO', 'return — паралелограмом']] as [key, label] (key)}
 										<label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
 											<input type="checkbox" bind:checked={s[key]} onchange={reapply} class="rounded border-slate-300 h-4 w-4" />
 											{label}

@@ -122,7 +122,8 @@
       "text": "Повернути result"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "process_line",
@@ -322,7 +323,8 @@
       "text": "Повернути parsed"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "_RowProxy.__init__",
@@ -342,7 +344,8 @@
       "text": "self.cols: int = cols_count"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "_RowProxy.__getitem__",
@@ -375,7 +378,8 @@
       "text": "Повернути self.row[j - 1]"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "_RowProxy.__setitem__",
@@ -408,7 +412,8 @@
       "text": "self.row[j - 1] = value"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "Matrix1Based.__init__",
@@ -454,7 +459,8 @@
       ]
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "Matrix1Based.__getitem__",
@@ -487,7 +493,8 @@
       "text": "Повернути _RowProxy(self._data[i - 1], self.cols)"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "Matrix1Based.__repr__",
@@ -621,7 +628,8 @@
       "text": "Повернути \"\\n\".join(res)"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "Matrix1Based.get",
@@ -633,7 +641,8 @@
       "text": "Повернути self._data"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "main",
@@ -690,7 +699,8 @@
       "text": "fifth_task()"
      }
     ]
-   }
+   },
+   "main": true
   },
   {
    "name": "first_task",
@@ -747,7 +757,8 @@
       "text": "Повернути f"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "second_task",
@@ -802,7 +813,8 @@
       }
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "third_task",
@@ -881,7 +893,8 @@
       "text": "Повернути result[0]"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "for_cycle_third_task",
@@ -922,7 +935,8 @@
       "text": "Повернути sum"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "while_cycle_third_task",
@@ -967,7 +981,8 @@
       "text": "Повернути sum"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "while_true_cycle_third_task",
@@ -1008,7 +1023,8 @@
       "text": "Повернути sum"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "fourth_task",
@@ -1024,7 +1040,8 @@
       "text": "Повернути sum([i for i in [random.randint(0, 50) for _ in range…"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "fifth_task",
@@ -1060,7 +1077,8 @@
       "text": "print_vector_fifth_task(vector)"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "create_matrix_fifth_task",
@@ -1114,7 +1132,8 @@
       "text": "Повернути matrix"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "create_vector_fifth_task",
@@ -1189,7 +1208,8 @@
       "text": "Повернути vector"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "print_matrix_fifth_task",
@@ -1209,7 +1229,8 @@
       "text": "Вивід matrix"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "print_vector_fifth_task",
@@ -1251,7 +1272,8 @@
       "text": "Вивід *formatted_elements"
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "vika",
@@ -1403,7 +1425,8 @@
       }
      }
     ]
-   }
+   },
+   "main": false
   },
   {
    "name": "програма",
@@ -1428,7 +1451,8 @@
       }
      }
     ]
-   }
+   },
+   "main": true
   }
  ],
  "functions": [

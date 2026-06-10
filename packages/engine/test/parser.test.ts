@@ -6,6 +6,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
 import { parseTree, type Lang, type TSTree } from '../src/parser/treesitter.ts';
+import { fromAst } from '../src/build.ts';
+import type { AstFunc } from '../src/astjson.ts';
 
 const here = import.meta.dirname;
 const web = join(here, '..', '..', '..', 'web');
@@ -167,6 +169,19 @@ test('C++: goto/мітка → конектори з тією ж літерою'
   const conns = JSON.stringify(ast).match(/"kind":"connector"[^}]*"text":"i"/g) ?? [];
   assert.ok(conns.length >= 2, 'goto+мітка мають дати 2 конектори «i»');
   assert.match(JSON.stringify(ast), /"kind":"connector"[^}]*"jump":true/); // goto — термінальний
+});
+
+test('mainOnlyTerminators: main → Початок/Кінець, підпрограма → Вхід/Вихід', () => {
+  const ast: AstFunc[] = [
+    { name: 'main', main: true, block: { kind: 'block', stmts: [{ kind: 'process', text: 'a' }] } },
+    { name: 'helper', main: false, block: { kind: 'block', stmts: [{ kind: 'process', text: 'b' }] } }
+  ];
+  const term = (r: any) => r.diagram.shapes.filter((s: any) => s.kind === 'terminator').map((s: any) => s.text);
+  const off = fromAst(ast, {});
+  assert.deepEqual(term(off[1]), ['Початок', 'Кінець']); // вимкнено — усі однакові
+  const on = fromAst(ast, { mainOnlyTerminators: true });
+  assert.deepEqual(term(on[0]), ['Початок', 'Кінець']); // main
+  assert.deepEqual(term(on[1]), ['Вхід', 'Вихід']); // підпрограма
 });
 
 // --- Pascal ---

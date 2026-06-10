@@ -220,7 +220,7 @@ function parsePascal(root: TSNode, defined: Set<string>): AstFunc[] {
     const mb = pBlock(mainBlock);
     if (mb.stmts?.length) {
       const modName = program.namedChildren.find((c) => c.type === 'moduleName');
-      funcs.push({ name: modName ? oneline(modName.text) : 'main', block: mb });
+      funcs.push({ name: modName ? oneline(modName.text) : 'main', block: mb, main: true }); // Pascal — головна програма
     }
   }
   return funcs;
@@ -719,7 +719,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
       const fnName = prefix + (nameNode ? nameNode.text : 'unknown');
       const b = block(bodyNode);
       if (paramsText && paramsText.trim() !== '') (b.stmts ??= []).unshift({ kind: 'io', text: 'Ввід ' + oneline(paramsText) });
-      funcs.push({ name: fnName, block: b });
+      funcs.push({ name: fnName, block: b, main: fnName === 'main' });
 
       if (bodyNode && bodyNode.type === 'block') {
         for (const k of bodyNode.namedChildren) if (k.type === 'function_definition') collect(k, prefix);
@@ -734,7 +734,7 @@ export function parseTree(tree: TSTree, lang: Lang): AstFunc[] {
   for (const c of tree.rootNode.namedChildren) collect(c);
 
   const out: AstFunc[] = [...funcs];
-  if (mainStmts.length > 0) out.push({ name: defined.has('main') ? 'програма' : 'main', block: { kind: 'block', stmts: mainStmts } });
-  if (out.length === 0) out.push({ name: 'main', block: { kind: 'block', stmts: [] } });
+  if (mainStmts.length > 0) out.push({ name: defined.has('main') ? 'програма' : 'main', block: { kind: 'block', stmts: mainStmts }, main: true });
+  if (out.length === 0) out.push({ name: 'main', block: { kind: 'block', stmts: [] }, main: true });
   return out;
 }

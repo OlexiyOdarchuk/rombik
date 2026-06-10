@@ -171,7 +171,8 @@
       "text": "Повернути result"
      }
     ]
-   }
+   },
+   "main": false
   }
  ],
  "functions": [
