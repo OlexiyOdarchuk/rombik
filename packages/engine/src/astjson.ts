@@ -12,6 +12,7 @@ export interface AstNode {
   then?: AstNode | null;
   else?: AstNode | null;
   body?: AstNode | null;
+  jump?: boolean; // connector: goto-стрибок (термінальний)
 }
 export interface AstFunc { name: string; block: AstNode; }
 
@@ -48,6 +49,7 @@ function toNode(n: AstNode): Node | null {
     case 'infloop': return { kind: 'infloop', body: toBlock(n.body) };
     case 'break': return { kind: 'break' };
     case 'continue': return { kind: 'continue' };
+    case 'connector': return { kind: 'connector', text: n.text ?? '', jump: !!n.jump };
   }
   return null;
 }

@@ -13,7 +13,7 @@ export interface DoWhile { kind: 'dowhile'; cond: string; body: Block; }
 export interface InfLoop { kind: 'infloop'; body: Block; }
 export interface Break { kind: 'break'; }
 export interface Continue { kind: 'continue'; }
-export interface Connector { kind: 'connector'; text: string; }
+export interface Connector { kind: 'connector'; text: string; jump?: boolean; }
 export interface Block { kind: 'block'; stmts: Node[]; }
 
 export type Node =

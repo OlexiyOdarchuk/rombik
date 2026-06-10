@@ -203,7 +203,8 @@ class Builder {
       case 'connector': {
         const cw = 46;
         this.d.shapes.push({ kind: 'connector', x: cx - cw / 2, y: top, w: cw, h: cw, text: n.text });
-        return [P(cx, top + cw), false];
+        // goto-стрибок: потік завершується тут (продовження — біля кружечка-мітки з тією ж літерою)
+        return [P(cx, top + cw), !!n.jump];
       }
       case 'break': this.recordBreak(P(cx, top)); return [P(cx, top), true];
       case 'continue': this.recordContinue(P(cx, top)); return [P(cx, top), true];

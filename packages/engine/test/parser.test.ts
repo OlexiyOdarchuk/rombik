@@ -157,6 +157,18 @@ test('C++: operator та деструктор мають правильні ім
   assert.deepEqual(dt.map((f: any) => f.name), ['F::F', 'F::~F']);
 });
 
+test('C++: out-of-line метод (Клас::метод) має правильне імʼя', async () => {
+  const ast = JSON.parse(await astJson('int Counter::get(){ return value; }'));
+  assert.deepEqual(ast.map((f: any) => f.name), ['Counter::get']);
+});
+
+test('C++: goto/мітка → конектори з тією ж літерою', async () => {
+  const ast = JSON.parse(await astJson('void f(int n){\ni:\n  if (n > 0) { n--; goto i; }\n}'));
+  const conns = JSON.stringify(ast).match(/"kind":"connector"[^}]*"text":"i"/g) ?? [];
+  assert.ok(conns.length >= 2, 'goto+мітка мають дати 2 конектори «i»');
+  assert.match(JSON.stringify(ast), /"kind":"connector"[^}]*"jump":true/); // goto — термінальний
+});
+
 // --- Pascal ---
 test('Pascal: процедури/функції + головна програма → окремі схеми', async () => {
   const ast = JSON.parse(await astJson('program P;\nfunction sq(x: integer): integer;\nbegin\n  sq := x*x;\nend;\nbegin\n  writeln(sq(3));\nend.', 'pascal'));
