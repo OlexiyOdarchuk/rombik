@@ -6,6 +6,7 @@ import type { AstNode, AstFunc } from '../astjson.ts';
 // TSNode — мінімальний інтерфейс вузла tree-sitter (структурно сумісний із
 // web-tree-sitter Node), щоб не залежати від версії пакета.
 export interface TSNode {
+  id: number;
   type: string;
   text: string;
   isNamed: boolean;
