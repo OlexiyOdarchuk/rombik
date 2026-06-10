@@ -52,8 +52,20 @@ export function labelAnchor(p0: Point, p1: Point): { x: number; y: number; align
   return { x: p0.x + 8, y: p0.y - 8, align: 'start' };
 }
 
-function capSupplement(d: Diagram): string { return d.capWord || CAPTION_WORD; }
+export function capSupplement(d: Diagram): string { return d.capWord || CAPTION_WORD; }
 function capFmt(d: Diagram): string { return d.capFormat || CAP_FORMAT_DEFAULT; }
+
+// capSeparator — роздільник між номером і текстом (для нативного підпису Typst-figure).
+export function capSeparator(d: Diagram): string {
+  const fmt = capFmt(d);
+  const i = fmt.indexOf('{num}');
+  const j = fmt.indexOf('{text}');
+  if (i < 0 || j < 0 || j < i) return ' — ';
+  return fmt.slice(i + '{num}'.length, j);
+}
+
+// capHasWord — чи містить шаблон слово-supplement (для Typst-figure).
+export function capHasWord(d: Diagram): boolean { return capFmt(d).includes('{word}'); }
 
 // captionLine — повний рядок підпису («Рисунок N — текст») за шаблоном.
 export function captionLine(d: Diagram): string {

@@ -8,3 +8,5 @@ export type { Options } from './layout/options.ts';
 export { layoutProgram } from './layout/place.ts';
 export { fromAst, type Result } from './build.ts';
 export { render as renderSvg } from './render/svg.ts';
+export { render as renderTypst, renderAll as renderTypstAll, fragment as renderTypstFragment } from './render/typst.ts';
+export { render as renderExcalidraw, renderAll as renderExcalidrawAll } from './render/excalidraw.ts';

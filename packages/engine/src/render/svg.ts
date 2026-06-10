@@ -1,38 +1,13 @@
 // SVG-рендерер — порт pkg/render/svg. Малює diagram точними ДСТУ-примітивами.
 import type { Diagram, Shape, Point } from '../diagram.ts';
 import { captionLine, labelAnchor } from '../diagram.ts';
+import { f1 as f, f0 } from '../format.ts';
 
 const CAP_GAP = 30;
 const FONT_ATTR = `"'Times New Roman', 'Liberation Serif', 'DejaVu Serif', serif"`;
 const ARROW_DEFS =
   `<defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">` +
   `<path d="M0,0 L8,3 L0,6 Z" fill="#222"/></marker></defs>`;
-
-// f/f0 — дзеркало Go %.1f / %.0f (strconv FormatFloat 'f': до найближчого, рівні —
-// «до парного»). Tie детектуємо ТОЧНО: scaled має дробову частину рівно 0.5 (для
-// k.d5, точно представного як double, множення на 10^prec лишається точним).
-function fmtFixed(x: number, prec: number): string {
-  if (Object.is(x, -0)) x = 0;
-  const neg = x < 0, a = neg ? -x : x;
-  // Tie детектуємо на ІСТИННОМУ значенні double (довгий toFixed), бо a*10^prec
-  // саме по собі округлюється й створює фальшиві tie (напр. 146.65*10 → 1466.5).
-  const ext = a.toFixed(prec + 18);
-  const dot = ext.indexOf('.');
-  const roundDigit = ext[dot + prec + 1];
-  const rest = ext.slice(dot + prec + 2);
-  if (roundDigit === '5' && /^0+$/.test(rest)) {  // рівний tie → до парного
-    const keptLast = +((ext.slice(0, dot) + ext.slice(dot + 1, dot + 1 + prec)).slice(-1));
-    const m = Math.pow(10, prec);
-    const n = Math.floor(a * m);                  // a*m == n+0.5 точно для істинного tie
-    const r = keptLast % 2 === 1 ? n + 1 : n;
-    const s = (r / m).toFixed(prec);
-    return neg && r !== 0 ? '-' + s : s;
-  }
-  const s = a.toFixed(prec);                      // не tie → toFixed = до найближчого
-  return neg && a !== 0 ? '-' + s : s;
-}
-const f = (n: number) => fmtFixed(n, 1);
-const f0 = (n: number) => fmtFixed(n, 0);
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

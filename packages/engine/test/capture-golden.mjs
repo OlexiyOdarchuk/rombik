@@ -43,7 +43,14 @@ for (const f of readdirSync(corpus)) {
   const res = JSON.parse(globalThis.rombikGenerate(astJSON, JSON.stringify({})));
   writeFileSync(join(golden, `${f}.json`), JSON.stringify({
     file: f, lang, options: {}, astJSON: JSON.parse(astJSON),
-    functions: res.functions.map((fn) => ({ name: fn.name, diagram: fn.diagram, svg: fn.svg })),
+    functions: res.functions.map((fn) => {
+      const dj = JSON.stringify(fn.diagram);
+      return {
+        name: fn.name, diagram: fn.diagram, svg: fn.svg,
+        typst: JSON.parse(globalThis.rombikTypstOne(dj, false)).typst,
+        excalidraw: JSON.parse(globalThis.rombikExcalidraw(dj)).excalidraw,
+      };
+    }),
   }, null, 1));
   console.log(`  ${f}: ${res.functions.length} фігур`);
 }
