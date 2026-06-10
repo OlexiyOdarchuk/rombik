@@ -91,9 +91,14 @@ class Builder {
   }
 
   shiftX(dx: number): void {
+    // Точки-об'єкти аліасяться між ребрами і ends (на відміну від Go, де Point —
+    // значення-копія). Зсуваємо КОЖЕН об'єкт рівно раз, інакше спільна точка
+    // (напр. ends[i], що є й кінцем ребра routeEnds) зсунеться двічі → діагональ.
+    const seen = new Set<Point>();
+    const shift = (p: Point) => { if (!seen.has(p)) { seen.add(p); p.x += dx; } };
     for (const s of this.d.shapes) s.x += dx;
-    for (const e of this.d.edges) for (const p of e.points) p.x += dx;
-    for (const p of this.ends) p.x += dx;
+    for (const e of this.d.edges) for (const p of e.points) shift(p);
+    for (const p of this.ends) shift(p);
   }
 
   run(prog: Block): Diagram {
