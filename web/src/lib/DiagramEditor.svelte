@@ -101,6 +101,13 @@
 	}
 
 	const nodeById = (id) => nodes.find((n) => n.id === id);
+	// Групи (схеми), яких торкається поточне виділення — для кнопки «Об'єднати».
+	let selGroups = $derived.by(() => {
+		const s = new Set();
+		for (const n of nodes) if (selNodes.has(n.id)) s.add(n.group);
+		return s;
+	});
+	const minXOfGroup = (gid) => { let m = Infinity; for (const n of nodes) if (n.group === gid) m = Math.min(m, n.x); return m; };
 
 	// Рамки груп: bbox блоків кожної групи + підпис («Рисунок N» або імʼя функції).
 	let groupFrames = $derived.by(() => {
@@ -496,6 +503,22 @@
 		sel = null;
 	}
 
+	// Об'єднати схеми, яких торкається виділення, в одну (найлівішу — зберегти позицію/колір).
+	// Зливаємо ГРУПИ цілком (досить зачепити по одному блоку зі схеми). Ребра між ними
+	// стають внутрішніми; явні конектори-блоки (з минулих розбивок) лишаються — їх можна стерти.
+	function mergeSelection() {
+		const gset = selGroups;
+		if (gset.size < 2) return;
+		remember();
+		const target = [...gset].sort((a, b) => minXOfGroup(a) - minXOfGroup(b))[0];
+		for (const n of nodes) if (gset.has(n.group)) n.group = target;
+		const used = new Set(nodes.map((n) => n.group));
+		groups = groups.filter((g) => used.has(g.id));
+		nodes = [...nodes];
+		selNodes = new Set();
+		sel = null;
+	}
+
 	// nodeIdAt/groupOfPoint — до якої групи (схеми) належить точка ребра. Без авто-
 	// детекції компонентів: групи задає користувач, тут лише розкладаємо ребра по них.
 	function nodeIdAt(pt) {
@@ -615,6 +638,9 @@
 			{#if selNodes.size > 0}
 				<button onclick={groupSelection} class="shrink-0 rounded border border-emerald-300 px-2 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950">⊞ Окрема схема ({selNodes.size})</button>
 			{/if}
+			{#if selGroups.size > 1}
+				<button onclick={mergeSelection} class="shrink-0 rounded border border-violet-300 px-2 py-1 text-xs font-medium text-violet-700 transition hover:bg-violet-50 dark:border-violet-800 dark:text-violet-400 dark:hover:bg-violet-950">⊟ Об'єднати схеми ({selGroups.size})</button>
+			{/if}
 			<button onclick={delSel} disabled={!sel && selNodes.size === 0} class="shrink-0 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">Видалити</button>
 			<button onclick={undo} title="Скасувати" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↶</button>
 			<button onclick={redo} title="Повторити" class="grid h-7 w-7 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">↷</button>
@@ -733,6 +759,6 @@
 	</div>
 
 	<p class="border-t border-slate-200 bg-white px-4 py-1.5 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-900">
-		Тягни фон — рух полотна · Shift+тяг — рамка-ласо · Shift+клік — додати у вибір · ⊞ — виділене в окрему схему · колесо — масштаб · подвійний клік — текст
+		Тягни фон — рух полотна · Shift+тяг — рамка-ласо · Shift+клік — додати у вибір · ⊞ — виділене в окрему схему · ⊟ — об'єднати зачеплені схеми · колесо — масштаб · подвійний клік — текст
 	</p>
 </div>
