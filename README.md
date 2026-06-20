@@ -1,8 +1,8 @@
 # rombik.
 
 <p align="center">
-  <a href="https://rombik.ishawyha.dev">
-    <img src="https://img.shields.io/badge/Почати%20онлайн-rombik.ishawyha.dev-0052CC?style=for-the-badge&logo=svelte&logoColor=white" alt="Генератор блок-схем онлайн">
+  <a href="https://rombik.app">
+    <img src="https://img.shields.io/badge/Почати%20онлайн-rombik.app-0052CC?style=for-the-badge&logo=svelte&logoColor=white" alt="Генератор блок-схем онлайн">
   </a>
 </p>
 
@@ -35,7 +35,7 @@ Python, C, C++, C#, Java, Pascal → коректна блок-схема: SVG, 
 
 ## Користуватися — безкоштовно
 
-### 👉 **[rombik.ishawyha.dev](https://rombik.ishawyha.dev)**
+### 👉 **[rombik.app](https://rombik.app)**
 
 | Безкоштовно (без обмежень) | За підпискою / кредитами |
 | --- | --- |
@@ -73,7 +73,7 @@ Python, C, C++, C#, Java, Pascal → коректна блок-схема: SVG, 
 - баланс, поповнення, подарунок кредитів другові;
 - **OpenAPI 3.1**-специфікація + готовий **скіл для AI-агентів** (щоб самі робили запити).
 
-Документація й створення ключа — на сайті: **[Довідка → API](https://rombik.ishawyha.dev/developers)**.
+Документація й створення ключа — на сайті: **[Довідка → API](https://rombik.app/developers)**.
 
 ---
 
